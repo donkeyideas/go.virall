@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="100%" stop-color="#312E81"/>
+    </linearGradient>
+    <linearGradient id="chart4" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <!-- Dark rounded square background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg4)"/>
+  <!-- Trending line chart going viral -->
+  <polyline points="80,380 160,350 220,340 270,310 300,250 330,180 350,140 400,100 432,80"
+            stroke="url(#chart4)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Glow effect on the line -->
+  <polyline points="80,380 160,350 220,340 270,310 300,250 330,180 350,140 400,100 432,80"
+            stroke="#A78BFA" stroke-width="50" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.15"/>
+  <!-- Dot at the peak -->
+  <circle cx="432" cy="80" r="18" fill="#A78BFA"/>
+  <circle cx="432" cy="80" r="30" fill="#A78BFA" opacity="0.3"/>
+  <circle cx="432" cy="80" r="44" fill="#A78BFA" opacity="0.12"/>
+  <!-- Small stars/sparkles -->
+  <circle cx="400" cy="140" r="5" fill="white" opacity="0.5"/>
+  <circle cx="440" cy="130" r="4" fill="white" opacity="0.4"/>
+  <circle cx="410" cy="110" r="3" fill="white" opacity="0.3"/>
+</svg>

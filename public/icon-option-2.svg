@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg2)"/>
+  <!-- Stylized "G" made of connected nodes — social graph -->
+  <!-- Main arc of G -->
+  <path d="M310 170 C230 130 150 180 140 260 C130 340 190 400 270 400 C330 400 370 370 370 330 L280 330"
+        stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Network nodes -->
+  <circle cx="316" cy="168" r="22" fill="white"/>
+  <circle cx="280" cy="330" r="22" fill="white"/>
+  <!-- Signal waves emanating from top node -->
+  <path d="M350 140 C370 120 380 100 370 80" stroke="white" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M340 155 C365 140 385 120 385 95" stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M360 130 C375 110 390 90 380 65" stroke="white" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.35"/>
+</svg>

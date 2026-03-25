@@ -1,26 +1,469 @@
 @import "tailwindcss";
 
+/* ================================================================
+   EDITORIAL DESIGN SYSTEM - Go Virall
+   Based on Design 6 (Editorial/Newspaper) mockup
+   ================================================================ */
+
+/* --- LIGHT THEME (default) --- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-surface-cream: #f5f2ed;
+  --color-surface-card: #ffffff;
+  --color-surface-raised: #faf8f5;
+  --color-surface-inset: #f0ede8;
+
+  --color-ink: #1a1a1a;
+  --color-ink-secondary: #555555;
+  --color-ink-muted: #999999;
+  --color-ink-faint: #cccccc;
+
+  --color-editorial-red: #c0392b;
+  --color-editorial-green: #27ae60;
+  --color-editorial-gold: #b8860b;
+  --color-editorial-blue: #2c7be5;
+
+  --color-rule: #dddddd;
+  --color-rule-light: #eeeeee;
+  --color-rule-dark: #1a1a1a;
+
+  --color-background: var(--color-surface-cream);
+  --color-foreground: var(--color-ink);
 }
 
+/* --- DARK THEME (editorial) --- */
+.dark {
+  --color-surface-cream: #0a0a0b;
+  --color-surface-card: #141416;
+  --color-surface-raised: #1a1a1e;
+  --color-surface-inset: #0e0e10;
+
+  --color-ink: #f0ede8;
+  --color-ink-secondary: #b0aca5;
+  --color-ink-muted: #777370;
+  --color-ink-faint: #444240;
+
+  --color-editorial-red: #e74c3c;
+  --color-editorial-green: #2ecc71;
+  --color-editorial-gold: #d4a017;
+  --color-editorial-blue: #5b9cf5;
+
+  --color-rule: #2a2a2e;
+  --color-rule-light: #1e1e22;
+  --color-rule-dark: #f0ede8;
+
+  --color-background: var(--color-surface-cream);
+  --color-foreground: var(--color-ink);
+}
+
+/* ================================================================
+   MODERN DESIGN SYSTEM
+   Dark purple base with gold/green accents, card-based layout
+   ================================================================ */
+
+/* --- MODERN LIGHT THEME --- */
+.modern-view {
+  --color-surface-cream: #f5f3ff;
+  --color-surface-card: #ffffff;
+  --color-surface-raised: #ede9fe;
+  --color-surface-inset: #f0ecff;
+
+  --color-ink: #1e1245;
+  --color-ink-secondary: #5b4d8a;
+  --color-ink-muted: #9b8fbf;
+  --color-ink-faint: #d4cee8;
+
+  --color-editorial-red: #e59420;
+  --color-editorial-green: #22c55e;
+  --color-editorial-gold: #d97706;
+  --color-editorial-blue: #7c3aed;
+
+  --color-rule: rgba(124, 58, 237, 0.08);
+  --color-rule-light: rgba(124, 58, 237, 0.04);
+  --color-rule-dark: rgba(124, 58, 237, 0.18);
+
+  --color-background: var(--color-surface-cream);
+  --color-foreground: var(--color-ink);
+
+  --modern-primary: #e59420;
+  --modern-primary-hover: #d4850d;
+  --modern-purple: #7c3aed;
+  --modern-success: #22c55e;
+  --modern-warning: #d97706;
+  --modern-error: #ef4444;
+  --modern-card-border: rgba(124, 58, 237, 0.08);
+
+  --font-serif: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* --- ADMIN DARK THEME --- */
+.admin-dark {
+  --color-surface-cream: #1a1035;
+  --color-surface-card: #2a1b54;
+  --color-surface-raised: #33225e;
+  --color-surface-inset: #221548;
+
+  --color-ink: #f0ecf8;
+  --color-ink-secondary: #8a7aae;
+  --color-ink-muted: #6b5d8e;
+  --color-ink-faint: #3d2b6e;
+
+  --color-editorial-red: #ffb84d;
+  --color-editorial-green: #4ade80;
+  --color-editorial-gold: #f59e0b;
+  --color-editorial-blue: #8b5cf6;
+
+  --color-rule: rgba(139, 92, 246, 0.12);
+  --color-rule-light: rgba(139, 92, 246, 0.06);
+  --color-rule-dark: rgba(255, 184, 77, 0.15);
+
+  --color-background: var(--color-surface-cream);
+  --color-foreground: var(--color-ink);
+
+  --font-serif: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+.admin-dark .border,
+.admin-dark .border-2 {
+  border-radius: 14px !important;
+}
+
+.admin-dark button,
+.admin-dark input,
+.admin-dark select,
+.admin-dark textarea,
+.admin-dark a.border {
+  border-radius: 8px !important;
+}
+
+.admin-dark .bg-surface-raised {
+  border-radius: 8px !important;
+}
+
+.admin-dark .rounded-full {
+  border-radius: 9999px !important;
+}
+
+.admin-dark,
+.admin-dark * {
+  font-family: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* --- MODERN DARK THEME --- */
+.dark.modern-view {
+  --color-surface-cream: #1a1035;
+  --color-surface-card: #2a1b54;
+  --color-surface-raised: #33225e;
+  --color-surface-inset: #221548;
+
+  --color-ink: #f0ecf8;
+  --color-ink-secondary: #8a7aae;
+  --color-ink-muted: #6b5d8e;
+  --color-ink-faint: #3d2b6e;
+
+  --color-editorial-red: #ffb84d;
+  --color-editorial-green: #4ade80;
+  --color-editorial-gold: #f59e0b;
+  --color-editorial-blue: #8b5cf6;
+
+  --color-rule: rgba(139, 92, 246, 0.08);
+  --color-rule-light: rgba(139, 92, 246, 0.04);
+  --color-rule-dark: rgba(255, 184, 77, 0.15);
+
+  --color-background: var(--color-surface-cream);
+  --color-foreground: var(--color-ink);
+
+  --modern-primary: #ffb84d;
+  --modern-primary-hover: #ffd280;
+  --modern-purple: #8b5cf6;
+  --modern-success: #4ade80;
+  --modern-warning: #f59e0b;
+  --modern-error: #ef4444;
+  --modern-card-border: rgba(139, 92, 246, 0.08);
+
+  --font-serif: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* --- TAILWIND V4 THEME --- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+
+  --color-surface-cream: var(--color-surface-cream);
+  --color-surface-card: var(--color-surface-card);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-surface-inset: var(--color-surface-inset);
+
+  --color-ink: var(--color-ink);
+  --color-ink-secondary: var(--color-ink-secondary);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+
+  --color-editorial-red: var(--color-editorial-red);
+  --color-editorial-green: var(--color-editorial-green);
+  --color-editorial-gold: var(--color-editorial-gold);
+  --color-editorial-blue: var(--color-editorial-blue);
+
+  --color-rule: var(--color-rule);
+  --color-rule-light: var(--color-rule-light);
+  --color-rule-dark: var(--color-rule-dark);
+
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+
+  --color-modern-primary: var(--modern-primary, #e59420);
+  --color-modern-primary-hover: var(--modern-primary-hover, #d4850d);
+  --color-modern-purple: var(--modern-purple, #7c3aed);
+  --color-modern-success: var(--modern-success, #22c55e);
+  --color-modern-warning: var(--modern-warning, #d97706);
+  --color-modern-error: var(--modern-error, #ef4444);
+  --color-modern-card-border: var(--modern-card-border, rgba(124, 58, 237, 0.1));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* --- BASE STYLES --- */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-surface-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+dialog {
+  color: var(--color-ink);
+}
+
+/* --- MODERN VIEW OVERRIDES --- */
+.modern-view,
+.modern-view * {
+  font-family: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* 1. Dropdowns / floating elements (defined first so .border can override) */
+.modern-view .shadow-lg {
+  border-radius: 10px !important;
+}
+
+/* 2. Round all elements with all-side borders (cards, containers, alerts) */
+.modern-view .border,
+.modern-view .border-2 {
+  border-radius: 14px !important;
+}
+
+/* 3. Round ALL interactive elements — even without visible borders */
+.modern-view button,
+.modern-view button.border,
+.modern-view button.border-2,
+.modern-view input,
+.modern-view input.border,
+.modern-view select,
+.modern-view textarea,
+.modern-view a.border,
+.modern-view span.border {
+  border-radius: 8px !important;
+}
+
+/* 4. Round elements with visible contrasting backgrounds (grid cells, status items, badges) */
+.modern-view .bg-surface-raised,
+.modern-view .bg-surface-inset {
+  border-radius: 8px !important;
+}
+
+/* 5. Convert shared-border grids into individual rounded cards */
+.modern-view .grid.border {
+  border: none !important;
+  background: transparent !important;
+  gap: 12px !important;
+  overflow: visible !important;
+}
+
+.modern-view .grid.border > * {
+  border: 1px solid var(--color-rule) !important;
+  border-radius: 14px !important;
+  background: var(--color-surface-card);
+}
+
+/* 6. (reserved) */
+
+/* 7. overflow-hidden containers (bars, progress, stacked charts): rounded */
+.modern-view .overflow-hidden {
+  border-radius: 8px !important;
+}
+
+/* 8. Heatmap cells: slight rounding */
+.modern-view [data-heatmap-cell] {
+  border-radius: 3px !important;
+}
+
+/* 9. Calendar/schedule 7-col grids: gap instead of hard borders */
+.modern-view .grid.grid-cols-7 {
+  gap: 3px !important;
+}
+.modern-view .grid.grid-cols-7 > * {
+  border-right-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+/* 10. Small colored blocks (task items, legend swatches, badges): rounded */
+.modern-view .text-white:not(button) {
+  border-radius: 6px !important;
+}
+
+/* LAST: Preserve circles (must come last to override all above) */
+.modern-view .rounded-full {
+  border-radius: 9999px !important;
+}
+
+/* --- EDITORIAL TYPOGRAPHY --- */
+.editorial-headline {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.editorial-subhead {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.editorial-label {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-editorial-red);
+}
+
+.editorial-overline {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.125em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.data-value {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-secondary);
+}
+
+/* --- EDITORIAL BORDERS --- */
+.border-double-rule {
+  border-top: 4px double var(--color-rule-dark);
+}
+
+.border-single-rule {
+  border-top: 1px solid var(--color-rule);
+}
+
+/* --- SCROLLBAR STYLING --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-faint);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+}
+
+/* --- TRANSITIONS --- */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ================================================================
+   LANDING PAGE — Phone showcase positioning & animation
+   ================================================================ */
+
+/* Phone showcase: 3-phone layout with tilt & hover */
+.lp-phones-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+  height: 680px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.lp-phone {
+  position: absolute;
+  width: 300px;
+  transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.lp-phone:hover { z-index: 10; }
+.lp-phone-1 { left: 0; top: 40px; z-index: 2; transform: rotate(-6deg); }
+.lp-phone-1:hover { transform: rotate(-3deg) translateY(-10px); }
+.lp-phone-2 { left: 50%; top: 0; transform: translateX(-50%); z-index: 3; }
+.lp-phone-2:hover { transform: translateX(-50%) translateY(-10px); }
+.lp-phone-3 { right: 0; top: 40px; z-index: 2; transform: rotate(6deg); }
+.lp-phone-3:hover { transform: rotate(3deg) translateY(-10px); }
+
+/* Card hover effect */
+.lp-card-hover { transition: all 0.3s; }
+.lp-card-hover:hover { transform: translateY(-4px); }
+
+/* Typing animation dots */
+.lp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8A7AAE;
+  display: inline-block;
+  animation: lp-typing 1.4s ease-in-out infinite;
+}
+@keyframes lp-typing {
+  0%,100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Responsive: stack phones vertically */
+@media (max-width: 960px) {
+  .lp-phones-container {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    gap: 40px;
+  }
+  .lp-phone {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+  }
+  .lp-phone:hover { transform: translateY(-10px) !important; }
 }
