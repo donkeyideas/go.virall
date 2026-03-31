@@ -26,6 +26,13 @@ export const metadata: Metadata = {
   title: "Go Virall — Social Intelligence Platform",
   description:
     "Social media analytics, growth strategies, and content intelligence for influencers and creators.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
