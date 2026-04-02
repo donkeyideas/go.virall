@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { ProfileSelector } from "../ProfileSelector";
 import { AddProfileModal } from "../AddProfileModal";
 import { AnalysisStatus } from "../AnalysisStatus";
@@ -32,6 +32,7 @@ import {
   type AnalysisType,
 } from "@/types";
 import { formatCompact } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics/track";
 import { resolveStatsForProfile } from "@/lib/platform-stats";
 
 const STAT_ICONS: Record<string, React.ReactNode> = {
@@ -101,6 +102,10 @@ export function OverviewClient({
   const [synced, setSynced] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  useEffect(() => {
+    trackEvent("page_view", "profiles");
+  }, []);
+
   const selected = profiles.find((p) => p.id === selectedId) ?? null;
 
   const totalAudience = profiles.reduce(
@@ -137,6 +142,7 @@ export function OverviewClient({
   function handleSync() {
     if (!selected) return;
     setSynced(false);
+    trackEvent("profile_sync", "profiles", { platform: selected.platform });
     startSync(async () => {
       await syncSocialProfile(selected.id);
       setSynced(true);

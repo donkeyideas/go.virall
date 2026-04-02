@@ -3,6 +3,9 @@ import { BlogClient } from "./blog-client";
 
 export default async function AdminBlogPage() {
   await requireAdmin();
-  const posts = await getAllPosts("blog");
-  return <BlogClient posts={posts} />;
+  const [blogPosts, guidePosts] = await Promise.all([
+    getAllPosts("blog"),
+    getAllPosts("guide"),
+  ]);
+  return <BlogClient blogPosts={blogPosts} guidePosts={guidePosts} />;
 }

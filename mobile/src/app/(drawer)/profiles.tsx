@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, Pressable, Modal,
-  ActivityIndicator, RefreshControl, Alert,
+  ActivityIndicator, RefreshControl, Alert, Linking,
 } from 'react-native';
 import { TextInput as RNTextInput } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
@@ -14,6 +14,7 @@ import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
 import { formatNumber } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { mobileApi } from '../../lib/api';
+import { trackEvent } from '../../lib/track';
 
 const PLATFORMS: { key: string; label: string; color: string }[] = [
   { key: 'instagram', label: 'Instagram', color: PlatformColors.instagram },
@@ -33,6 +34,8 @@ export default function ProfilesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  useEffect(() => { trackEvent('page_view', 'profiles'); }, []);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [handle, setHandle] = useState('');
   const [adding, setAdding] = useState(false);
@@ -67,12 +70,27 @@ export default function ProfilesScreen() {
     setAdding(true);
     setAddError('');
 
-    const { data, error } = await mobileApi('/api/mobile/profiles', {
+    const { data, error, planLimitReached } = await mobileApi('/api/mobile/profiles', {
       method: 'POST',
       body: { platform: selectedPlatform, handle: handle.trim() },
     });
 
     setAdding(false);
+
+    if (planLimitReached) {
+      setShowAddModal(false);
+      setSelectedPlatform(null);
+      setHandle('');
+      Alert.alert(
+        'Upgrade Required',
+        'You\'ve reached the profile limit on your current plan. Manage your subscription on the web to unlock more.',
+        [
+          { text: 'Not Now', style: 'cancel' },
+          { text: 'Open Website', onPress: () => Linking.openURL('https://govirall.app/dashboard/settings?tab=billing') },
+        ],
+      );
+      return;
+    }
 
     if (error) {
       setAddError(error);

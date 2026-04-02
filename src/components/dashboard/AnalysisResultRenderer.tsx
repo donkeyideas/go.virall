@@ -21,6 +21,18 @@ interface AnalysisResultRendererProps {
 }
 
 export function AnalysisResultRenderer({ type, data, profile }: AnalysisResultRendererProps) {
+  // If the data object is completely empty, show a generic empty state
+  if (!data || Object.keys(data).length === 0) {
+    return (
+      <div className="border border-rule bg-surface-card px-6 py-12 text-center">
+        <p className="font-serif text-sm font-bold text-ink">No data available</p>
+        <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+          The analysis could not produce results for this profile. Try syncing the profile first, then re-run the analysis.
+        </p>
+      </div>
+    );
+  }
+
   switch (type) {
     case "growth":
       return <GrowthResult data={data} />;
@@ -517,7 +529,7 @@ function CompetitorsResult({ data, profile }: { data: Record<string, unknown>; p
       )}
 
       {/* ─── Competitor Rows ─── */}
-      {competitorProfiles.length > 0 && (
+      {competitorProfiles.length > 0 ? (
         <div className="space-y-2">
           {competitorProfiles.map((c, i) => {
             const delta = c.followersCount - yourFollowers;
@@ -558,6 +570,12 @@ function CompetitorsResult({ data, profile }: { data: Record<string, unknown>; p
             );
           })}
         </div>
+      ) : (
+        <Card>
+          <p className="text-xs text-ink-muted">
+            {(analysis.noCompetitorsNote as string) || "Add competitors to your profile to unlock head-to-head benchmarking."}
+          </p>
+        </Card>
       )}
 
       {/* ─── Overview ─── */}
@@ -652,9 +670,13 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
   // New rich format
   const summaryStats = forecast.summaryStats as {
     estMonthly: number; estMonthlyLabel?: string;
-    activeDeals: number; activeDealsPipeline?: string;
-    ytdRevenue: number; ytdDealsCompleted?: number;
-    pending: number; pendingNote?: string;
+    estAnnual?: number; estAnnualLabel?: string;
+    topRevenueSource?: string; topRevenueSourcePct?: number;
+    marketPosition?: string; marketPositionNote?: string;
+    // Legacy fields (backward compat with old cached results)
+    activeDeals?: number; activeDealsPipeline?: string;
+    ytdRevenue?: number; ytdDealsCompleted?: number;
+    pending?: number; pendingNote?: string;
   } | undefined;
   const scenarios = (forecast.scenarios ?? []) as Array<{
     scenario: string;
@@ -671,16 +693,8 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
   }>;
   const rateNote = forecast.rateNote as string | undefined;
   const rateComparison = forecast.rateComparison as string | undefined;
-  const activeDeals = (forecast.activeDeals ?? []) as Array<{
-    brand: string; platform: string; deliverables: string; rate: number;
-    status: string; deadline: string;
-  }>;
   const monetizationFactors = (forecast.monetizationFactors ?? []) as Array<{
     name: string; score: number; note: string;
-  }>;
-  const recentDeals = (forecast.recentDeals ?? []) as Array<{
-    brand: string; platform: string; deliverables: string;
-    amount: number; rating: number; date: string;
   }>;
   const mediaKit = forecast.mediaKit as {
     displayName: string; handle: string; niche: string; bio: string;
@@ -690,30 +704,42 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
   const currentEstimate = forecast.currentEstimate as number | undefined;
   const recommendations = (forecast.recommendations ?? []) as string[];
 
-  const dealStatusStyles: Record<string, string> = {
-    in_progress: "bg-surface-raised text-blue-400",
-    approved: "bg-surface-raised text-editorial-green",
-    negotiating: "bg-surface-raised text-editorial-gold",
-    pending: "bg-surface-raised text-editorial-red",
-  };
-
   const factorBarColor = (s: number) => {
     if (s >= 80) return "bg-editorial-green";
     if (s >= 60) return "bg-editorial-green/70";
     return "bg-editorial-gold";
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={cn("text-[10px]", i < rating ? "text-editorial-gold" : "text-ink-muted/30")}>
-        ★
-      </span>
-    ));
-  };
-
   // Determine optimistic scenario for roadmap header
   const optimisticScenario = scenarios.find(s => s.scenario.toLowerCase().includes("optimistic"));
   const optimisticMonthly = optimisticScenario?.monthlyEarnings;
+
+  // Check if any meaningful section has data
+  const hasMeaningfulData =
+    summaryStats ||
+    scenarios.length > 0 ||
+    revenueBySources.length > 0 ||
+    recommendedRates.length > 0 ||
+    monetizationFactors.length > 0 ||
+    currentEstimate !== undefined;
+
+  if (!hasMeaningfulData) {
+    return (
+      <div className="space-y-4">
+        <div className="border border-rule bg-surface-raised px-4 py-2.5">
+          <p className="text-[10px] text-ink-secondary leading-relaxed">
+            <span className="font-bold text-editorial-gold">Advisory:</span> All earnings projections are estimates based on industry benchmarks and AI analysis. Actual income depends on content quality, consistency, audience demographics, and market conditions.
+          </p>
+        </div>
+        <div className="border border-rule bg-surface-card px-6 py-12 text-center">
+          <p className="font-serif text-sm font-bold text-ink">No forecast data available</p>
+          <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+            The earnings forecast could not generate results for this profile. This may happen if the profile has limited data or the platform is not yet supported for revenue projections. Try re-running the analysis after syncing the profile.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -725,30 +751,30 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
       </div>
 
       {/* ── Summary Stats Row ── */}
-      {summaryStats && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Card className="p-3 border-editorial-green/30">
-            <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Est. Monthly</div>
-            <div className="mt-1 font-serif text-2xl font-bold text-ink">${summaryStats.estMonthly.toLocaleString()}</div>
-            {summaryStats.estMonthlyLabel && <div className="text-[9px] text-ink-muted">{summaryStats.estMonthlyLabel}</div>}
-          </Card>
-          <Card className="p-3">
-            <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Active Deals</div>
-            <div className="mt-1 font-serif text-2xl font-bold text-ink">{summaryStats.activeDeals}</div>
-            {summaryStats.activeDealsPipeline && <div className="text-[9px] text-ink-muted">{summaryStats.activeDealsPipeline}</div>}
-          </Card>
-          <Card className="p-3">
-            <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">YTD Revenue</div>
-            <div className="mt-1 font-serif text-2xl font-bold text-editorial-green">${summaryStats.ytdRevenue.toLocaleString()}</div>
-            {summaryStats.ytdDealsCompleted && <div className="text-[9px] text-ink-muted">{summaryStats.ytdDealsCompleted} deals completed</div>}
-          </Card>
-          <Card className="p-3">
-            <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Pending</div>
-            <div className="mt-1 font-serif text-2xl font-bold text-ink">{summaryStats.pending}</div>
-            {summaryStats.pendingNote && <div className="text-[9px] text-ink-muted">{summaryStats.pendingNote}</div>}
-          </Card>
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Card className="p-3 border-editorial-green/30">
+          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Est. Monthly</div>
+          <div className="mt-1 font-serif text-2xl font-bold text-ink">${(summaryStats?.estMonthly ?? 0).toLocaleString()}</div>
+          {summaryStats?.estMonthlyLabel && <div className="text-[9px] text-ink-muted">{summaryStats.estMonthlyLabel}</div>}
+        </Card>
+        <Card className="p-3">
+          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Est. Annual</div>
+          <div className="mt-1 font-serif text-2xl font-bold text-ink">${(summaryStats?.estAnnual ?? (summaryStats?.estMonthly ? summaryStats.estMonthly * 12 : 0)).toLocaleString()}</div>
+          {summaryStats?.estAnnualLabel && <div className="text-[9px] text-ink-muted">{summaryStats.estAnnualLabel}</div>}
+        </Card>
+        <Card className="p-3">
+          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Top Revenue Source</div>
+          <div className="mt-1 font-serif text-lg font-bold text-editorial-green">{summaryStats?.topRevenueSource ?? revenueBySources[0]?.source ?? "—"}</div>
+          {(summaryStats?.topRevenueSourcePct || revenueBySources[0]?.percentage) && (
+            <div className="text-[9px] text-ink-muted">{summaryStats?.topRevenueSourcePct ?? revenueBySources[0]?.percentage}% of revenue</div>
+          )}
+        </Card>
+        <Card className="p-3">
+          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Market Position</div>
+          <div className="mt-1 font-serif text-lg font-bold text-ink">{summaryStats?.marketPosition ?? "—"}</div>
+          {summaryStats?.marketPositionNote && <div className="text-[9px] text-ink-muted">{summaryStats.marketPositionNote}</div>}
+        </Card>
+      </div>
 
       {/* ── Earnings Forecast (3 Scenarios) ── */}
       {scenarios.length > 0 && (
@@ -833,46 +859,6 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
         )}
       </div>
 
-      {/* ── Active Deals ── */}
-      {activeDeals.length > 0 && (
-        <Card>
-          <SectionTitle>Active Deals</SectionTitle>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-rule text-[9px] font-semibold uppercase tracking-widest text-ink-secondary">
-                  <th className="py-2 pr-3">Brand</th>
-                  <th className="py-2 pr-3">Platform</th>
-                  <th className="py-2 pr-3">Deliverables</th>
-                  <th className="py-2 pr-3">Rate</th>
-                  <th className="py-2 pr-3">Status</th>
-                  <th className="py-2">Deadline</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeDeals.map((deal, i) => (
-                  <tr key={i} className="border-b border-rule/50 last:border-0">
-                    <td className="py-2.5 pr-3 font-serif font-bold text-ink">{deal.brand}</td>
-                    <td className="py-2.5 pr-3 text-[10px] uppercase text-ink-muted">{deal.platform}</td>
-                    <td className="py-2.5 pr-3 text-ink-secondary">{deal.deliverables}</td>
-                    <td className="py-2.5 pr-3 font-mono font-bold text-ink">${deal.rate.toLocaleString()}</td>
-                    <td className="py-2.5 pr-3">
-                      <span className={cn(
-                        "px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider",
-                        dealStatusStyles[deal.status] ?? "bg-surface-raised text-ink-muted",
-                      )}>
-                        {deal.status.replace(/_/g, " ")}
-                      </span>
-                    </td>
-                    <td className="py-2.5 font-mono text-ink-muted">{deal.deadline}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
       {/* ── Monetization Factors ── */}
       {monetizationFactors.length > 0 && (
         <Card>
@@ -891,26 +877,6 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
                   />
                 </div>
                 {f.note && <p className="mt-0.5 text-[9px] text-ink-muted">{f.note}</p>}
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* ── Recent Completed Deals ── */}
-      {recentDeals.length > 0 && (
-        <Card>
-          <SectionTitle>Recent Completed Deals</SectionTitle>
-          <div className="mt-2 space-y-2">
-            {recentDeals.map((deal, i) => (
-              <div key={i} className="flex items-center gap-3 border-b border-rule/50 pb-2 last:border-0">
-                <div className="flex-1">
-                  <span className="font-serif text-sm font-bold text-ink">{deal.brand}</span>
-                  <span className="ml-2 text-[10px] text-ink-muted">{deal.platform} &middot; {deal.deliverables}</span>
-                </div>
-                <span className="font-mono text-sm font-bold text-editorial-green">${deal.amount.toLocaleString()}</span>
-                <span className="flex shrink-0">{renderStars(deal.rating)}</span>
-                <span className="w-14 text-right font-mono text-[10px] text-ink-muted">{deal.date}</span>
               </div>
             ))}
           </div>
@@ -1195,18 +1161,6 @@ function SMOScoreResult({ data }: { data: Record<string, unknown> }) {
     improvement?: string;
   }>;
   const checklist = smo.checklist as { completed: number; total: number; items: Array<{ text: string; done: boolean }> } | undefined;
-  const competitors = (smo.competitors ?? []) as Array<{
-    profile: string;
-    isUser: boolean;
-    smo: number;
-    bio: number;
-    complete: number;
-    consistency: number;
-    engage: number;
-    discovery: number;
-    convert: number;
-  }>;
-  const competitorSummary = smo.competitorSummary as string | undefined;
   const improvementPlan = (smo.improvementPlan ?? []) as Array<{
     week: number;
     title: string;
@@ -1328,56 +1282,7 @@ function SMOScoreResult({ data }: { data: Record<string, unknown> }) {
 
       {/* Profile Optimization Checklist removed — data was AI-generated, not verified */}
 
-      {/* ── Section 4: Competitor Comparison ── */}
-      {competitors.length > 0 && (
-        <div>
-          <h3 className="font-serif text-sm font-bold text-ink mb-3">SMO Score — Competitor Comparison</h3>
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b-2 border-ink text-[9px] font-semibold uppercase tracking-widest text-ink-secondary">
-                    <th className="py-2 pr-3">Profile</th>
-                    <th className="py-2 pr-3">SMO</th>
-                    <th className="py-2 pr-3">Bio</th>
-                    <th className="py-2 pr-3">Complete</th>
-                    <th className="py-2 pr-3">Consistency</th>
-                    <th className="py-2 pr-3">Engage</th>
-                    <th className="py-2 pr-3">Discovery</th>
-                    <th className="py-2">Convert</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {competitors.map((c, i) => (
-                    <tr key={i} className={cn("border-b border-rule", c.isUser && "bg-surface-raised/50")}>
-                      <td className="py-2 pr-3 font-semibold text-ink">
-                        {c.profile}
-                        {c.isUser && (
-                          <span className="ml-1.5 bg-editorial-red px-1 py-0.5 text-[8px] font-bold text-white">
-                            YOU
-                          </span>
-                        )}
-                      </td>
-                      <td className={cn("py-2 pr-3 font-mono font-bold", scoreTextColor(c.smo))}>{c.smo}</td>
-                      <td className="py-2 pr-3 font-mono text-ink-secondary">{c.bio}</td>
-                      <td className="py-2 pr-3 font-mono text-ink-secondary">{c.complete}</td>
-                      <td className="py-2 pr-3 font-mono text-ink-secondary">{c.consistency}</td>
-                      <td className="py-2 pr-3 font-mono text-ink-secondary">{c.engage}</td>
-                      <td className="py-2 pr-3 font-mono text-ink-secondary">{c.discovery}</td>
-                      <td className="py-2 font-mono text-ink-secondary">{c.convert}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {competitorSummary && (
-              <div className="mt-3 border-t border-rule pt-2 text-[10px] text-ink-muted">
-                {competitorSummary}
-              </div>
-            )}
-          </Card>
-        </div>
-      )}
+      {/* Competitor comparison section removed — data was AI-fabricated, not from real tracked competitors */}
 
       {/* ── Section 5: 30-Day SMO Improvement Plan ── */}
       {improvementPlan.length > 0 && (
@@ -1548,6 +1453,12 @@ function AudienceResult({ data, platform }: { data: Record<string, unknown>; pla
 
   return (
     <div className="space-y-4">
+      {/* ── AI Estimation Disclaimer ── */}
+      <div className="border border-rule bg-surface-raised px-4 py-2.5 text-[10px] text-ink-muted">
+        <span className="font-bold uppercase tracking-wider text-ink-secondary">AI-Estimated </span>
+        Demographics, interests, and activity data are estimated by AI based on this creator&apos;s niche, content, and platform norms — not sourced from platform analytics.
+      </div>
+
       {/* ── Section 1: Audience Quality Score ── */}
       {(overallQualityScore > 0 || qualityFactors.length > 0) && (
         <Card>
@@ -1941,18 +1852,6 @@ function formatDollars(n: number): string {
   return `$${n.toLocaleString()}`;
 }
 
-function formatFollowers(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
-  return n.toString();
-}
-
-function matchBadgeColor(pct: number) {
-  if (pct >= 80) return "bg-surface-raised text-editorial-green";
-  if (pct >= 60) return "bg-surface-raised text-editorial-gold";
-  return "bg-surface-raised text-editorial-red";
-}
-
 function NetworkResult({ data }: { data: Record<string, unknown> }) {
   const network = (data.network ?? data) as Record<string, unknown>;
 
@@ -1964,24 +1863,20 @@ function NetworkResult({ data }: { data: Record<string, unknown> }) {
     : typeof scoreObj === "number" ? scoreObj : undefined;
   const scoreBreakdown = isNewFormat ? scoreObj as Record<string, unknown> : null;
 
-  /* ── Brand opportunities ── */
-  const brandOpportunities = (network.brandOpportunities ?? []) as Array<{
-    brandName: string;
+  /* ── Brand categories ── */
+  const brandCategories = (network.brandCategories ?? []) as Array<{
+    category: string;
     matchPercentage: number;
-    targetCreators: string;
-    budgetMin: number;
-    budgetMax: number;
+    why: string;
+    estimatedRateRange: string;
     platform: string;
-    deadline: string;
   }>;
 
-  /* ── Suggested collaborators ── */
-  const suggestedCollaborators = (network.suggestedCollaborators ?? []) as Array<{
-    handle: string;
-    followers: number;
-    niche: string;
-    engagementRate: number;
-    matchReason: string;
+  /* ── Collaboration strategy ── */
+  const collaborationStrategy = (network.collaborationStrategy ?? []) as Array<{
+    type: string;
+    description: string;
+    idealPartnerProfile: string;
   }>;
 
   /* ── Industry benchmarks ── */
@@ -2073,38 +1968,53 @@ function NetworkResult({ data }: { data: Record<string, unknown> }) {
         </Card>
       )}
 
-      {/* Collaboration Opportunities section removed */}
+      {/* ════════════════════════════════════════════
+          BRAND CATEGORIES
+          ════════════════════════════════════════════ */}
+      {brandCategories.length > 0 && (
+        <div>
+          <SectionTitle>Brand Categories That Fit Your Niche</SectionTitle>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {brandCategories.map((b, i) => (
+              <Card key={i} className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="font-serif text-sm font-bold text-ink">{b.category}</h4>
+                  <span className="shrink-0 font-mono text-xs font-bold text-editorial-green">{b.matchPercentage}%</span>
+                </div>
+                <p className="mt-1.5 text-[10px] text-ink-secondary leading-relaxed">{b.why}</p>
+                <div className="mt-3 flex items-center justify-between border-t border-rule pt-2">
+                  <span className="text-[9px] text-ink-muted">{b.platform}</span>
+                  <span className="font-mono text-[10px] font-semibold text-ink">{b.estimatedRateRange}</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ════════════════════════════════════════════
-          SUGGESTED COLLABORATORS
+          COLLABORATION STRATEGY
           ════════════════════════════════════════════ */}
-      {suggestedCollaborators.length > 0 && (
+      {collaborationStrategy.length > 0 && (
         <div>
-          <SectionTitle>Suggested Collaborators</SectionTitle>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {suggestedCollaborators.map((c, i) => {
-              const handle = (c.handle || "").replace(/^@/, "");
-              const initial = (handle || "?").charAt(0).toUpperCase();
-              return (
-                <Card key={i} className="flex flex-col items-center p-4 text-center">
-                  {/* Avatar circle */}
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-rule bg-surface-raised">
-                    <span className="font-serif text-xl font-bold text-ink-muted">{initial}</span>
-                  </div>
-                  <p className="mt-3 text-xs font-bold text-ink">@{handle}</p>
-                  <p className="mt-0.5 text-[10px] text-ink-muted">
-                    {formatFollowers(c.followers)} &middot; {c.niche} &middot; {c.engagementRate}% ER
-                  </p>
-                  <p className="mt-2 flex-1 text-[10px] text-ink-secondary">{c.matchReason}</p>
-                </Card>
-              );
-            })}
+          <SectionTitle>Collaboration Strategy</SectionTitle>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {collaborationStrategy.map((c, i) => (
+              <Card key={i}>
+                <h4 className="font-serif text-sm font-bold text-ink">{c.type}</h4>
+                <p className="mt-1.5 text-xs text-ink-secondary leading-relaxed">{c.description}</p>
+                <div className="mt-3 bg-surface-raised px-3 py-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-ink-muted">Ideal Partner: </span>
+                  <span className="text-[10px] text-ink">{c.idealPartnerProfile}</span>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
       )}
 
       {/* Old format backward compat */}
-      {suggestedCollaborators.length === 0 && oldIdealCollabs.length > 0 && (
+      {collaborationStrategy.length === 0 && oldIdealCollabs.length > 0 && (
         <Card>
           <SectionTitle>Ideal Collaborators</SectionTitle>
           <div className="space-y-2">
@@ -2204,22 +2114,23 @@ function NetworkResult({ data }: { data: Record<string, unknown> }) {
 /* ─── Campaign Ideas ─── */
 
 function CampaignIdeasResult({ data }: { data: Record<string, unknown> }) {
-  // New rich format
-  const summary = data.summary as { activeCampaigns: number; avgROI: string; contentPieces: number; totalReach: string } | undefined;
   const campaigns = (data.campaigns ?? []) as Array<{
     name: string;
-    brand?: string;
-    platforms?: string;
-    dateRange?: string;
-    status?: "on_track" | "outperforming" | "needs_attention";
-    progress?: number;
     type: string;
+    platforms?: string;
     description: string;
+    expectedOutcome?: string;
+    steps: string[];
+    budget: string;
+    duration?: string;
+    // Legacy fields (backward compat with old cached results)
+    brand?: string;
+    dateRange?: string;
+    status?: string;
+    progress?: number;
     timeline?: string;
     expectedROI?: string;
     metrics?: Array<{ label: string; value: string }>;
-    steps: string[];
-    budget: string;
   }>;
   const performanceMatrix = (data.performanceMatrix ?? []) as Array<{
     format: string;
@@ -2227,21 +2138,24 @@ function CampaignIdeasResult({ data }: { data: Record<string, unknown> }) {
     tiktok: number | null;
     youtube: number | null;
   }>;
-  const deliverables = (data.deliverables ?? []) as Array<{
+  const deliverables = (data.deliverables ?? data.weeklyPlan ?? []) as Array<{
     day: string;
     items: Array<{ campaign: string; task: string }>;
   }>;
 
-  // Detect if this is the new rich format or old simple format
-  const isRichFormat = !!summary || campaigns.some(c => c.status || c.metrics);
+  // Legacy detection: old format had status/metrics/summary
+  const isLegacyFormat = campaigns.some(c => c.status || c.metrics);
 
-  if (!campaigns.length) return <RawResult data={data} />;
-
-  const statusStyles: Record<string, { label: string; cls: string }> = {
-    on_track: { label: "On Track", cls: "bg-surface-raised text-editorial-green" },
-    outperforming: { label: "Outperforming", cls: "bg-surface-raised text-editorial-green" },
-    needs_attention: { label: "Needs Attention", cls: "bg-surface-raised text-editorial-red" },
-  };
+  if (!campaigns.length) {
+    return (
+      <div className="border border-rule bg-surface-card px-6 py-12 text-center">
+        <p className="font-serif text-sm font-bold text-ink">No campaign data available</p>
+        <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+          Campaign ideas could not be generated for this profile. Try re-running the analysis after syncing the latest profile data.
+        </p>
+      </div>
+    );
+  }
 
   // Campaign color palette for deliverables
   const campaignColors = ["bg-editorial-red", "bg-editorial-green", "bg-editorial-gold", "bg-blue-500", "bg-purple-500"];
@@ -2255,7 +2169,7 @@ function CampaignIdeasResult({ data }: { data: Record<string, unknown> }) {
   };
 
   // Old format fallback
-  if (!isRichFormat) {
+  if (isLegacyFormat) {
     return (
       <div className="grid gap-4 sm:grid-cols-2">
         {campaigns.map((c, i) => (
@@ -2302,100 +2216,57 @@ function CampaignIdeasResult({ data }: { data: Record<string, unknown> }) {
 
   return (
     <div className="space-y-6">
-      {/* ── Summary Stats ── */}
-      {summary && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {([
-            ["Active Campaigns", String(summary.activeCampaigns)],
-            ["Avg ROI", summary.avgROI],
-            ["Content Pieces", String(summary.contentPieces)],
-            ["Total Reach", summary.totalReach],
-          ] as const).map(([label, value]) => (
-            <Card key={label} className="p-3">
-              <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">{label}</div>
-              <div className="mt-1 font-serif text-2xl font-bold text-editorial-green">{value}</div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* ── Active Campaign Cards ── */}
+      {/* ── Campaign Idea Cards ── */}
       <div className="space-y-4">
-        {campaigns.map((c, i) => {
-          const st = statusStyles[c.status ?? ""] ?? { label: c.status ?? "", cls: "bg-surface-raised text-ink-muted" };
-          return (
-            <Card key={i} className="p-5">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-serif text-base font-bold text-ink">{c.name}</h3>
-                  <p className="mt-0.5 text-[10px] text-ink-muted">
-                    {[c.brand, c.platforms, c.dateRange].filter(Boolean).join(" \u2022 ")}
-                  </p>
-                </div>
-                {c.status && (
-                  <span className={cn("shrink-0 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider", st.cls)}>
-                    {st.label}
-                  </span>
-                )}
+        {campaigns.map((c, i) => (
+          <Card key={i} className="p-5">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-serif text-base font-bold text-ink">{c.name}</h3>
+                <p className="mt-0.5 text-[10px] text-ink-muted">
+                  {[c.platforms, c.duration].filter(Boolean).join(" \u2022 ")}
+                </p>
               </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="shrink-0 bg-surface-raised px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-ink-muted">
+                  {c.type?.replace(/_/g, " ")}
+                </span>
+                <span className="shrink-0 bg-surface-raised px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-editorial-gold">
+                  {c.budget}
+                </span>
+              </div>
+            </div>
 
-              {/* Progress bar */}
-              {typeof c.progress === "number" && (
-                <div className="mt-3">
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-[10px] text-ink-muted">Progress</span>
-                    <span className="font-mono text-xs font-bold text-ink">{c.progress}%</span>
-                  </div>
-                  <div className="h-1.5 w-full overflow-hidden bg-surface-raised">
-                    <div
-                      className={cn(
-                        "h-full transition-all",
-                        c.progress >= 60 ? "bg-editorial-green" : c.progress >= 40 ? "bg-editorial-gold" : "bg-editorial-red",
-                      )}
-                      style={{ width: `${c.progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+            {/* Description */}
+            {c.description && (
+              <p className="mt-3 text-xs text-ink-secondary leading-relaxed">{c.description}</p>
+            )}
 
-              {/* Metrics grid */}
-              {c.metrics && c.metrics.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {c.metrics.map((m, mi) => (
-                    <div key={mi}>
-                      <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">{m.label}</div>
-                      <div className="mt-0.5 font-serif text-lg font-bold text-ink">{m.value}</div>
-                    </div>
+            {/* Expected outcome */}
+            {c.expectedOutcome && (
+              <div className="mt-3 bg-surface-raised px-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-ink-muted">Expected Outcome: </span>
+                <span className="text-[10px] text-editorial-green">{c.expectedOutcome}</span>
+              </div>
+            )}
+
+            {/* Steps */}
+            {c.steps?.length > 0 && (
+              <div className="mt-3 border-t border-rule pt-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-ink-muted">Implementation Steps</span>
+                <ol className="mt-1 space-y-0.5">
+                  {c.steps.map((step, j) => (
+                    <li key={j} className="flex gap-1.5 text-[10px] text-ink-secondary">
+                      <span className="shrink-0 text-ink-muted">{j + 1}.</span>
+                      {step}
+                    </li>
                   ))}
-                </div>
-              )}
-
-              {/* Description + Steps (expandable) */}
-              {c.description && (
-                <p className="mt-3 text-xs text-ink-secondary leading-relaxed">{c.description}</p>
-              )}
-              {c.steps?.length > 0 && (
-                <div className="mt-3 border-t border-rule pt-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-ink-muted">Steps</span>
-                  <ol className="mt-1 space-y-0.5">
-                    {c.steps.map((step, j) => (
-                      <li key={j} className="flex gap-1.5 text-[10px] text-ink-secondary">
-                        <span className="shrink-0 text-ink-muted">{j + 1}.</span>
-                        {step}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-              {c.expectedROI && (
-                <div className="mt-2 bg-surface-raised px-2 py-1">
-                  <span className="text-[10px] text-editorial-green">{c.expectedROI}</span>
-                </div>
-              )}
-            </Card>
-          );
-        })}
+                </ol>
+              </div>
+            )}
+          </Card>
+        ))}
       </div>
 
       {/* ── Content Performance Matrix ── */}
@@ -2445,10 +2316,10 @@ function CampaignIdeasResult({ data }: { data: Record<string, unknown> }) {
         </Card>
       )}
 
-      {/* ── This Week's Deliverables ── */}
+      {/* ── Suggested Weekly Plan ── */}
       {deliverables.length > 0 && (
         <Card>
-          <SectionTitle>This Week&apos;s Deliverables</SectionTitle>
+          <SectionTitle>Suggested Weekly Plan</SectionTitle>
           <div className="grid grid-cols-7 gap-1">
             {/* Day headers */}
             {deliverables.map((d, i) => (

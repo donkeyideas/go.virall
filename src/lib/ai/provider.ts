@@ -123,6 +123,73 @@ async function getAIConfigs(): Promise<AIConfig[]> {
 const PROVIDER_ORDER = ["deepseek", "openai", "anthropic", "gemini"] as const;
 
 /**
+ * Send a chat completion using a specific BYOK (Bring Your Own Key) config.
+ * Falls back to system providers if the BYOK call fails.
+ */
+export async function aiChatWithBYOK(
+  prompt: string,
+  byok: { provider: string; apiKey: string; model: string | null },
+  options: {
+    temperature?: number;
+    maxTokens?: number;
+    timeout?: number;
+  } = {},
+): Promise<AIResponse | null> {
+  const { temperature = 0.7, maxTokens = 2048, timeout = 60000 } = options;
+  const start = Date.now();
+
+  try {
+    let callResult: AICallResult;
+    const providerName = byok.provider;
+
+    if (providerName === "gemini" || providerName === "google") {
+      callResult = await callGemini(byok.apiKey, prompt, temperature, maxTokens, timeout, false);
+    } else if (providerName === "anthropic") {
+      callResult = await callAnthropic(byok.apiKey, prompt, temperature, maxTokens, timeout);
+    } else {
+      const baseUrl = providerName === "deepseek"
+        ? "https://api.deepseek.com"
+        : "https://api.openai.com/v1";
+      const model = byok.model || (providerName === "deepseek" ? "deepseek-chat" : "gpt-4o");
+      callResult = await callOpenAICompatible(baseUrl, byok.apiKey, model, prompt, temperature, maxTokens, timeout, false);
+    }
+
+    logAPICall({
+      provider: `byok_${providerName}`,
+      endpoint: "/chat/completions",
+      status_code: 200,
+      response_time_ms: Date.now() - start,
+      tokens_used: callResult.prompt_tokens + callResult.completion_tokens,
+      is_success: true,
+    });
+
+    if (callResult.text) {
+      const cleaned = callResult.text
+        .replace(/<think>[\s\S]*?<\/think>/gi, "")
+        .replace(/^\uFEFF/, "")
+        .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "")
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+        .trim();
+      return { text: cleaned, provider: `byok_${providerName}` };
+    }
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.warn(`[aiChatWithBYOK] ${byok.provider} failed: ${errMsg}, falling back to system providers`);
+    logAPICall({
+      provider: `byok_${byok.provider}`,
+      endpoint: "/chat/completions",
+      status_code: 500,
+      response_time_ms: Date.now() - start,
+      is_success: false,
+      error_message: errMsg,
+    });
+  }
+
+  // Fallback to system providers
+  return aiChat(prompt, { temperature, maxTokens, timeout });
+}
+
+/**
  * Send a chat completion to the best available AI provider.
  */
 export async function aiChat(

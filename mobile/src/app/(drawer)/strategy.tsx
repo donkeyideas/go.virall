@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,20 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  Pressable,
+  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, BorderRadius } from '../../constants/theme';
 import { TabPills } from '../../components/ui/TabPills';
 import { Card } from '../../components/ui/Card';
+import { ProfileSelector } from '../../components/ui/ProfileSelector';
 import { SectionTitle } from '../../components/ui/SectionTitle';
+import { AnalysisModal } from '../../components/ui/AnalysisModal';
+import { trackEvent } from '../../lib/track';
 
 function parseResult(result: any): any {
   if (!result) return null;
@@ -32,29 +38,38 @@ const ANALYSIS_TYPES = ['growth', 'content_strategy', 'thirty_day_plan', 'hashta
 export default function StrategyScreen() {
   const { colors } = useTheme();
   const { organization } = useAuth();
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [analyses, setAnalyses] = useState<Record<string, any>>({});
+
+  useEffect(() => { trackEvent('page_view', 'strategy'); }, []);
+  const [bestProfileId, setBestProfileId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [profileLabel, setProfileLabel] = useState('');
+  const [profiles, setProfiles] = useState<{id: string; platform: string; username: string}[]>([]);
 
   const loadData = useCallback(async () => {
     if (!organization?.id) return;
 
     const { data: profs } = await supabase
       .from('social_profiles')
-      .select('id')
+      .select('id, platform, handle')
       .eq('organization_id', organization.id)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .order('followers_count', { ascending: false });
 
     if (!profs || profs.length === 0) return;
 
-    const profileId = profs[0].id;
+    setBestProfileId(profs[0].id);
+    setProfileLabel(`@${profs[0].handle || 'unknown'} (${profs[0].platform.charAt(0).toUpperCase() + profs[0].platform.slice(1)})`);
+    setProfiles(profs.map((p: any) => ({ id: p.id, platform: p.platform, username: p.handle || 'unknown' })));
+    const profileIds = profs.map((p: any) => p.id);
 
     const { data } = await supabase
       .from('social_analyses')
       .select('*')
-      .eq('social_profile_id', profileId)
+      .in('social_profile_id', profileIds)
       .in('analysis_type', ANALYSIS_TYPES)
       .order('created_at', { ascending: false });
 
@@ -80,6 +95,40 @@ export default function StrategyScreen() {
     setRefreshing(false);
   }, [loadData]);
 
+  const onProfileSelect = useCallback((id: string | null) => {
+    if (profiles.length === 0) return;
+    const prof = id ? profiles.find(p => p.id === id) : profiles[0];
+    if (prof) {
+      setBestProfileId(prof.id);
+      setProfileLabel(`@${prof.username} (${prof.platform.charAt(0).toUpperCase() + prof.platform.slice(1)})`);
+    }
+  }, [profiles]);
+
+  const currentType = ANALYSIS_TYPES[activeTab];
+  const data = analyses[currentType];
+
+  const handleRunAnalysis = useCallback(() => {
+    if (!bestProfileId) {
+      Alert.alert('No Profile', 'Connect a social profile first.');
+      return;
+    }
+    setShowModal(true);
+  }, [bestProfileId]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Strategy',
+      headerRight: () => (
+        <Pressable
+          onPress={handleRunAnalysis}
+          style={[styles.runBtnSmall, { backgroundColor: colors.primary, marginRight: 16 }]}
+        >
+          <Text style={styles.runBtnSmallText} numberOfLines={1}>RUN</Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation, handleRunAnalysis, colors.primary]);
+
   if (loading) {
     return (
       <View style={[styles.loader, { backgroundColor: colors.background }]}>
@@ -88,14 +137,17 @@ export default function StrategyScreen() {
     );
   }
 
-  const currentType = ANALYSIS_TYPES[activeTab];
-  const data = analyses[currentType];
-
   const renderEmpty = () => (
     <Card>
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-        No data available. Run this analysis from the web dashboard.
+        No data available. Tap the button below to generate.
       </Text>
+      <Pressable
+        onPress={handleRunAnalysis}
+        style={[styles.runBtn, { backgroundColor: colors.primary }]}
+      >
+        <Text style={styles.runBtnText}>RUN ANALYSIS</Text>
+      </Pressable>
     </Card>
   );
 
@@ -226,6 +278,7 @@ export default function StrategyScreen() {
   };
 
   return (
+    <>
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={styles.content}
@@ -233,9 +286,23 @@ export default function StrategyScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
       }
     >
+      {profiles.length > 1 && (
+        <ProfileSelector profiles={profiles} selectedId={bestProfileId} onSelect={onProfileSelect} />
+      )}
       <TabPills tabs={TABS} activeIndex={activeTab} onSelect={setActiveTab} />
       {renderContent()}
     </ScrollView>
+    {bestProfileId && (
+      <AnalysisModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onComplete={loadData}
+        profileId={bestProfileId}
+        profileLabel={profileLabel}
+        analysisType={currentType}
+      />
+    )}
+    </>
   );
 }
 
@@ -313,5 +380,38 @@ const styles = StyleSheet.create({
   hashtagText: {
     fontSize: FontSize.sm,
     fontWeight: '600',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  runBtn: {
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing.lg,
+    minHeight: 48,
+  },
+  runBtnText: {
+    fontSize: FontSize.sm,
+    fontWeight: '800',
+    color: '#1A1035',
+    letterSpacing: 1.5,
+  },
+  runBtnSmall: {
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 36,
+  },
+  runBtnSmallText: {
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+    color: '#1A1035',
+    letterSpacing: 1,
   },
 });

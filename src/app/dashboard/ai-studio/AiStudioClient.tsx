@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ContentGenerator } from "@/components/dashboard/ContentGenerator";
 import { RunAnalysisTab } from "@/components/dashboard/RunAnalysisTab";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics/track";
 import type { SocialProfile } from "@/types";
 
 interface AiStudioClientProps {
@@ -25,6 +27,10 @@ export function AiStudioClient({
   const pathname = usePathname();
 
   const activeKey = searchParams.get("tab") || "content";
+
+  useEffect(() => {
+    trackEvent("page_view", "ai-studio");
+  }, []);
 
   function switchTab(key: string) {
     const params = new URLSearchParams(searchParams.toString());

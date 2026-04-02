@@ -215,6 +215,7 @@ export async function createPost(data: {
   if (error) return { error: error.message };
 
   revalidatePath("/admin/blog");
+  revalidatePath("/blog");
   return { success: true };
 }
 
@@ -241,6 +242,7 @@ export async function updatePost(
   if (error) return { error: error.message };
 
   revalidatePath("/admin/blog");
+  revalidatePath("/blog");
   return { success: true };
 }
 
@@ -252,6 +254,7 @@ export async function deletePost(id: string) {
   if (error) return { error: error.message };
 
   revalidatePath("/admin/blog");
+  revalidatePath("/blog");
   return { success: true };
 }
 
@@ -556,6 +559,7 @@ export async function updateSiteContent(
     .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/admin/content");
+  revalidatePath("/");
   return { success: true };
 }
 
@@ -577,7 +581,138 @@ export async function createSiteContent(data: {
 
   if (error) return { error: error.message };
   revalidatePath("/admin/content");
+  revalidatePath("/");
   return { success: true };
+}
+
+export async function deleteSiteContent(id: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("site_content").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/admin/content");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function seedHomepageContent() {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  // Check if content already exists for page="home"
+  const { count } = await admin
+    .from("site_content")
+    .select("id", { count: "exact", head: true })
+    .eq("page", "home");
+
+  if ((count ?? 0) > 0) {
+    return { error: "Homepage content already exists. Delete existing content first." };
+  }
+
+  const { HOMEPAGE_DEFAULTS } = await import("@/lib/content/defaults");
+
+  const rows = Object.entries(HOMEPAGE_DEFAULTS).map(
+    ([section, { content, sort_order }]) => ({
+      page: "home",
+      section,
+      content,
+      sort_order,
+      is_active: true,
+    }),
+  );
+
+  const { error } = await admin.from("site_content").insert(rows);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/content");
+  revalidatePath("/");
+  return { success: true };
+}
+
+// ============================================================
+// AI Blog Generation
+// ============================================================
+
+export async function generateBlogWithAI(
+  title: string,
+  type: "blog" | "guide" = "blog",
+  backlink?: string,
+): Promise<{ error: string } | { content: string; excerpt: string; tags: string[] }> {
+  await requireAdmin();
+
+  if (!title.trim()) return { error: "Title is required." };
+
+  const { aiChat } = await import("@/lib/ai/provider");
+
+  const backlinkInstruction = backlink
+    ? `\n\nIMPORTANT — Backlink Integration:\nNaturally weave this URL into the content with a contextually relevant, keyword-rich anchor text: ${backlink}\nFormat it as: <a href="${backlink}" target="_blank" rel="dofollow">descriptive anchor text</a>\nMake it read naturally — do NOT force it.`
+    : "";
+
+  const typeLabel = type === "guide" ? "comprehensive guide" : "blog post";
+
+  const prompt = `You are an expert content writer for Go Virall, a social intelligence platform that helps influencers and creators grow their social media presence with data-driven strategies and smart insights.
+
+Write a high-quality, SEO-optimized ${typeLabel} titled: "${title}"
+
+Requirements:
+1. Output ONLY clean HTML — no markdown, no code fences, no preamble
+2. Use proper HTML tags: <h2>, <h3>, <p>, <strong>, <em>, <ul>, <ol>, <li>, <a>, <blockquote>
+3. Do NOT use <h1> (the title is rendered separately)
+4. Target length: 1500-2500 words
+5. Write in an engaging, authoritative tone suitable for social media creators and influencers
+6. Include 3-5 internal links to Go Virall pages (use these paths: /features, /pricing, /blog, /#how-it-works, /#platforms, /#faq)
+7. Include 2-4 external links to authoritative sources (e.g., HubSpot, Sprout Social, Hootsuite, Later, Buffer)
+8. Use subheadings (<h2>, <h3>) to break up content for scannability
+9. Include actionable tips, statistics where relevant, and real-world examples
+10. Optimize for featured snippets with clear, concise answers to common questions${backlinkInstruction}
+
+After the HTML content, add this EXACT separator and metadata:
+
+---METADATA---
+EXCERPT: [Write a compelling 150-160 character meta description]
+TAGS: [3-5 comma-separated relevant tags]`;
+
+  const result = await aiChat(prompt, {
+    temperature: 0.7,
+    maxTokens: 4096,
+    timeout: 300_000, // 5 minutes
+  });
+
+  if (!result?.text) {
+    return { error: "AI generation failed. Check that an AI provider key is configured." };
+  }
+
+  let content = result.text;
+  let excerpt = "";
+  let tags: string[] = [];
+
+  // Parse metadata section
+  const metaSplit = content.split("---METADATA---");
+  if (metaSplit.length >= 2) {
+    content = metaSplit[0].trim();
+    const meta = metaSplit[1];
+    const excerptMatch = meta.match(/EXCERPT:\s*(.+)/i);
+    if (excerptMatch) excerpt = excerptMatch[1].trim();
+    const tagsMatch = meta.match(/TAGS:\s*(.+)/i);
+    if (tagsMatch) {
+      tags = tagsMatch[1]
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+  }
+
+  // Clean up any markdown that leaked through
+  content = content
+    .replace(/```html?\n?/g, "")
+    .replace(/```\n?/g, "")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .trim();
+
+  return { content, excerpt, tags };
 }
 
 // ============================================================

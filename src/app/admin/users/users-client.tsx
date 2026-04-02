@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import { Search, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { updateUserRole } from "@/lib/actions/admin";
 import type { UserRow } from "@/types";
@@ -287,9 +287,8 @@ export function UsersClient({ users }: { users: UserRow[] }) {
               filtered.map((user) => {
                 const isExpanded = expandedId === user.id;
                 return (
-                  <>
+                  <React.Fragment key={user.id}>
                     <tr
-                      key={user.id}
                       onClick={() =>
                         setExpandedId(isExpanded ? null : user.id)
                       }
@@ -335,7 +334,7 @@ export function UsersClient({ users }: { users: UserRow[] }) {
                         isPending={isPending}
                       />
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })
             )}

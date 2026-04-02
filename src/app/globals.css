@@ -436,6 +436,12 @@ dialog {
 .lp-card-hover { transition: all 0.3s; }
 .lp-card-hover:hover { transform: translateY(-4px); }
 
+/* Connect button hover */
+.lp-connect-hover:hover { background: #FFB84D !important; color: #1A1035 !important; border-color: #FFB84D !important; }
+
+/* FAQ summary arrow hide default */
+details summary::-webkit-details-marker { display: none; }
+
 /* Typing animation dots */
 .lp-dot {
   width: 6px;

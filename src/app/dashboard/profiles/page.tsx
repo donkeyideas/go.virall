@@ -36,20 +36,22 @@ export default async function ProfilesPage() {
     }
   }
 
-  // Fetch analysis status for ALL profiles
+  // Fetch analysis status for ALL profiles in parallel
   const analysisStatusMap: Record<
     string,
     Record<string, { hasData: boolean; createdAt: string | null }>
   > = {};
 
-  for (const profile of profiles) {
-    try {
-      const status = await getAnalysisStatus(profile.id);
-      if (status) {
-        analysisStatusMap[profile.id] = status;
-      }
-    } catch {
-      // continue
+  const statusResults = await Promise.all(
+    profiles.map((profile) =>
+      getAnalysisStatus(profile.id).catch(() => null),
+    ),
+  );
+
+  for (let i = 0; i < profiles.length; i++) {
+    const status = statusResults[i];
+    if (status) {
+      analysisStatusMap[profiles[i].id] = status;
     }
   }
 

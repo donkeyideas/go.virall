@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { runRecommendations } from "@/lib/actions/analyses";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics/track";
 import type { SocialProfile, AnalysisType } from "@/types";
 
 /* ─── Types ─── */
@@ -624,6 +625,7 @@ function RecommendationsRenderer({
           <h3 className="mb-3 flex items-center gap-2 font-serif text-sm font-bold text-ink">
             <TrendingUp size={14} className="text-editorial-green" />
             Growth Projections
+            <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider text-ink-muted">AI-Projected</span>
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
             {["thirtyDay", "ninetyDay"].map((key) => {
@@ -711,6 +713,10 @@ export function RecommendationsClient({
     ? analysisStatus[selectedId] ?? ({} as Record<AnalysisType, { hasData: boolean; createdAt: string | null }>)
     : ({} as Record<AnalysisType, { hasData: boolean; createdAt: string | null }>);
 
+  useEffect(() => {
+    trackEvent("page_view", "recommendations");
+  }, []);
+
   function handleGenerate() {
     if (!selectedId) return;
     setError(null);
@@ -720,6 +726,7 @@ export function RecommendationsClient({
         setError(result.error);
       } else if (result.data) {
         setResultData(result.data);
+        trackEvent("recommendations_generated", "recommendations");
       }
     });
   }

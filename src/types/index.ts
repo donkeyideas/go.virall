@@ -483,6 +483,72 @@ export interface APICallLog {
   created_at: string;
 }
 
+// --- Chat ---
+
+export interface ChatConversation {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  metadata: {
+    provider?: string;
+    model?: string;
+    tokens?: number;
+    cost_usd?: number;
+  } | null;
+  created_at: string;
+}
+
+// --- BYOK (Bring Your Own Key) ---
+
+export type AIProvider = "openai" | "anthropic" | "google" | "deepseek";
+
+export interface UserApiKey {
+  id: string;
+  user_id: string;
+  provider: AIProvider;
+  api_key_encrypted: string;
+  model_preference: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+// --- User Events (Admin Analytics) ---
+
+export interface UserEvent {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  event_type: string;
+  screen: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface PlatformBenchmark {
+  id: string;
+  platform: string;
+  niche: string | null;
+  follower_bracket: string;
+  avg_engagement_rate: number | null;
+  avg_follower_growth: number | null;
+  avg_posts_per_week: number | null;
+  top_content_types: Record<string, unknown> | null;
+  top_hashtags: Record<string, unknown> | null;
+  avg_earnings_monthly: number | null;
+  sample_size: number;
+  computed_at: string;
+}
+
 // --- Platform Display Config ---
 
 export const PLATFORM_CONFIG: Record<

@@ -4,7 +4,8 @@ import Svg, { Path } from 'react-native-svg';
 export type MenuIconName =
   | 'overview' | 'profiles' | 'analytics' | 'ai-studio' | 'schedule'
   | 'strategy' | 'intelligence' | 'monetization' | 'smo-score'
-  | 'recommendations' | 'goals' | 'settings' | 'profile' | 'menu' | 'signout';
+  | 'recommendations' | 'goals' | 'settings' | 'profile' | 'menu' | 'signout'
+  | 'chat';
 
 const paths: Record<MenuIconName, string> = {
   overview: 'M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z',
@@ -22,6 +23,7 @@ const paths: Record<MenuIconName, string> = {
   profile: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
   menu: 'M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z',
   signout: 'M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z',
+  chat: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z',
 };
 
 interface MenuIconProps {

@@ -1,5 +1,23 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, Sun, Users, CreditCard, CheckCircle, Activity, Check } from "lucide-react";
+import { ArrowRight, BarChart3, Sun, Users, CreditCard, CheckCircle, Activity, Check, Shield, Lock, Eye, Clock } from "lucide-react";
+import { JsonLd } from "../../components/marketing/JsonLd";
+import { MarketingNav } from "../../components/marketing/Nav";
+import { MarketingFooter } from "../../components/marketing/Footer";
+import { getHomepageContent } from "@/lib/dal/public";
+import { HOMEPAGE_DEFAULTS } from "@/lib/content/defaults";
+import type {
+  HeroContent,
+  TrustSignalsContent,
+  AboutContent,
+  PlatformsContent,
+  HowItWorksContent,
+  FeaturesContent,
+  TestimonialsContent,
+  PricingContent,
+  FaqContent,
+  CtaContent,
+  FooterContent,
+} from "@/types/site-content";
 
 /* ─── Color constants ─── */
 const C = {
@@ -18,6 +36,12 @@ const C = {
 } as const;
 
 const font = "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+
+/* ─── Icon map for dynamic feature icons ─── */
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
+  BarChart3, Sun, Users, CreditCard, CheckCircle, Activity,
+  Eye, Lock, Clock, Shield,
+};
 
 /* ─── Platform SVG Icons ─── */
 function InstagramIcon({ size = 40 }: { size?: number }) {
@@ -56,7 +80,7 @@ function LinkedInIcon({ size = 40 }: { size?: number }) {
   );
 }
 
-/* ─── Data ─── */
+/* ─── Static data (not editable from CMS) ─── */
 const PLATFORMS = [
   { name: "Instagram", icon: InstagramIcon, bg: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" },
   { name: "TikTok", icon: TikTokIcon, bg: "#000" },
@@ -65,25 +89,36 @@ const PLATFORMS = [
   { name: "LinkedIn", icon: LinkedInIcon, bg: "#0A66C2" },
 ];
 
-const FEATURES = [
-  { icon: BarChart3, title: "Deep Analytics", desc: "Track every metric across every platform in real-time. Understand what drives engagement and revenue with granular data breakdowns." },
-  { icon: Sun, title: "AI Content Strategist", desc: "Get personalized content recommendations, optimal posting times, and AI-generated captions tuned to your unique brand voice." },
-  { icon: Users, title: "Audience Intelligence", desc: "Know your audience better than they know themselves. Demographic breakdowns, interest mapping, and behavioral predictions." },
-  { icon: CreditCard, title: "Revenue Tracking", desc: "Monitor sponsorship deals, affiliate revenue, and product sales in one unified dashboard. Never miss a payment again." },
-  { icon: CheckCircle, title: "Viral Score Predictor", desc: "Our AI analyzes your content before you post and predicts its viral potential with 89% accuracy. Post with confidence." },
-  { icon: Activity, title: "Trend Detection", desc: "Catch trends before they peak. Our algorithm scans millions of data points to surface emerging topics in your niche." },
-];
-
-const PRICING = [
-  { tier: "Free", price: "$0", desc: "Perfect for creators just getting started with data-driven content.", features: ["1 connected platform", "10 AI analyses per month", "5 content generations", "5 AI chat messages per day"], cta: "Get Started Free", primary: false, recommended: false },
-  { tier: "Creator", price: "$29", desc: "For serious creators ready to accelerate their growth trajectory.", features: ["10 connected platforms", "200 AI analyses per month", "Real-time AI strategist", "Heat map scheduling", "Brand voice training"], cta: "Start Free Trial", primary: true, recommended: true },
-  { tier: "Pro", price: "$59", desc: "For power creators and growing teams managing multiple brands.", features: ["30 connected platforms", "1,000 AI analyses per month", "Unlimited brand deals CRM", "5 media kits + link pages", "Custom API access"], cta: "Start Free Trial", primary: false, recommended: false },
-];
+/* ─── Content helper ─── */
+function getSection<T>(contentMap: Map<string, Record<string, unknown>>, section: string): T {
+  const dbContent = contentMap.get(section);
+  if (dbContent) return dbContent as T;
+  const fallback = HOMEPAGE_DEFAULTS[section as keyof typeof HOMEPAGE_DEFAULTS];
+  return (fallback?.content ?? {}) as T;
+}
 
 /* ─── Page ─── */
-export default function HomePage() {
+export default async function HomePage() {
+  const dbContent = await getHomepageContent();
+  const contentMap = new Map<string, Record<string, unknown>>();
+  for (const row of dbContent) {
+    contentMap.set(row.section, row.content);
+  }
+
+  const hero = getSection<HeroContent>(contentMap, "hero");
+  const trustSignals = getSection<TrustSignalsContent>(contentMap, "trust_signals");
+  const aboutContent = getSection<AboutContent>(contentMap, "about");
+  const platformsContent = getSection<PlatformsContent>(contentMap, "platforms");
+  const howItWorks = getSection<HowItWorksContent>(contentMap, "how_it_works");
+  const featuresContent = getSection<FeaturesContent>(contentMap, "features");
+  const testimonialsContent = getSection<TestimonialsContent>(contentMap, "testimonials");
+  const pricingContent = getSection<PricingContent>(contentMap, "pricing");
+  const faqContent = getSection<FaqContent>(contentMap, "faq");
+  const ctaContent = getSection<CtaContent>(contentMap, "cta");
+  const footerContent = getSection<FooterContent>(contentMap, "footer");
+
   return (
-    <div
+    <main
       style={{
         fontFamily: font,
         background: C.bg,
@@ -93,95 +128,13 @@ export default function HomePage() {
         minHeight: "100vh",
       }}
     >
-      {/* ═══ NAV ═══ */}
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          background: "rgba(26,16,53,0.92)",
-          backdropFilter: "blur(20px)",
-          borderBottom: `1px solid ${C.border}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "0 40px",
-            height: 72,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Link
-            href="/"
-            style={{
-              fontWeight: 800,
-              fontSize: 24,
-              color: C.primary,
-              letterSpacing: -0.5,
-              textDecoration: "none",
-            }}
-          >
-            Go<span style={{ color: C.textSecondary }}>Viral</span>
-          </Link>
-          <div className="hidden md:flex" style={{ gap: 36, alignItems: "center" }}>
-            {[
-              { label: "Home", href: "/", active: true },
-              { label: "Features", href: "#features" },
-              { label: "Pricing", href: "#pricing" },
-              { label: "Dashboard", href: "/dashboard" },
-            ].map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                style={{
-                  color: link.active ? C.primary : C.textSecondary,
-                  textDecoration: "none",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  letterSpacing: 0.3,
-                }}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href="/login"
-              style={{
-                color: C.textSecondary,
-                textDecoration: "none",
-                fontSize: 14,
-                fontWeight: 500,
-                letterSpacing: 0.3,
-              }}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              style={{
-                background: C.primary,
-                color: C.bg,
-                padding: "10px 24px",
-                borderRadius: 8,
-                fontWeight: 700,
-                fontSize: 14,
-                textDecoration: "none",
-              }}
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <JsonLd faqItems={faqContent.items} />
+      <MarketingNav />
 
       {/* ═══ HERO ═══ */}
       <section
+        id="hero"
+        aria-label="Go Virall hero"
         style={{
           padding: "160px 40px 80px",
           maxWidth: 1280,
@@ -204,7 +157,7 @@ export default function HomePage() {
             marginBottom: 40,
           }}
         >
-          Social Intelligence Platform
+          {hero.badge}
         </div>
         <h1
           style={{
@@ -216,9 +169,9 @@ export default function HomePage() {
             marginBottom: 32,
           }}
         >
-          STOP GUESSING.
+          {hero.heading_line1}
           <br />
-          <span style={{ color: C.primary }}>START GROWING.</span>
+          <span style={{ color: C.primary }}>{hero.heading_line2}</span>
         </h1>
         <p
           style={{
@@ -230,8 +183,7 @@ export default function HomePage() {
             fontWeight: 400,
           }}
         >
-          The social intelligence platform that turns raw data into
-          viral content strategies. Built for creators who refuse to be average.
+          {hero.subheading}
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
           <Link
@@ -249,35 +201,48 @@ export default function HomePage() {
               gap: 8,
             }}
           >
-            Start Free Trial <ArrowRight size={18} />
+            {hero.cta_text} <ArrowRight size={18} />
           </Link>
-          <a
-            href="#features"
-            style={{
-              background: "transparent",
-              color: C.text,
-              padding: "16px 40px",
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: 16,
-              textDecoration: "none",
-              border: "2px solid rgba(255,184,77,0.3)",
-            }}
-          >
-            Watch Demo
-          </a>
+        </div>
+        <p style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>
+          {hero.cta_subtitle}
+        </p>
+      </section>
+
+      {/* ═══ TRUST BAR ═══ */}
+      <section aria-label="Trust signals" style={{ maxWidth: 900, margin: "0 auto", padding: "0 40px 60px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
+          {trustSignals.items.map((item) => {
+            const IconComp = ICON_MAP[item.icon];
+            return (
+              <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8, color: C.textSecondary, fontSize: 13, fontWeight: 500 }}>
+                {IconComp && <IconComp size={16} />}
+                {item.text}
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* ═══ PHONE SHOWCASE ═══ */}
       <PhoneShowcase />
 
+      {/* ═══ WHAT IS GO VIRALL? — GEO definition block ═══ */}
+      <section id="about" aria-label="About Go Virall" style={{ padding: "80px 40px", maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+        <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, letterSpacing: -1, marginBottom: 24, textTransform: "uppercase" }}>
+          {aboutContent.title_prefix} <span style={{ color: C.primary }}>{aboutContent.title_highlight}</span>?
+        </h2>
+        <p style={{ fontSize: 18, color: C.textSecondary, lineHeight: 1.8 }}>
+          {aboutContent.body}
+        </p>
+      </section>
+
       {/* ═══ CONNECT PLATFORMS ═══ */}
-      <section id="connect" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
+      <section id="platforms" aria-label="Supported platforms" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
         <SectionHeader
-          label="Integrations"
-          title={<>CONNECT YOUR PLATFORMS<br />IN SECONDS</>}
-          sub="Link your social accounts and start getting actionable insights immediately."
+          label={platformsContent.label}
+          title={<>{platformsContent.title_line1}<br />{platformsContent.title_line2}</>}
+          sub={platformsContent.subtitle}
         />
         <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginBottom: 32 }}>
           {PLATFORMS.map((p) => (
@@ -334,16 +299,34 @@ export default function HomePage() {
           ))}
         </div>
         <p style={{ fontSize: 14, color: C.textSecondary, textAlign: "center", letterSpacing: 0.2 }}>
-          Secure OAuth connection &middot; Read-only access &middot; Disconnect anytime
+          {platformsContent.footnote}
         </p>
       </section>
 
-      {/* ═══ FEATURES ═══ */}
-      <section id="features" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section id="how-it-works" aria-label="How Go Virall works" style={{ padding: "100px 40px", maxWidth: 1080, margin: "0 auto" }}>
         <SectionHeader
-          label="Features"
-          title={<>YOUR UNFAIR<br />ADVANTAGE</>}
-          sub="Every tool you need to dominate social media, powered by artificial intelligence that never sleeps."
+          label={howItWorks.label}
+          title={<>{howItWorks.title_line1}<br />{howItWorks.title_line2}</>}
+          sub={howItWorks.subtitle}
+        />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 32 }}>
+          {howItWorks.steps.map((s, i) => (
+            <article key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 36, textAlign: "center" }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 24, fontWeight: 800, color: C.bg }}>{i + 1}</div>
+              <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12, letterSpacing: -0.5 }}>{s.title}</h3>
+              <p style={{ fontSize: 15, color: C.textSecondary, lineHeight: 1.7 }}>{s.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ FEATURES ═══ */}
+      <section id="features" aria-label="Platform features" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
+        <SectionHeader
+          label={featuresContent.label}
+          title={<>{featuresContent.title_line1}<br />{featuresContent.title_line2}</>}
+          sub={featuresContent.subtitle}
         />
         <div
           style={{
@@ -352,50 +335,74 @@ export default function HomePage() {
             gap: 24,
           }}
         >
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="lp-card-hover"
-              style={{
-                background: C.card,
-                border: `1px solid ${C.border}`,
-                borderRadius: 16,
-                padding: 36,
-                transition: "all 0.3s",
-              }}
-            >
+          {featuresContent.items.map((f) => {
+            const IconComp = ICON_MAP[f.icon] || BarChart3;
+            return (
               <div
+                key={f.title}
+                className="lp-card-hover"
                 style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 14,
-                  background: "rgba(255,184,77,0.12)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 20,
-                  color: C.primary,
+                  background: C.card,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 16,
+                  padding: 36,
+                  transition: "all 0.3s",
                 }}
               >
-                <f.icon size={24} />
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 14,
+                    background: "rgba(255,184,77,0.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 20,
+                    color: C.primary,
+                  }}
+                >
+                  <IconComp size={24} />
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 10, letterSpacing: -0.5 }}>
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: 15, color: C.textSecondary, lineHeight: 1.7 }}>
+                  {f.description}
+                </p>
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 10, letterSpacing: -0.5 }}>
-                {f.title}
-              </h3>
-              <p style={{ fontSize: 15, color: C.textSecondary, lineHeight: 1.7 }}>
-                {f.desc}
-              </p>
-            </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ═══ TESTIMONIALS ═══ */}
+      <section id="testimonials" aria-label="Creator testimonials" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
+        <SectionHeader
+          label={testimonialsContent.label}
+          title={<>{testimonialsContent.title_line1}<br />{testimonialsContent.title_line2}</>}
+          sub={testimonialsContent.subtitle}
+        />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+          {testimonialsContent.items.map((t) => (
+            <article key={t.name} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 36 }}>
+              <div style={{ fontSize: 32, color: C.primary, marginBottom: 16, lineHeight: 1 }}>&ldquo;</div>
+              <p style={{ fontSize: 15, color: C.textSecondary, lineHeight: 1.7, marginBottom: 24 }}>{t.quote}</p>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{t.name}</div>
+                <div style={{ fontSize: 13, color: C.textSecondary }}>{t.handle} &middot; {t.platform}</div>
+              </div>
+            </article>
           ))}
         </div>
       </section>
 
       {/* ═══ PRICING ═══ */}
-      <section id="pricing" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
+      <section id="pricing" aria-label="Pricing plans" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
         <SectionHeader
-          label="Pricing"
-          title={<>INVEST IN<br />YOUR GROWTH</>}
-          sub="No hidden fees. No contracts. Cancel anytime. Start free and scale when you are ready."
+          label={pricingContent.label}
+          title={<>{pricingContent.title_line1}<br />{pricingContent.title_line2}</>}
+          sub={pricingContent.subtitle}
         />
         <div
           style={{
@@ -406,13 +413,13 @@ export default function HomePage() {
             margin: "0 auto",
           }}
         >
-          {PRICING.map((plan) => (
+          {pricingContent.tiers.map((plan) => (
             <div
               key={plan.tier}
               className="lp-card-hover"
               style={{
-                background: plan.recommended ? C.cardElevated : C.card,
-                border: plan.recommended
+                background: plan.is_recommended ? C.cardElevated : C.card,
+                border: plan.is_recommended
                   ? `2px solid ${C.primary}`
                   : `1px solid ${C.border}`,
                 borderRadius: 20,
@@ -421,7 +428,7 @@ export default function HomePage() {
                 transition: "all 0.3s",
               }}
             >
-              {plan.recommended && (
+              {plan.is_recommended && (
                 <div
                   style={{
                     position: "absolute",
@@ -457,7 +464,7 @@ export default function HomePage() {
                 <span style={{ fontSize: 16, color: C.textSecondary, fontWeight: 500 }}>/mo</span>
               </div>
               <p style={{ fontSize: 14, color: C.textSecondary, marginBottom: 28, lineHeight: 1.6 }}>
-                {plan.desc}
+                {plan.description}
               </p>
               <ul style={{ listStyle: "none", marginBottom: 32, padding: 0 }}>
                 {plan.features.map((feat) => (
@@ -491,7 +498,7 @@ export default function HomePage() {
                   textDecoration: "none",
                   border: "none",
                   boxSizing: "border-box",
-                  ...(plan.primary
+                  ...(plan.is_primary
                     ? { background: C.primary, color: C.bg }
                     : {
                         background: "transparent",
@@ -500,22 +507,59 @@ export default function HomePage() {
                       }),
                 }}
               >
-                {plan.cta}
+                {plan.cta_text}
               </Link>
             </div>
           ))}
         </div>
         <p style={{ textAlign: "center", marginTop: 32, fontSize: 14, color: C.textSecondary }}>
-          Need more? See all 5 plans on our{" "}
-          <Link href="/signup" style={{ color: C.primary, textDecoration: "none", fontWeight: 600 }}>
-            full pricing page
-          </Link>
-          . Annual billing saves 20%.
+          {pricingContent.footnote}
         </p>
       </section>
 
+      {/* ═══ FAQ ═══ */}
+      <section id="faq" aria-label="Frequently asked questions" style={{ padding: "100px 40px", maxWidth: 800, margin: "0 auto" }}>
+        <SectionHeader
+          label={faqContent.label}
+          title={<>{faqContent.title_line1}<br />{faqContent.title_line2}</>}
+          sub={faqContent.subtitle}
+        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {faqContent.items.map((item) => (
+            <details
+              key={item.question}
+              style={{
+                background: C.card,
+                border: `1px solid ${C.border}`,
+                borderRadius: 14,
+                overflow: "hidden",
+              }}
+            >
+              <summary
+                style={{
+                  padding: "20px 24px",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  listStyle: "none",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{item.question}</h3>
+                <span style={{ color: C.primary, fontSize: 20, fontWeight: 300, flexShrink: 0, marginLeft: 16 }}>+</span>
+              </summary>
+              <p style={{ padding: "0 24px 20px", fontSize: 15, color: C.textSecondary, lineHeight: 1.8, margin: 0 }}>
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* ═══ CTA ═══ */}
-      <section style={{ padding: "100px 40px", textAlign: "center" }}>
+      <section id="cta" aria-label="Call to action" style={{ padding: "100px 40px", textAlign: "center" }}>
         <div
           style={{
             maxWidth: 800,
@@ -550,10 +594,10 @@ export default function HomePage() {
               position: "relative",
             }}
           >
-            READY TO GO <span style={{ color: C.primary }}>VIRAL</span>?
+            {ctaContent.heading_prefix} <span style={{ color: C.primary }}>{ctaContent.heading_highlight}</span>?
           </h2>
           <p style={{ fontSize: 18, color: C.textSecondary, marginBottom: 40, position: "relative" }}>
-            Join 12,000+ creators who stopped guessing and started growing.
+            {ctaContent.subheading}
           </p>
           <Link
             href="/signup"
@@ -571,111 +615,14 @@ export default function HomePage() {
               position: "relative",
             }}
           >
-            Start Your Free Trial
+            {ctaContent.button_text}
           </Link>
         </div>
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer
-        style={{
-          background: C.surface,
-          borderTop: "1px solid rgba(139,92,246,0.1)",
-          padding: "60px 40px 30px",
-        }}
-      >
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-            style={{ gap: 40, marginBottom: 40 }}
-          >
-            <div>
-              <span
-                style={{
-                  fontWeight: 800,
-                  fontSize: 22,
-                  color: C.primary,
-                  display: "block",
-                  marginBottom: 12,
-                }}
-              >
-                Go<span style={{ color: C.textSecondary }}>Viral</span>
-              </span>
-              <p style={{ fontSize: 14, color: C.textSecondary, lineHeight: 1.7, maxWidth: 280 }}>
-                The social intelligence platform that transforms creators into
-                cultural forces. Data-driven strategies, powerful insights.
-              </p>
-            </div>
-            {[
-              {
-                title: "Product",
-                links: ["Analytics", "AI Strategist", "Content Tools", "Revenue Tracking", "Pricing"],
-              },
-              {
-                title: "Company",
-                links: ["About", "Careers", "Blog", "Press"],
-              },
-              {
-                title: "Support",
-                links: ["Help Center", "API Docs", "Status", "Contact"],
-              },
-            ].map((col) => (
-              <div key={col.title}>
-                <h4
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    color: C.textSecondary,
-                    marginBottom: 16,
-                  }}
-                >
-                  {col.title}
-                </h4>
-                {col.links.map((link) => (
-                  <a
-                    key={link}
-                    href="#"
-                    style={{
-                      display: "block",
-                      fontSize: 14,
-                      color: C.textSecondary,
-                      textDecoration: "none",
-                      padding: "4px 0",
-                    }}
-                  >
-                    {link}
-                  </a>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div
-            style={{
-              borderTop: "1px solid rgba(139,92,246,0.08)",
-              paddingTop: 24,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 12,
-            }}
-          >
-            <p style={{ fontSize: 13, color: C.textSecondary }}>&copy; 2026 Go Virall. All rights reserved.</p>
-            <p>
-              <a href="#" style={{ color: C.textSecondary, textDecoration: "none", fontSize: 13 }}>
-                Privacy
-              </a>
-              &nbsp;&nbsp;
-              <a href="#" style={{ color: C.textSecondary, textDecoration: "none", fontSize: 13 }}>
-                Terms
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <MarketingFooter content={footerContent} />
+    </main>
   );
 }
 
@@ -794,7 +741,7 @@ function PhoneShowcase() {
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "space-around", padding: "12px 0 4px", borderTop: "1px solid rgba(139,92,246,0.1)", marginTop: 8 }}>
-              {["Home", "Analytics", "Create", "AI Chat"].map((n, i) => (
+              {["Home", "Analytics", "Create", "Chat"].map((n, i) => (
                 <div key={n} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, fontSize: 8, color: i === 0 ? C.primary : C.textSecondary, fontWeight: 600 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     {i === 0 && <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />}
@@ -873,20 +820,20 @@ function PhoneShowcase() {
             <div style={{ padding: "12px 14px" }}>
               <div style={{ fontSize: 12, fontWeight: 800, padding: "8px 0", textTransform: "uppercase", letterSpacing: 0.5 }}>Platform Split</div>
               {[
-                { name: "Instagram", pct: 56, bg: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" },
-                { name: "TikTok", pct: 28, bg: "#000" },
-                { name: "YouTube", pct: 16, bg: "#FF0000" },
+                { name: "Instagram", pct: 56, color: "#E1306C", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#E1306C"/><path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#E1306C"/><circle cx="18.406" cy="5.594" r="1.44" fill="#E1306C"/></svg> },
+                { name: "TikTok", pct: 28, color: "#fff", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.84 4.84 0 01-1-.15z" fill="#fff"/></svg> },
+                { name: "YouTube", pct: 16, color: "#FF0000", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#FF0000"/></svg> },
               ].map((p) => (
                 <div key={p.name} style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
                     <span style={{ fontWeight: 600, color: C.text, display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ display: "inline-block", width: 18, height: 18, borderRadius: 4, background: p.bg }} />
+                      {p.icon}
                       {p.name}
                     </span>
-                    <span style={{ color: C.primary, fontWeight: 700 }}>{p.pct}%</span>
+                    <span style={{ color: p.color, fontWeight: 700 }}>{p.pct}%</span>
                   </div>
                   <div style={{ height: 6, background: "rgba(139,92,246,0.12)", borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg,${C.primary},${C.secondary})`, width: `${p.pct}%` }} />
+                    <div style={{ height: "100%", borderRadius: 3, background: p.color, width: `${p.pct}%` }} />
                   </div>
                 </div>
               ))}
@@ -894,7 +841,7 @@ function PhoneShowcase() {
           </PhoneFrame>
         </div>
 
-        {/* Phone 3: AI Chat */}
+        {/* Phone 3: Smart Chat */}
         <div className="lp-phone lp-phone-3">
           <PhoneFrame screenStyle={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", borderBottom: "1px solid rgba(139,92,246,0.1)" }}>
@@ -902,7 +849,7 @@ function PhoneShowcase() {
                 <Sun size={18} color="white" />
               </div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>AI Strategist</div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>Smart Strategist</div>
                 <div style={{ fontSize: 10, color: C.success, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.success, display: "inline-block" }} />
                   Online
@@ -940,7 +887,7 @@ function PhoneShowcase() {
             </div>
             <div style={{ display: "flex", gap: 8, padding: "12px 14px", borderTop: "1px solid rgba(139,92,246,0.1)" }}>
               <div style={{ flex: 1, background: C.card, border: "1px solid rgba(139,92,246,0.15)", borderRadius: 22, padding: "10px 16px", fontSize: 11, color: C.textSecondary }}>
-                Ask your AI strategist...
+                Ask your strategist...
               </div>
               <div style={{ width: 38, height: 38, borderRadius: "50%", background: C.primary, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg viewBox="0 0 24 24" fill={C.bg} stroke="none" width="16" height="16">

@@ -264,14 +264,32 @@ function extractBrandBrief(
 ): BriefItem | null {
   if (data) {
     const network = (data.network ?? data) as Record<string, unknown>;
+
+    // New format: brandCategories
+    const brandCats = (network.brandCategories ?? []) as Array<{
+      category: string;
+      matchPercentage: number;
+    }>;
+    if (brandCats.length > 0) {
+      return {
+        category: "BRAND INSIGHT",
+        headline: `${brandCats.length} Brand Categories Match Your Niche`,
+        body: `Top categories: ${brandCats
+          .slice(0, 3)
+          .map((b) => `${b.category} (${b.matchPercentage}%)`)
+          .join(", ")}`,
+      };
+    }
+
+    // Legacy format: brandOpportunities (old cached results)
     const brandOpps = (network.brandOpportunities ?? []) as Array<{
       brandName: string;
       matchPercentage: number;
     }>;
     if (brandOpps.length > 0) {
       return {
-        category: "BRAND ALERT",
-        headline: `${brandOpps.length} Brand Partnership Opportunities`,
+        category: "BRAND INSIGHT",
+        headline: `${brandOpps.length} Brand Categories Identified`,
         body: `Top matches: ${brandOpps
           .slice(0, 3)
           .map((b) => `${b.brandName} (${b.matchPercentage}%)`)

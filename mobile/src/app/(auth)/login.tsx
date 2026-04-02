@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Pressable, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, Link } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { TextInput } from '../../components/ui/TextInput';
-import { Button } from '../../components/ui/Button';
-import { Divider } from '../../components/ui/Divider';
 import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { signIn } = useAuth();
+  const { signIn, signInWithProvider } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
 
   const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
@@ -27,7 +27,18 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert('Sign In Failed', error);
     } else {
-      router.replace('/(tabs)');
+      router.replace('/(drawer)');
+    }
+  };
+
+  const handleOAuth = async (provider: 'google' | 'apple') => {
+    setOauthLoading(provider);
+    const { error } = await signInWithProvider(provider);
+    setOauthLoading(null);
+    if (error) {
+      Alert.alert('Sign In Failed', error);
+    } else {
+      router.replace('/(drawer)');
     }
   };
 
@@ -38,10 +49,51 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+          <Image
+            source={require('../../../assets/images/logo-glow.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Sign in to your Go Virall account
+            Sign in to your dashboard
           </Text>
+        </View>
+
+        <View style={styles.socialRow}>
+          <Pressable
+            onPress={() => handleOAuth('google')}
+            disabled={oauthLoading !== null}
+            style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border, opacity: oauthLoading === 'apple' ? 0.5 : 1 }]}
+          >
+            {oauthLoading === 'google' ? (
+              <ActivityIndicator size="small" color={colors.text} />
+            ) : (
+              <View style={styles.socialInner}>
+                <Ionicons name="logo-google" size={18} color={colors.text} />
+                <Text style={[styles.socialText, { color: colors.text }]}>Google</Text>
+              </View>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => handleOAuth('apple')}
+            disabled={oauthLoading !== null}
+            style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border, opacity: oauthLoading === 'google' ? 0.5 : 1 }]}
+          >
+            {oauthLoading === 'apple' ? (
+              <ActivityIndicator size="small" color={colors.text} />
+            ) : (
+              <View style={styles.socialInner}>
+                <Ionicons name="logo-apple" size={20} color={colors.text} />
+                <Text style={[styles.socialText, { color: colors.text }]}>Apple</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
+
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textMuted }]}>or continue with email</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
         </View>
 
         <View style={styles.form}>
@@ -60,17 +112,14 @@ export default function LoginScreen() {
             onChangeText={setPassword}
             secureTextEntry
           />
-          <Button title="Sign In" onPress={handleSignIn} loading={loading} />
-        </View>
-
-        <Divider />
-
-        <View style={styles.social}>
-          <Pressable style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}>
-            <Text style={[styles.socialText, { color: colors.text }]}>Continue with Google</Text>
-          </Pressable>
-          <Pressable style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}>
-            <Text style={[styles.socialText, { color: colors.text }]}>Continue with Apple</Text>
+          <Pressable
+            onPress={handleSignIn}
+            disabled={loading}
+            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
+          >
+            <Text style={[styles.primaryBtnText, { color: '#1A1035' }]}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Text>
           </Pressable>
         </View>
 
@@ -80,7 +129,7 @@ export default function LoginScreen() {
           </Text>
           <Link href="/(auth)/signup" asChild>
             <Pressable>
-              <Text style={[styles.link, { color: colors.primary }]}>Sign Up</Text>
+              <Text style={[styles.link, { color: colors.primary }]}>Sign up</Text>
             </Pressable>
           </Link>
         </View>
@@ -93,16 +142,17 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: Spacing.xxl,
-    paddingTop: 80,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   header: {
-    gap: Spacing.sm,
+    alignItems: 'center',
+    gap: Spacing.md,
     marginBottom: Spacing.xxxl,
   },
-  title: {
-    fontSize: FontSize.title,
-    fontWeight: '800',
+  logo: {
+    width: 200,
+    height: 60,
   },
   subtitle: {
     fontSize: FontSize.md,
@@ -110,10 +160,13 @@ const styles = StyleSheet.create({
   form: {
     gap: Spacing.lg,
   },
-  social: {
+  socialRow: {
+    flexDirection: 'row',
     gap: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   socialBtn: {
+    flex: 1,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     paddingVertical: Spacing.md,
@@ -121,9 +174,38 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
   },
+  socialInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   socialText: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.sm,
     fontWeight: '600',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: FontSize.sm,
+  },
+  primaryBtn: {
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',

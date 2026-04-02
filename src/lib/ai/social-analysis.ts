@@ -155,30 +155,29 @@ For each hashtag include:
 
 Respond in valid JSON: { "hashtags": [...] }`,
 
-  competitors: (input) => `You are a competitive intelligence analyst for social media. Analyze the competitive landscape and identify real competitors.
+  competitors: (input) => `You are a competitive intelligence analyst for social media. Analyze the competitive landscape for this creator.
 
 PROFILE:
 ${profileSummary(input.profile)}
 
-COMPETITORS:
+TRACKED COMPETITORS (from user's actual data):
 ${competitorsSummary(input.competitors)}
 
-Provide a comprehensive competitive analysis with:
+Provide a competitive analysis based ONLY on the tracked competitors above. Do NOT invent or fabricate competitor profiles. If no competitors are tracked, set competitorProfiles to an empty array and focus on the SWOT analysis based on the creator's own profile data.
 
-1. overview: 2-3 sentence summary of competitive position
+Return this JSON:
+{
+  "analysis": {
+    "overview": "2-3 sentence summary of competitive position",
+    "competitorProfiles": [only include competitors from TRACKED COMPETITORS above, with: { "handle": string, "displayName": string, "niche": string, "followersCount": number, "engagementRate": number }],
+    "strengths": ["4 competitive advantages based on profile data"],
+    "weaknesses": ["4 areas to improve based on profile data"],
+    "opportunities": ["4 market gaps to exploit based on niche analysis"],
+    "noCompetitorsNote": "If no competitors tracked, include a string suggesting the user add competitors to track for deeper analysis. Otherwise omit this field."
+  }
+}
 
-2. competitorProfiles: Array of 4-5 competitor accounts (real or realistic for the niche) with:
-   - handle: their @handle (realistic for the niche)
-   - displayName: their display name
-   - niche: their content niche (1-2 words uppercase, e.g. "FASHION", "TRAVEL FASHION", "LIFESTYLE")
-   - followersCount: estimated follower count (number)
-   - engagementRate: estimated engagement rate (number, e.g. 4.2)
-
-3. strengths: Array of 4 competitive advantages (strings)
-4. weaknesses: Array of 4 areas where competitors outperform (strings)
-5. opportunities: Array of 4 market gaps to exploit (strings)
-
-Respond in valid JSON: { "analysis": { "overview": "...", "competitorProfiles": [{ "handle": "...", "displayName": "...", "niche": "...", "followersCount": number, "engagementRate": number }], "strengths": [...], "weaknesses": [...], "opportunities": [...] } }`,
+IMPORTANT: Only include real competitor data from the TRACKED COMPETITORS section. Never fabricate competitor handles or stats. Respond ONLY with valid JSON.`,
 
   insights: (input) => `You are an AI social media strategist. Provide deep strategic insights for this creator.
 
@@ -216,12 +215,12 @@ Return this JSON structure:
     "summaryStats": {
       "estMonthly": number (estimated monthly earnings USD, use the realistic scenario value),
       "estMonthlyLabel": string (e.g. "Realistic scenario"),
-      "activeDeals": number,
-      "activeDealsPipeline": string (e.g. "$25,700 pipeline"),
-      "ytdRevenue": number,
-      "ytdDealsCompleted": number,
-      "pending": number,
-      "pendingNote": string (e.g. "In negotiation")
+      "estAnnual": number (estimated annual earnings),
+      "estAnnualLabel": string (e.g. "Projected yearly"),
+      "topRevenueSource": string (e.g. "Brand Sponsorships"),
+      "topRevenueSourcePct": number (percentage, e.g. 65),
+      "marketPosition": string (e.g. "Top 5% in niche" or "Above average"),
+      "marketPositionNote": string (brief explanation)
     },
     "scenarios": [
       {
@@ -239,14 +238,8 @@ Return this JSON structure:
     ],
     "rateNote": string (e.g. "Based on 284.5K followers, 4.8% ER, Lifestyle niche"),
     "rateComparison": "above" | "at" | "below" (market average comparison),
-    "activeDeals": [
-      { "brand": string, "platform": string, "deliverables": string, "rate": number, "status": "in_progress" | "approved" | "negotiating" | "pending", "deadline": string (e.g. "Mar 28") }
-    ],
     "monetizationFactors": [
       { "name": string, "score": number (0-100), "note": string (brief explanation) }
-    ],
-    "recentDeals": [
-      { "brand": string, "platform": string, "deliverables": string, "amount": number, "rating": number (1-5), "date": string (e.g. "Mar 10") }
     ],
     "mediaKit": {
       "displayName": string,
@@ -266,7 +259,7 @@ Return this JSON structure:
   }
 }
 
-Generate 3 earnings forecast scenarios (Conservative, Realistic, Optimistic). Include 5 revenue sources, 6 recommended content rates, 4 active deals, 5 monetization factors with scores, 5 recent completed deals, and a media kit summary. The optimistic roadmap should have 5 specific action steps.
+Generate 3 earnings forecast scenarios (Conservative, Realistic, Optimistic). Include 5 revenue sources, 6 recommended content rates, 5 monetization factors with scores, and a media kit summary. The optimistic roadmap should have 5 specific action steps. Do NOT include activeDeals or recentDeals — those come from user-tracked data, not AI projections.
 
 IMPORTANT: Respond ONLY with valid, complete JSON. No markdown, no explanation.`,
 
@@ -340,20 +333,6 @@ Return this JSON structure:
         { "text": string, "done": boolean }
       ]
     },
-    "competitors": [
-      {
-        "profile": string (handle),
-        "isUser": boolean,
-        "smo": number,
-        "bio": number,
-        "complete": number,
-        "consistency": number,
-        "engage": number,
-        "discovery": number,
-        "convert": number
-      }
-    ],
-    "competitorSummary": string (comparison vs top competitor, e.g. "vs. top competitor (@handle): -7 overall, -6 Bio, -5 Complete"),
     "improvementPlan": [
       {
         "week": number (1-4),
@@ -367,7 +346,7 @@ Return this JSON structure:
 
 For the checklist, include 12 profile optimization items (e.g. "Professional profile picture", "Bio includes primary keywords", "Bio includes value proposition", "Bio includes clear CTA", "Link-in-bio is active and current", etc.).
 
-For competitors, generate 4-5 estimated competitor profiles in the same niche with realistic scores. Mark the user's profile with "isUser": true.
+Do NOT include a "competitors" array — competitor comparison data should only come from real tracked competitors, not AI-fabricated profiles.
 
 For the 30-Day plan, create 4 weekly phases with specific actionable steps.
 
@@ -428,17 +407,20 @@ Return this JSON structure:
   }
 }
 
-For growthQuality.chartData, provide 30 daily data points for the last 30 days. "organic" = estimated organic follower growth count that day, "paid" = estimated paid/referred follower growth that day. Use realistic numbers that trend upward with natural variation. Use short date format like "Mar 1", "Mar 2", etc.
+IMPORTANT ACCURACY RULES:
+- ALL demographic data (age, gender, location, interests, activity heatmap) is AI-ESTIMATED based on the creator's niche, content, and platform. It is NOT sourced from real platform analytics.
+- For growthQuality.chartData: Use ACTUAL metrics data provided above if available. If no metrics data exists, set chartData to an empty array — do NOT fabricate daily growth numbers.
+- For activityHeatmap: Estimate based on the creator's niche and platform norms. These are AI-suggested optimal times, not real audience activity data.
+- For interests: Estimate based on content niche — these are inferred interests, not confirmed data.
+- For topCountries and topCities: Estimate based on content language, niche, and platform demographics. Include 5 each.
 
 For activityHeatmap.data, provide 7 days (MON-SUN). Each "hours" array has 24 values (0-100 activity level, one per hour 12am-11pm).
 
 For interests, include 6-8 interests with estimated affinity percentages, sorted by highest first.
 
-For topCountries and topCities, include 5 each.
-
 IMPORTANT: Respond ONLY with valid, complete JSON. No markdown, no explanation.`,
 
-  network: (input) => `You are a creator networking specialist and brand partnership strategist. Analyze this creator's network influence and generate actionable collaboration opportunities.
+  network: (input) => `You are a creator networking specialist. Analyze this creator's network influence and provide strategic networking advice.
 
 PROFILE:
 ${profileSummary(input.profile)}
@@ -449,7 +431,7 @@ ${competitorsSummary(input.competitors)}
 Generate the following sections:
 
 1. influenceScore: Object with:
-   - overall: 0-100 overall influence score
+   - overall: 0-100 overall influence score (AI-estimated based on profile metrics)
    - contentQuality: 0-100
    - audienceTrust: 0-100
    - brandSafety: 0-100
@@ -459,34 +441,32 @@ Generate the following sections:
    - tier: one of "ELITE CREATOR", "TOP CREATOR", "RISING STAR", "EMERGING", "NEWCOMER"
    - category: the creator's primary niche/category
 
-2. brandOpportunities: Array of 3 brand partnership opportunities with:
-   - brandName: A real brand name that matches this creator's niche
+2. brandCategories: Array of 3 brand CATEGORIES (not specific brands) that align with this creator's niche:
+   - category: brand category name (e.g. "Athleisure & Fitness Apparel", "Health Supplements", "Tech Gadgets")
    - matchPercentage: 0-100 compatibility score
-   - targetCreators: brief description of what creators they target (e.g. "Beauty/Lifestyle creators, 200K+ followers")
-   - budgetMin: estimated minimum deal value in dollars
-   - budgetMax: estimated maximum deal value in dollars
-   - platform: which platform the campaign would be on
-   - deadline: a realistic upcoming date (YYYY-MM-DD format, within next 30 days)
+   - why: why this category aligns with the creator
+   - estimatedRateRange: string (e.g. "$500-$2,000 per post") — estimated rate for this creator tier, NOT a specific deal
+   - platform: which platform would work best
 
-3. suggestedCollaborators: Array of 4 creator profiles to collaborate with:
-   - handle: a realistic but fictional creator handle
-   - followers: estimated follower count (number)
-   - niche: their content niche
-   - engagementRate: estimated ER (number, e.g. 4.5)
-   - matchReason: brief reason why they're a good match (e.g. "Similar audience overlap: 34%", "Complementary niche")
+3. collaborationStrategy: Array of 4 collaboration TYPES to pursue (not specific people):
+   - type: collaboration type (e.g. "Cross-niche collab with fitness creators", "Podcast guest appearances", "Brand ambassador programs", "UGC partnerships")
+   - description: 2-3 sentence explanation of the strategy
+   - idealPartnerProfile: what kind of creator to look for (e.g. "10K-50K followers in wellness niche with 5%+ engagement")
 
 4. industryBenchmarks: Array of 4 benchmark comparisons:
-   - metric: metric name (e.g. "Engagement Rate", "Story View Rate", "Sponsor Rate / Post", "Growth Rate / Month")
-   - yourValue: this creator's estimated value (number)
-   - average: industry average for their tier (number)
+   - metric: metric name (e.g. "Engagement Rate", "Story View Rate", "Growth Rate / Month")
+   - yourValue: this creator's value from actual profile data (number)
+   - average: estimated industry average for their tier (number)
    - unit: "%" or "$" or ""
    - delta: percentage difference vs average (number, positive = above average)
 
 5. networkingTips: Array of 5 actionable tips for building creator relationships
 
-Respond in valid JSON: { "network": { "influenceScore": { "overall": number, "contentQuality": number, "audienceTrust": number, "brandSafety": number, "consistency": number, "growthVelocity": number, "percentile": number, "tier": "string", "category": "string" }, "brandOpportunities": [...], "suggestedCollaborators": [...], "industryBenchmarks": [...], "networkingTips": [...] } }`,
+Do NOT fabricate specific brand names with deal values or deadlines. Do NOT invent fictional creator handles. Focus on categories, strategies, and actionable advice.
 
-  campaign_ideas: (input) => `You are a campaign performance analyst and strategist for social media creators. Generate a comprehensive campaign performance report.
+Respond in valid JSON: { "network": { "influenceScore": {...}, "brandCategories": [...], "collaborationStrategy": [...], "industryBenchmarks": [...], "networkingTips": [...] } }`,
+
+  campaign_ideas: (input) => `You are a campaign strategist for social media creators. Generate campaign IDEAS and blueprints this creator could execute.
 
 PROFILE:
 ${profileSummary(input.profile)}
@@ -499,38 +479,27 @@ ${goalsSummary(input.goals)}
 
 Return this JSON structure:
 {
-  "summary": {
-    "activeCampaigns": number,
-    "avgROI": string (e.g. "340%"),
-    "contentPieces": number,
-    "totalReach": string (e.g. "2.1M")
-  },
   "campaigns": [
     {
-      "name": string (campaign name),
-      "brand": string (brand/partner name, e.g. "Zara", "Own Brand", "Audible"),
+      "name": string (campaign idea name, e.g. "30-Day Fitness Challenge", "Behind-The-Scenes Series"),
+      "type": "audience_growth" | "engagement_boost" | "product_launch" | "seasonal" | "community" | "brand_ready",
       "platforms": string (e.g. "Instagram", "TikTok + IG", "YouTube + Instagram"),
-      "dateRange": string (e.g. "Mar 1 - 31", "Ongoing", "Feb 15 - Apr 15"),
-      "status": "on_track" | "outperforming" | "needs_attention",
-      "progress": number (0-100 percentage),
-      "type": "brand_partnership" | "audience_growth" | "product_launch" | "seasonal" | "community",
-      "description": string (2-3 sentence description),
-      "metrics": [
-        { "label": string, "value": string }
-      ],
-      "steps": string[] (4-5 implementation steps),
-      "budget": "free" | "low ($0-100)" | "medium ($100-500)" | "high ($500+)"
+      "description": string (2-3 sentence description of the campaign idea),
+      "expectedOutcome": string (e.g. "Estimated 15-25% follower growth over 30 days"),
+      "steps": string[] (5-6 implementation steps),
+      "budget": "free" | "low ($0-100)" | "medium ($100-500)" | "high ($500+)",
+      "duration": string (e.g. "2 weeks", "30 days", "Ongoing")
     }
   ],
   "performanceMatrix": [
     {
       "format": string (e.g. "Photos", "Carousels", "Reels / TikToks", "Stories", "Shorts / Videos", "Long-form"),
-      "instagram": number | null (engagement rate percentage, e.g. 4.2),
+      "instagram": number | null (estimated engagement rate percentage, e.g. 4.2),
       "tiktok": number | null,
       "youtube": number | null
     }
   ],
-  "deliverables": [
+  "weeklyPlan": [
     {
       "day": "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun",
       "items": [
@@ -540,11 +509,13 @@ Return this JSON structure:
   ]
 }
 
-Generate 3 realistic active campaigns with 4 metrics each (e.g. Reach, Engagement, Link Clicks, Conversions, Avg Views, Saves, Shares, New Followers — pick 4 most relevant per campaign).
+Generate 3 campaign IDEAS — these are suggestions the creator could execute, NOT active campaigns. Do NOT include "status", "progress", or "metrics" fields — these campaigns haven't started yet. Do NOT fabricate brand names or imply existing brand partnerships. Focus on organic growth and content strategies.
 
-For performanceMatrix, include 6 content format rows with engagement rates across platforms. Use null where the format doesn't apply to a platform. Rates should be realistic (1-8%).
+Do NOT include a "summary" object with activeCampaigns/avgROI/contentPieces/totalReach — the user has no active campaigns tracked.
 
-For deliverables, provide 7 days (Mon-Sun). Each day can have 0-2 items showing which campaign tasks are scheduled. At least 1 day should have no deliverables.
+For performanceMatrix, include 6 content format rows with estimated engagement rates across platforms. Use null where the format doesn't apply. Rates should be realistic (1-8%).
+
+For weeklyPlan, provide 7 days (Mon-Sun) as a suggested content schedule if the creator adopted these campaigns. At least 1 day should be a rest day with no items.
 
 IMPORTANT: Respond ONLY with valid, complete JSON. No markdown, no explanation.`,
 

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { ProfileSelector } from "./ProfileSelector";
+import { trackEvent } from "@/lib/analytics/track";
 import {
   Play,
   Loader2,
@@ -62,6 +63,7 @@ export function ContentGenerator({ profiles }: ContentGeneratorProps) {
   function handleGenerate() {
     if (!selectedId) return;
     setError(null);
+    trackEvent("content_generated", "ai-studio", { type: activeTab, tone });
     startTransition(async () => {
       const result = await generateContentAction(
         selectedId,

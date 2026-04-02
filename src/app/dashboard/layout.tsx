@@ -11,6 +11,8 @@ import { getSocialProfileCount } from "@/lib/dal/profiles";
 const dashboardNavItems: NavItem[] = [
   { label: "Overview", href: "/dashboard" },
   { label: "Profiles", href: "/dashboard/profiles" },
+  { label: "Chat", href: "/dashboard/chat" },
+  { label: "Analytics", href: "/dashboard/analytics" },
   { label: "AI Studio", href: "/dashboard/ai-studio" },
   { label: "Strategy", href: "/dashboard/strategy" },
   { label: "Intelligence", href: "/dashboard/intelligence" },

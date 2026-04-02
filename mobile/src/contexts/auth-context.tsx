@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface Profile {
   id: string;
@@ -27,6 +31,7 @@ interface AuthContextValue {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
+  signInWithProvider: (provider: 'google' | 'apple') => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -38,6 +43,7 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
+  signInWithProvider: async () => ({ error: null }),
   signOut: async () => {},
 });
 
@@ -106,6 +112,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
+  const signInWithProvider = async (provider: 'google' | 'apple') => {
+    try {
+      const redirectTo = Linking.createURL('/');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo, skipBrowserRedirect: true },
+      });
+      if (error) return { error: error.message };
+      if (!data?.url) return { error: 'Could not get auth URL.' };
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      if (result.type !== 'success') return { error: null }; // user cancelled
+
+      // Parse tokens from redirect URL
+      const url = result.url;
+      const hashPart = url.includes('#') ? url.split('#')[1] : '';
+      const searchPart = url.includes('?') ? url.split('?')[1]?.split('#')[0] : '';
+      const combined = [searchPart, hashPart].filter(Boolean).join('&');
+      const params = Object.fromEntries(new URLSearchParams(combined));
+
+      if (params.error_code || params.error) {
+        return { error: params.error_description || params.error || 'OAuth error' };
+      }
+
+      const { access_token, refresh_token } = params;
+      if (!access_token) return { error: 'No access token returned.' };
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+      return { error: sessionError?.message ?? null };
+    } catch (e: any) {
+      return { error: e.message || 'OAuth sign-in failed.' };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -113,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, organization, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, organization, loading, signIn, signUp, signInWithProvider, signOut }}>
       {children}
     </AuthContext.Provider>
   );

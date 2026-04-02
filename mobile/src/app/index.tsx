@@ -1,10 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Polyline, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { useTheme } from '../../contexts/theme-context';
-import { useAuth } from '../../contexts/auth-context';
-import { FontSize, Spacing } from '../../constants/theme';
+import { useTheme } from '../contexts/theme-context';
+import { useAuth } from '../contexts/auth-context';
+import { FontSize, Spacing } from '../constants/theme';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -19,7 +18,7 @@ export default function SplashScreen() {
       useNativeDriver: false,
     }).start(() => {
       if (!loading) {
-        router.replace(user ? '/(tabs)' : '/(auth)/login');
+        router.replace(user ? '/(drawer)' : '/(auth)/login');
       }
     });
   }, [loading, user]);
@@ -32,25 +31,11 @@ export default function SplashScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.logoContainer}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.accent + '20' }]}>
-          <Svg width={48} height={48} viewBox="0 0 512 512">
-            <Defs>
-              <LinearGradient id="splashChart" x1="0%" y1="100%" x2="100%" y2="0%">
-                <Stop offset="0%" stopColor={colors.primary} />
-                <Stop offset="100%" stopColor={colors.accent} />
-              </LinearGradient>
-            </Defs>
-            <Polyline
-              points="60,380 140,350 200,340 250,310 280,250 310,180 330,140 380,100 412,80"
-              stroke="url(#splashChart)"
-              strokeWidth={32}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-            <Circle cx={412} cy={80} r={20} fill={colors.accent} />
-          </Svg>
-        </View>
+        <Image
+          source={require('../../assets/images/splash-icon.png')}
+          style={styles.splashIcon}
+          resizeMode="contain"
+        />
         <Text style={[styles.title, { color: colors.text }]}>Go Virall</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Social Intelligence Platform</Text>
       </View>
@@ -82,12 +67,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
   },
-  iconWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+  splashIcon: {
+    width: 120,
+    height: 120,
     marginBottom: Spacing.lg,
   },
   title: {

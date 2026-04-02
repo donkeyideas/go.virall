@@ -39,9 +39,9 @@ export default function DrawerLayout() {
     >
       <Drawer.Screen name="index" options={{ title: 'Overview' }} />
       <Drawer.Screen name="profiles" options={{ title: 'Profiles' }} />
+      <Drawer.Screen name="chat" options={{ title: 'Chat' }} />
       <Drawer.Screen name="analytics" options={{ title: 'Analytics' }} />
-      <Drawer.Screen name="ai-studio" options={{ title: 'AI Studio' }} />
-      <Drawer.Screen name="schedule" options={{ title: 'Schedule' }} />
+      <Drawer.Screen name="ai-studio" options={{ title: 'Studio' }} />
       <Drawer.Screen name="strategy" options={{ title: 'Strategy' }} />
       <Drawer.Screen name="intelligence" options={{ title: 'Intelligence' }} />
       <Drawer.Screen name="monetization" options={{ title: 'Monetization' }} />
@@ -49,7 +49,6 @@ export default function DrawerLayout() {
       <Drawer.Screen name="recommendations" options={{ title: 'Recommendations' }} />
       <Drawer.Screen name="goals" options={{ title: 'Goals' }} />
       <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
-      <Drawer.Screen name="profile" options={{ title: 'Profile' }} />
     </Drawer>
   );
 }

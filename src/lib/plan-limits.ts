@@ -8,18 +8,22 @@ export interface PlanLimits {
   max_competitors: number;
   ai_content_per_month: number;
   max_conversations: number;
+  chat_messages_per_day: number;
+  analytics_days: number;
 }
 
 /** -1 = unlimited, 0 = real-time/disabled */
 export const PLAN_LIMITS: Record<PlanKey, PlanLimits> = {
   free: {
-    max_social_profiles: 1,
-    ai_insights_per_month: 3,
+    max_social_profiles: 2,
+    ai_insights_per_month: 10,
     max_deals: 2,
     data_sync_hours: 24,
     max_competitors: 0,
-    ai_content_per_month: 0,
-    max_conversations: 0,
+    ai_content_per_month: 5,
+    max_conversations: 3,
+    chat_messages_per_day: 5,
+    analytics_days: 7,
   },
   pro: {
     max_social_profiles: 3,
@@ -28,7 +32,9 @@ export const PLAN_LIMITS: Record<PlanKey, PlanLimits> = {
     data_sync_hours: 6,
     max_competitors: 5,
     ai_content_per_month: 50,
-    max_conversations: 10,
+    max_conversations: -1,
+    chat_messages_per_day: -1,
+    analytics_days: 30,
   },
   business: {
     max_social_profiles: 10,
@@ -38,6 +44,8 @@ export const PLAN_LIMITS: Record<PlanKey, PlanLimits> = {
     max_competitors: 15,
     ai_content_per_month: -1,
     max_conversations: -1,
+    chat_messages_per_day: -1,
+    analytics_days: 90,
   },
   enterprise: {
     max_social_profiles: -1,
@@ -47,6 +55,8 @@ export const PLAN_LIMITS: Record<PlanKey, PlanLimits> = {
     max_competitors: -1,
     ai_content_per_month: -1,
     max_conversations: -1,
+    chat_messages_per_day: -1,
+    analytics_days: -1,
   },
 };
 

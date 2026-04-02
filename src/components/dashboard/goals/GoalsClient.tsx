@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { ProfileSelector } from "../ProfileSelector";
 import { Save, Loader2, Sparkles } from "lucide-react";
 import { saveGoal, generateAIGoals } from "@/lib/actions/goals";
+import { trackEvent } from "@/lib/analytics/track";
 import type { SocialProfile } from "@/types";
 
 interface GoalsClientProps {
@@ -20,6 +21,10 @@ export function GoalsClient({ profiles }: GoalsClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [aiReasoning, setAiReasoning] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    trackEvent("page_view", "goals");
+  }, []);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,6 +43,7 @@ export function GoalsClient({ profiles }: GoalsClientProps) {
         setError(result.error);
       } else {
         setSaved(true);
+        trackEvent("goal_saved", "goals");
       }
     });
   }

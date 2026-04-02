@@ -8,7 +8,8 @@ function RootNav() {
   return (
     <>
       <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack initialRouteName="index" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+        <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(drawer)" />
       </Stack>

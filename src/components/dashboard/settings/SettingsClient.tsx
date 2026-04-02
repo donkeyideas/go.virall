@@ -1,13 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics/track";
 import { AccountTab } from "./AccountTab";
 import { ConnectedAccountsTab } from "./ConnectedAccountsTab";
 import { BillingTab } from "./BillingTab";
 import { NotificationsTab } from "./NotificationsTab";
 import { MediaKitTab } from "./MediaKitTab";
 import { TeamTab } from "./TeamTab";
+import { ApiKeysTab } from "./ApiKeysTab";
 import type { Profile, Organization, SocialProfile, UserPreferences, SubscriptionData, BillingInvoice } from "@/types";
 
 const SETTINGS_TABS = [
@@ -17,6 +20,7 @@ const SETTINGS_TABS = [
   { key: "notifications", label: "Notifications" },
   { key: "media-kit", label: "Media Kit" },
   { key: "team", label: "Team" },
+  { key: "api-keys", label: "AI API Keys" },
 ] as const;
 
 interface SettingsClientProps {
@@ -44,6 +48,10 @@ export function SettingsClient({
 
   const activeKey = searchParams.get("tab") || "account";
   const activeTab = SETTINGS_TABS.find((t) => t.key === activeKey) ?? SETTINGS_TABS[0];
+
+  useEffect(() => {
+    trackEvent("page_view", "settings");
+  }, []);
 
   function switchTab(key: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -103,6 +111,7 @@ export function SettingsClient({
         {activeTab.key === "team" && (
           <TeamTab profile={profile} organization={organization} userEmail={userEmail} />
         )}
+        {activeTab.key === "api-keys" && <ApiKeysTab />}
       </div>
     </div>
   );

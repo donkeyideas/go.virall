@@ -5,6 +5,7 @@ import { ProfileSelector } from "./ProfileSelector";
 import { AnalysisResultRenderer } from "./AnalysisResultRenderer";
 import { Play, Loader2, RefreshCw } from "lucide-react";
 import { runAnalysis } from "@/lib/actions/analyses";
+import { trackEvent } from "@/lib/analytics/track";
 import type { SocialProfile, AnalysisType } from "@/types";
 
 interface RunAnalysisTabProps {
@@ -335,12 +336,16 @@ export function RunAnalysisTab({
   function handleRun() {
     if (!selectedId) return;
     setError(null);
+    trackEvent("analysis_run", "smo-score", { type: analysisType });
     startTransition(async () => {
       const result = await runAnalysis(selectedId, analysisType);
       if (result.error) {
         setError(result.error);
       } else if (result.data) {
         setResultData(result.data);
+      } else {
+        // Analysis returned successfully but with no data
+        setResultData({});
       }
     });
   }

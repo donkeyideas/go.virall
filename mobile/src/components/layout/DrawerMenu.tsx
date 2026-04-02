@@ -1,11 +1,29 @@
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useRouter, usePathname } from 'expo-router';
+import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { Avatar } from '../ui/Avatar';
 import { MenuIcon, type MenuIconName } from './MenuIcon';
 import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+
+function SunIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <SvgCircle cx={12} cy={12} r={5} />
+      <Path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </Svg>
+  );
+}
+
+function MoonIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+    </Svg>
+  );
+}
 
 interface MenuItem {
   label: string;
@@ -16,9 +34,9 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { label: 'Overview', icon: 'overview', route: '/(drawer)' },
   { label: 'Profiles', icon: 'profiles', route: '/(drawer)/profiles' },
+  { label: 'Chat', icon: 'chat', route: '/(drawer)/chat' },
   { label: 'Analytics', icon: 'analytics', route: '/(drawer)/analytics' },
-  { label: 'AI Studio', icon: 'ai-studio', route: '/(drawer)/ai-studio' },
-  { label: 'Schedule', icon: 'schedule', route: '/(drawer)/schedule' },
+  { label: 'Studio', icon: 'ai-studio', route: '/(drawer)/ai-studio' },
   { label: 'Strategy', icon: 'strategy', route: '/(drawer)/strategy' },
   { label: 'Intelligence', icon: 'intelligence', route: '/(drawer)/intelligence' },
   { label: 'Monetization', icon: 'monetization', route: '/(drawer)/monetization' },
@@ -26,11 +44,10 @@ const MENU_ITEMS: MenuItem[] = [
   { label: 'Recommendations', icon: 'recommendations', route: '/(drawer)/recommendations' },
   { label: 'Goals', icon: 'goals', route: '/(drawer)/goals' },
   { label: 'Settings', icon: 'settings', route: '/(drawer)/settings' },
-  { label: 'Profile', icon: 'profile', route: '/(drawer)/profile' },
 ];
 
 export function DrawerMenu(props: any) {
-  const { colors } = useTheme();
+  const { colors, mode, toggleTheme } = useTheme();
   const { profile, user, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -56,6 +73,29 @@ export function DrawerMenu(props: any) {
             {user?.email || ''}
           </Text>
         </View>
+      </View>
+
+      {/* Theme Toggle */}
+      <View style={[styles.themeRow, { borderBottomColor: colors.border }]}>
+        <Pressable
+          onPress={toggleTheme}
+          style={[styles.themeToggle, { backgroundColor: colors.surfaceLight }]}
+        >
+          <View style={[
+            styles.themeOption,
+            mode === 'light' && { backgroundColor: colors.primary },
+          ]}>
+            <SunIcon size={14} color={mode === 'light' ? '#1A1035' : colors.textMuted} />
+            <Text style={[styles.themeText, { color: mode === 'light' ? '#1A1035' : colors.textMuted }]}>Light</Text>
+          </View>
+          <View style={[
+            styles.themeOption,
+            mode === 'dark' && { backgroundColor: colors.primary },
+          ]}>
+            <MoonIcon size={14} color={mode === 'dark' ? '#1A1035' : colors.textMuted} />
+            <Text style={[styles.themeText, { color: mode === 'dark' ? '#1A1035' : colors.textMuted }]}>Dark</Text>
+          </View>
+        </Pressable>
       </View>
 
       <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
@@ -167,6 +207,30 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  themeRow: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    marginBottom: Spacing.xs,
+  },
+  themeToggle: {
+    flexDirection: 'row',
+    borderRadius: BorderRadius.md,
+    padding: 3,
+  },
+  themeOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  themeText: {
+    fontSize: FontSize.sm,
     fontWeight: '600',
   },
 });

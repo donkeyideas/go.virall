@@ -11,12 +11,16 @@ interface ProfileSelectorProps {
   profiles: SocialProfile[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  showAll?: boolean;
+  onSelectAll?: () => void;
 }
 
 export function ProfileSelector({
   profiles,
   selectedId,
   onSelect,
+  showAll,
+  onSelectAll,
 }: ProfileSelectorProps) {
   const [showModal, setShowModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -28,6 +32,19 @@ export function ProfileSelector({
       <div className="flex flex-wrap items-center gap-2 border-b border-rule px-4 py-2">
         {/* Profile chips */}
         <div className="flex flex-1 flex-wrap items-center gap-1.5 overflow-x-auto">
+          {showAll && (
+            <button
+              onClick={() => onSelectAll?.()}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
+                selectedId === null
+                  ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
+                  : "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
+              )}
+            >
+              All
+            </button>
+          )}
           {profiles.map((profile) => {
             const config = PLATFORM_CONFIG[profile.platform];
             const isActive = profile.id === selectedId;

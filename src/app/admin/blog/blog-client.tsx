@@ -1,9 +1,42 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
-import { Loader2, Eye, EyeOff, X } from "lucide-react";
-import { createPost, updatePost, deletePost } from "@/lib/actions/admin";
+import {
+  useState,
+  useTransition,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
+import {
+  Loader2,
+  Eye,
+  EyeOff,
+  X,
+  Bold,
+  Italic,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  ImageIcon,
+  Link2,
+  Unlink,
+  Undo2,
+  Pilcrow,
+  Sparkles,
+} from "lucide-react";
+import {
+  createPost,
+  updatePost,
+  deletePost,
+  generateBlogWithAI,
+} from "@/lib/actions/admin";
 import type { Post } from "@/types";
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -11,6 +44,13 @@ function formatDate(dateStr: string): string {
     month: "short",
     day: "numeric",
   });
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 function StatusBadge({ status }: { status: Post["status"] }) {
@@ -29,6 +69,7 @@ function StatusBadge({ status }: { status: Post["status"] }) {
   );
 }
 
+type TabType = "blog" | "guide";
 type StatusFilter = "all" | "published" | "draft" | "archived";
 
 const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
@@ -38,90 +79,558 @@ const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
   { key: "archived", label: "Archived" },
 ];
 
-export function BlogClient({ posts }: { posts: Post[] }) {
+/* ------------------------------------------------------------------ */
+/* Link Dialog                                                         */
+/* ------------------------------------------------------------------ */
+
+function LinkDialog({
+  onInsert,
+  onClose,
+}: {
+  onInsert: (url: string, target: string, rel: string) => void;
+  onClose: () => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [target, setTarget] = useState("_blank");
+  const [rel, setRel] = useState("noopener noreferrer");
+
+  return (
+    <div className="border border-rule bg-surface-card p-3 space-y-2 absolute z-50 top-full left-0 mt-1 shadow-lg w-80">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+        Insert Link
+      </p>
+      <input
+        type="url"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="https://example.com"
+        className="w-full border border-rule bg-transparent px-2 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+        autoFocus
+      />
+      <div className="flex gap-2">
+        <select
+          value={target}
+          onChange={(e) => setTarget(e.target.value)}
+          className="border border-rule bg-surface-card px-2 py-1 text-[11px] text-ink focus:outline-none [&>option]:bg-surface-card [&>option]:text-ink"
+        >
+          <option value="_blank">New tab</option>
+          <option value="_self">Same tab</option>
+        </select>
+        <select
+          value={rel}
+          onChange={(e) => setRel(e.target.value)}
+          className="border border-rule bg-surface-card px-2 py-1 text-[11px] text-ink focus:outline-none flex-1 [&>option]:bg-surface-card [&>option]:text-ink"
+        >
+          <option value="noopener noreferrer">External (noopener)</option>
+          <option value="nofollow noopener noreferrer">No-follow</option>
+          <option value="dofollow">Do-follow (SEO)</option>
+          <option value="">None (internal)</option>
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            if (url.trim()) onInsert(url.trim(), target, rel);
+          }}
+          disabled={!url.trim()}
+          className="border border-rule px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-ink hover:bg-surface-raised transition-colors disabled:opacity-40"
+        >
+          Insert
+        </button>
+        <button
+          onClick={onClose}
+          className="px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-ink-muted hover:text-ink transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* HTML Toolbar                                                        */
+/* ------------------------------------------------------------------ */
+
+function HtmlToolbar({
+  textareaRef,
+  content,
+  setContent,
+}: {
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  content: string;
+  setContent: (v: string) => void;
+}) {
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+
+  const wrapSelection = useCallback(
+    (before: string, after: string) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const selected = content.substring(start, end) || "text";
+      const replacement = `${before}${selected}${after}`;
+      const newContent =
+        content.substring(0, start) + replacement + content.substring(end);
+      setContent(newContent);
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.selectionStart = start + before.length;
+        ta.selectionEnd = start + before.length + selected.length;
+      });
+    },
+    [content, setContent, textareaRef],
+  );
+
+  const insertBlock = useCallback(
+    (html: string) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const pos = ta.selectionStart;
+      const newContent =
+        content.substring(0, pos) + html + content.substring(pos);
+      setContent(newContent);
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = pos + html.length;
+      });
+    },
+    [content, setContent, textareaRef],
+  );
+
+  const handleLink = useCallback(
+    (url: string, target: string, rel: string) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const selected = content.substring(start, end) || "link text";
+      const relAttr = rel ? ` rel="${rel}"` : "";
+      const tag = `<a href="${url}" target="${target}"${relAttr}>${selected}</a>`;
+      const newContent =
+        content.substring(0, start) + tag + content.substring(end);
+      setContent(newContent);
+      setShowLinkDialog(false);
+      requestAnimationFrame(() => ta.focus());
+    },
+    [content, setContent, textareaRef],
+  );
+
+  const handleUnlink = useCallback(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = content.substring(start, end);
+    const unlinked = selected.replace(/<a[^>]*>(.*?)<\/a>/g, "$1");
+    const newContent =
+      content.substring(0, start) + unlinked + content.substring(end);
+    setContent(newContent);
+    requestAnimationFrame(() => ta.focus());
+  }, [content, setContent, textareaRef]);
+
+  const handleImage = useCallback(() => {
+    const url = window.prompt("Image URL:");
+    if (!url) return;
+    const alt = window.prompt("Alt text:", "") ?? "";
+    insertBlock(`<img src="${url}" alt="${alt}" loading="lazy" />`);
+  }, [insertBlock]);
+
+  const handleUndo = useCallback(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.focus();
+    document.execCommand("undo");
+  }, [textareaRef]);
+
+  const buttons: {
+    icon: React.ReactNode;
+    title: string;
+    action: () => void;
+  }[] = [
+    {
+      icon: <Bold size={14} />,
+      title: "Bold",
+      action: () => wrapSelection("<strong>", "</strong>"),
+    },
+    {
+      icon: <Italic size={14} />,
+      title: "Italic",
+      action: () => wrapSelection("<em>", "</em>"),
+    },
+    {
+      icon: <Heading2 size={14} />,
+      title: "Heading 2",
+      action: () => wrapSelection("<h2>", "</h2>"),
+    },
+    {
+      icon: <Heading3 size={14} />,
+      title: "Heading 3",
+      action: () => wrapSelection("<h3>", "</h3>"),
+    },
+    {
+      icon: <Pilcrow size={14} />,
+      title: "Paragraph",
+      action: () => wrapSelection("<p>", "</p>"),
+    },
+    {
+      icon: <List size={14} />,
+      title: "Bullet list",
+      action: () => insertBlock("\n<ul>\n  <li>Item</li>\n</ul>\n"),
+    },
+    {
+      icon: <ListOrdered size={14} />,
+      title: "Numbered list",
+      action: () => insertBlock("\n<ol>\n  <li>Item</li>\n</ol>\n"),
+    },
+    {
+      icon: <Quote size={14} />,
+      title: "Blockquote",
+      action: () => wrapSelection("<blockquote>", "</blockquote>"),
+    },
+    {
+      icon: <ImageIcon size={14} />,
+      title: "Image",
+      action: handleImage,
+    },
+    {
+      icon: <Link2 size={14} />,
+      title: "Link",
+      action: () => setShowLinkDialog(true),
+    },
+    {
+      icon: <Unlink size={14} />,
+      title: "Unlink",
+      action: handleUnlink,
+    },
+    { icon: <Undo2 size={14} />, title: "Undo", action: handleUndo },
+  ];
+
+  return (
+    <div className="relative">
+      <div className="flex flex-wrap gap-0.5 border border-rule border-b-0 bg-surface-raised p-1">
+        {buttons.map((btn) => (
+          <button
+            key={btn.title}
+            type="button"
+            onClick={btn.action}
+            title={btn.title}
+            className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-card transition-colors rounded"
+          >
+            {btn.icon}
+          </button>
+        ))}
+      </div>
+      {showLinkDialog && (
+        <LinkDialog
+          onInsert={handleLink}
+          onClose={() => setShowLinkDialog(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Post Form (Create / Edit)                                           */
+/* ------------------------------------------------------------------ */
+
+function PostForm({
+  mode,
+  tab,
+  initialTitle,
+  initialSlug,
+  initialContent,
+  initialExcerpt,
+  initialTags,
+  initialStatus,
+  isPending,
+  onSubmit,
+  onCancel,
+}: {
+  mode: "create" | "edit";
+  tab: TabType;
+  initialTitle: string;
+  initialSlug?: string;
+  initialContent: string;
+  initialExcerpt: string;
+  initialTags: string;
+  initialStatus: string;
+  isPending: boolean;
+  onSubmit: (data: {
+    title: string;
+    content: string;
+    excerpt: string;
+    tags: string;
+    status: string;
+  }) => void;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
+  const [excerpt, setExcerpt] = useState(initialExcerpt);
+  const [tags, setTags] = useState(initialTags);
+  const [status, setStatus] = useState(initialStatus);
+  const [backlink, setBacklink] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const slug = initialSlug ?? slugify(title);
+  const typeLabel = tab === "guide" ? "Guide" : "Blog Post";
+
+  async function handleGenerate() {
+    if (!title.trim()) {
+      setGenError("Enter a title first.");
+      return;
+    }
+    setIsGenerating(true);
+    setGenError(null);
+    try {
+      const result = await generateBlogWithAI(
+        title.trim(),
+        tab,
+        backlink.trim() || undefined,
+      );
+      if ("error" in result) {
+        setGenError(result.error);
+      } else {
+        setContent(result.content);
+        if (result.excerpt) setExcerpt(result.excerpt);
+        if (result.tags.length > 0) setTags(result.tags.join(", "));
+      }
+    } catch {
+      setGenError("Generation failed. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  return (
+    <div className="mb-6 border border-rule bg-surface-card p-4 space-y-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-2">
+        {mode === "create" ? `New ${typeLabel}` : `Edit ${typeLabel}`}
+      </p>
+
+      {/* Title + AI Generate */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          className="flex-1 border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+        />
+        <button
+          onClick={handleGenerate}
+          disabled={isGenerating || !title.trim()}
+          className="flex items-center gap-1.5 border border-rule px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-editorial-gold hover:bg-surface-raised transition-colors disabled:opacity-40 whitespace-nowrap"
+          title="Generate content with AI"
+        >
+          {isGenerating ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Sparkles size={14} />
+          )}
+          {isGenerating ? "Generating..." : "Generate with AI"}
+        </button>
+      </div>
+
+      {/* Slug preview */}
+      {title.trim() && (
+        <div className="text-[11px] text-ink-muted font-mono">
+          /{tab === "guide" ? "guides" : "blog"}/{slug}
+        </div>
+      )}
+
+      {/* Backlink */}
+      <input
+        type="url"
+        value={backlink}
+        onChange={(e) => setBacklink(e.target.value)}
+        placeholder="Backlink URL (optional) — AI will naturally link to this URL in the post"
+        className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+      />
+
+      {genError && (
+        <div className="text-xs text-editorial-red">{genError}</div>
+      )}
+
+      {/* Content Editor with Toolbar */}
+      <div>
+        <div className="flex items-center justify-between mb-0">
+          <HtmlToolbar
+            textareaRef={textareaRef}
+            content={content}
+            setContent={setContent}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold uppercase tracking-widest text-ink-muted hover:text-ink transition-colors"
+          >
+            {showPreview ? <EyeOff size={12} /> : <Eye size={12} />}
+            {showPreview ? "Edit" : "Preview"}
+          </button>
+        </div>
+        {showPreview ? (
+          <div
+            className="border border-rule bg-surface-cream p-4 min-h-[200px] prose prose-sm max-w-none text-ink font-serif"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        ) : (
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Content (HTML)"
+            rows={12}
+            className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+          />
+        )}
+      </div>
+
+      {/* Excerpt */}
+      <input
+        type="text"
+        value={excerpt}
+        onChange={(e) => setExcerpt(e.target.value)}
+        placeholder="Excerpt (meta description)"
+        className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+      />
+      {excerpt && (
+        <div className="text-[10px] text-ink-muted font-mono">
+          {excerpt.length}/160 characters
+        </div>
+      )}
+
+      {/* Tags */}
+      <input
+        type="text"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        placeholder="Tags (comma separated)"
+        className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+      />
+
+      {/* Status + Submit */}
+      <div className="flex items-center gap-3">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="border border-rule bg-surface-card px-2 py-1.5 text-xs font-mono text-ink focus:outline-none focus:border-ink [&>option]:bg-surface-card [&>option]:text-ink"
+        >
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+          <option value="archived">Archived</option>
+        </select>
+        <button
+          onClick={() => onSubmit({ title, content, excerpt, tags, status })}
+          disabled={isPending || !title.trim() || !content.trim()}
+          className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink hover:bg-surface-raised transition-colors disabled:opacity-40"
+        >
+          {isPending ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : mode === "create" ? (
+            "Create"
+          ) : (
+            "Save"
+          )}
+        </button>
+        <button
+          onClick={onCancel}
+          className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted hover:bg-surface-raised transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Main Client Component                                               */
+/* ------------------------------------------------------------------ */
+
+export function BlogClient({
+  blogPosts,
+  guidePosts,
+}: {
+  blogPosts: Post[];
+  guidePosts: Post[];
+}) {
   const [isPending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabType>("blog");
 
-  // Create form state
-  const [newTitle, setNewTitle] = useState("");
-  const [newContent, setNewContent] = useState("");
-  const [newExcerpt, setNewExcerpt] = useState("");
-  const [newTags, setNewTags] = useState("");
-  const [newStatus, setNewStatus] = useState<string>("draft");
+  const posts = tab === "blog" ? blogPosts : guidePosts;
 
-  // Edit form state
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [editExcerpt, setEditExcerpt] = useState("");
-  const [editTags, setEditTags] = useState("");
-  const [editStatus, setEditStatus] = useState("");
-
-  // Filtered posts
   const filteredPosts = useMemo(() => {
     if (statusFilter === "all") return posts;
     return posts.filter((p) => p.status === statusFilter);
   }, [posts, statusFilter]);
 
-  // Post being previewed
-  const previewPost = useMemo(
-    () => posts.find((p) => p.id === previewId) ?? null,
-    [posts, previewId],
-  );
-
-  function handleCreate() {
-    if (!newTitle.trim() || !newContent.trim()) return;
+  function handleCreate(data: {
+    title: string;
+    content: string;
+    excerpt: string;
+    tags: string;
+    status: string;
+  }) {
+    if (!data.title.trim() || !data.content.trim()) return;
     setActionError(null);
     startTransition(async () => {
       const result = await createPost({
-        title: newTitle.trim(),
-        content: newContent.trim(),
-        type: "blog",
-        excerpt: newExcerpt.trim() || undefined,
-        tags: newTags
+        title: data.title.trim(),
+        content: data.content.trim(),
+        type: tab,
+        excerpt: data.excerpt.trim() || undefined,
+        tags: data.tags
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
-        status: newStatus,
+        status: data.status,
       });
       if (result.error) {
         setActionError(result.error);
       } else {
         setShowCreate(false);
-        setNewTitle("");
-        setNewContent("");
-        setNewExcerpt("");
-        setNewTags("");
-        setNewStatus("draft");
       }
     });
   }
 
   function startEdit(post: Post) {
     setEditingId(post.id);
-    setEditTitle(post.title);
-    setEditContent(post.content);
-    setEditExcerpt(post.excerpt ?? "");
-    setEditTags(post.tags.join(", "));
-    setEditStatus(post.status);
   }
 
-  function handleUpdate(id: string) {
-    if (!editTitle.trim() || !editContent.trim()) return;
+  function handleUpdate(
+    id: string,
+    data: {
+      title: string;
+      content: string;
+      excerpt: string;
+      tags: string;
+      status: string;
+    },
+  ) {
+    if (!data.title.trim() || !data.content.trim()) return;
     setActionError(null);
     startTransition(async () => {
       const result = await updatePost(id, {
-        title: editTitle.trim(),
-        content: editContent.trim(),
-        excerpt: editExcerpt.trim() || undefined,
-        tags: editTags
+        title: data.title.trim(),
+        content: data.content.trim(),
+        excerpt: data.excerpt.trim() || undefined,
+        tags: data.tags
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
-        status: editStatus,
+        status: data.status,
       });
       if (result.error) {
         setActionError(result.error);
@@ -149,20 +658,52 @@ export function BlogClient({ posts }: { posts: Post[] }) {
     });
   }
 
+  const typeLabel = tab === "guide" ? "Guides" : "Blog Posts";
+
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h1 className="font-serif text-3xl font-bold text-ink">Blog</h1>
         <button
-          onClick={() => setShowCreate(!showCreate)}
+          onClick={() => {
+            setShowCreate(!showCreate);
+            setEditingId(null);
+          }}
           className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink hover:bg-surface-raised transition-colors"
         >
-          {showCreate ? "Cancel" : "New Post"}
+          {showCreate ? "Cancel" : `New ${tab === "guide" ? "Guide" : "Post"}`}
         </button>
       </div>
       <p className="text-xs text-ink-muted mb-4">
-        {posts.length} total post{posts.length !== 1 ? "s" : ""}
+        {posts.length} total {typeLabel.toLowerCase()}
       </p>
+
+      {/* Tabs: Blog Posts / Guides */}
+      <div className="flex gap-0 border border-rule mb-4 w-fit">
+        {(["blog", "guide"] as const).map((t) => {
+          const count = t === "blog" ? blogPosts.length : guidePosts.length;
+          return (
+            <button
+              key={t}
+              onClick={() => {
+                setTab(t);
+                setStatusFilter("all");
+                setShowCreate(false);
+                setEditingId(null);
+                setPreviewId(null);
+              }}
+              className={`px-4 py-2 text-[11px] font-bold uppercase tracking-widest transition-colors border-r border-rule last:border-r-0 ${
+                tab === t
+                  ? "bg-ink text-surface-card"
+                  : "text-ink-muted hover:text-ink hover:bg-surface-raised"
+              }`}
+            >
+              {t === "blog" ? "Blog Posts" : "Guides"} ({count})
+            </button>
+          );
+        })}
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 mb-6">
@@ -171,7 +712,7 @@ export function BlogClient({ posts }: { posts: Post[] }) {
             {posts.length}
           </div>
           <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">
-            Total Posts
+            Total
           </div>
         </div>
         <div className="border border-rule bg-surface-card p-3 text-center">
@@ -240,139 +781,45 @@ export function BlogClient({ posts }: { posts: Post[] }) {
 
       {/* Create Form */}
       {showCreate && (
-        <div className="mb-6 border border-rule bg-surface-card p-4 space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-2">
-            New Blog Post
-          </p>
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Title"
-            className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-          />
-          <textarea
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
-            placeholder="Content (markdown or HTML)"
-            rows={6}
-            className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-          />
-          <input
-            type="text"
-            value={newExcerpt}
-            onChange={(e) => setNewExcerpt(e.target.value)}
-            placeholder="Excerpt"
-            className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-          />
-          <input
-            type="text"
-            value={newTags}
-            onChange={(e) => setNewTags(e.target.value)}
-            placeholder="Tags (comma separated)"
-            className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-          />
-          <div className="flex items-center gap-3">
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="border border-rule bg-transparent px-2 py-1.5 text-xs font-mono text-ink focus:outline-none focus:border-ink"
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-            <button
-              onClick={handleCreate}
-              disabled={isPending || !newTitle.trim() || !newContent.trim()}
-              className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink hover:bg-surface-raised transition-colors disabled:opacity-40"
-            >
-              {isPending ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                "Create"
-              )}
-            </button>
-          </div>
-        </div>
+        <PostForm
+          mode="create"
+          tab={tab}
+          initialTitle=""
+          initialContent=""
+          initialExcerpt=""
+          initialTags=""
+          initialStatus="draft"
+          isPending={isPending}
+          onSubmit={handleCreate}
+          onCancel={() => setShowCreate(false)}
+        />
       )}
 
-      {/* Post Listing - Card Layout */}
+      {/* Post Listing */}
       <div className="space-y-0 border border-rule divide-y divide-rule">
         {filteredPosts.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-ink-muted">
             {statusFilter === "all"
-              ? "No blog posts found."
-              : `No ${statusFilter} posts.`}
+              ? `No ${typeLabel.toLowerCase()} found.`
+              : `No ${statusFilter} ${typeLabel.toLowerCase()}.`}
           </div>
         ) : (
           filteredPosts.map((post) =>
             editingId === post.id ? (
-              <div
-                key={post.id}
-                className="bg-surface-card px-4 py-4"
-              >
-                <div className="space-y-3">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
-                    Edit Post
-                  </p>
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="Title"
-                    className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-                  />
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    placeholder="Content (markdown or HTML)"
-                    rows={6}
-                    className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-                  />
-                  <input
-                    type="text"
-                    value={editExcerpt}
-                    onChange={(e) => setEditExcerpt(e.target.value)}
-                    placeholder="Excerpt"
-                    className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-                  />
-                  <input
-                    type="text"
-                    value={editTags}
-                    onChange={(e) => setEditTags(e.target.value)}
-                    placeholder="Tags (comma separated)"
-                    className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
-                  />
-                  <div className="flex items-center gap-3">
-                    <select
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value)}
-                      className="border border-rule bg-transparent px-2 py-1.5 text-xs font-mono text-ink focus:outline-none focus:border-ink"
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                      <option value="archived">Archived</option>
-                    </select>
-                    <button
-                      onClick={() => handleUpdate(post.id)}
-                      disabled={isPending}
-                      className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink hover:bg-surface-raised transition-colors disabled:opacity-40"
-                    >
-                      {isPending ? (
-                        <Loader2 size={20} className="animate-spin" />
-                      ) : (
-                        "Save"
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted hover:bg-surface-raised transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+              <div key={post.id} className="bg-surface-card px-4 py-4">
+                <PostForm
+                  mode="edit"
+                  tab={tab}
+                  initialTitle={post.title}
+                  initialSlug={post.slug}
+                  initialContent={post.content}
+                  initialExcerpt={post.excerpt ?? ""}
+                  initialTags={post.tags.join(", ")}
+                  initialStatus={post.status}
+                  isPending={isPending}
+                  onSubmit={(data) => handleUpdate(post.id, data)}
+                  onCancel={() => setEditingId(null)}
+                />
               </div>
             ) : (
               <div
@@ -484,8 +931,8 @@ export function BlogClient({ posts }: { posts: Post[] }) {
       {/* Footer */}
       <div className="mt-4">
         <p className="text-xs text-ink-muted font-mono">
-          Showing {filteredPosts.length} of {posts.length} post
-          {posts.length !== 1 ? "s" : ""}
+          Showing {filteredPosts.length} of {posts.length}{" "}
+          {typeLabel.toLowerCase()}
           {statusFilter !== "all" && (
             <span>
               {" "}

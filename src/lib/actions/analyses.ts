@@ -103,7 +103,7 @@ export async function runAnalysis(profileId: string, analysisType: AnalysisType)
       return { error: "Failed to save analysis result." };
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard", "layout");
     return { success: true, data: result.data as Record<string, unknown> };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Analysis failed.";
@@ -197,7 +197,7 @@ export async function runRecommendations(profileId: string) {
       // Ignore DB errors — results still returned
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard", "layout");
     return { success: true, data: result.data };
   } catch (err) {
     const message =
@@ -244,7 +244,7 @@ export async function runAllAnalyses(profileId: string) {
     }
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
   return {
     success: results.every((r) => r.success),
     results,
