@@ -129,11 +129,19 @@ export function useOverviewData({
     (sum, p) => sum + (p.followers_count || 0),
     0,
   );
-  const avgEngagement =
-    profiles.length > 0
-      ? profiles.reduce((sum, p) => sum + (p.engagement_rate || 0), 0) /
-        profiles.length
-      : 0;
+  // Avg Likes/Post across all profiles (from recent_posts)
+  const avgLikesPerPost = (() => {
+    let totalLikes = 0;
+    let totalPostCount = 0;
+    for (const p of profiles) {
+      const posts = (p as unknown as { recent_posts?: RecentPost[] }).recent_posts;
+      if (posts?.length) {
+        totalLikes += posts.reduce((s, post) => s + (post.likesCount || 0), 0);
+        totalPostCount += posts.length;
+      }
+    }
+    return totalPostCount > 0 ? Math.round(totalLikes / totalPostCount) : 0;
+  })();
   const totalPosts = profiles.reduce(
     (sum, p) => sum + (p.posts_count || 0),
     0,
@@ -351,6 +359,15 @@ export function useOverviewData({
   if (hb) briefItems.push(hb);
 
   // Strategic Analysis
+  // Avg Likes/Post for the selected profile
+  const profileAvgLikes = (() => {
+    if (!profileForData) return 0;
+    const posts = (profileForData as unknown as { recent_posts?: RecentPost[] }).recent_posts;
+    if (!posts?.length) return 0;
+    const totalLikes = posts.reduce((s, p) => s + (p.likesCount || 0), 0);
+    return Math.round(totalLikes / posts.length);
+  })();
+
   const strategicHeadline = (() => {
     if (!profileForData) return null;
     const handle = profileForData.handle;
@@ -378,8 +395,8 @@ export function useOverviewData({
       if (insights.length > 0) return insights[0].insight;
     }
     const followers = formatCompact(profileForData.followers_count);
-    const eng = profileForData.engagement_rate;
-    return `With ${followers} followers${eng ? ` and ${eng}% engagement` : ""}, @${profileForData.handle} has growth potential. Run AI analyses in the AI Studio tab for detailed strategic insights.`;
+    const likes = profileAvgLikes;
+    return `With ${followers} followers${likes ? ` and ${formatCompact(likes)} avg likes/post` : ""}, @${profileForData.handle} has growth potential. Run AI analyses in the AI Studio tab for detailed strategic insights.`;
   })();
 
   // Competitors for sidebar
@@ -471,7 +488,7 @@ export function useOverviewData({
     selectedProfile,
     isAllProfiles,
     totalFollowers,
-    avgEngagement,
+    avgLikesPerPost,
     totalPosts,
     profileForData,
     pid,
@@ -506,13 +523,13 @@ export function useOverviewData({
     briefItems,
     strategicHeadline,
     strategicSummary,
+    profileAvgLikes,
     competitorProfiles,
     smoFactors,
     upcomingDeadlines,
     lastSynced,
     profileCreated,
     followerChange,
-    engagementChange,
     postsChange,
 
     // Pass-through

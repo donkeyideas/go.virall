@@ -23,6 +23,8 @@ import type { ContentType } from "@/lib/ai/content-generator";
 
 interface ContentGeneratorProps {
   profiles: SocialProfile[];
+  /** Cached content results: profileId → contentType → result */
+  cachedContent?: Record<string, Record<string, Record<string, unknown>>>;
 }
 
 const CONTENT_TABS: {
@@ -47,7 +49,7 @@ const TONES = [
   "Storytelling",
 ];
 
-export function ContentGenerator({ profiles }: ContentGeneratorProps) {
+export function ContentGenerator({ profiles, cachedContent }: ContentGeneratorProps) {
   const defaultId = profiles[0]?.id ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(defaultId);
   const [activeTab, setActiveTab] = useState<ContentType>("post_ideas");
@@ -55,7 +57,8 @@ export function ContentGenerator({ profiles }: ContentGeneratorProps) {
   const [tone, setTone] = useState("Professional");
   const [count, setCount] = useState(5);
   const [resultData, setResultData] = useState<Record<string, unknown> | null>(
-    null,
+    // Initialize from cached results for the default profile + default tab
+    defaultId ? cachedContent?.[defaultId]?.["post_ideas"] ?? null : null,
   );
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -97,7 +100,8 @@ export function ContentGenerator({ profiles }: ContentGeneratorProps) {
         selectedId={selectedId}
         onSelect={(id) => {
           setSelectedId(id);
-          setResultData(null);
+          // Load cached result for this profile + current tab
+          setResultData(cachedContent?.[id]?.[activeTab] ?? null);
         }}
       />
 
@@ -111,7 +115,10 @@ export function ContentGenerator({ profiles }: ContentGeneratorProps) {
                 key={tab.key}
                 onClick={() => {
                   setActiveTab(tab.key);
-                  setResultData(null);
+                  // Load cached result for current profile + this tab
+                  setResultData(
+                    selectedId ? cachedContent?.[selectedId]?.[tab.key] ?? null : null,
+                  );
                 }}
                 className={cn(
                   "relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[1.5px] transition-colors",

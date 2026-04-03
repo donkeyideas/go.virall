@@ -350,19 +350,28 @@ export default function MonetizeScreen() {
             <>
               <SectionTitle>Content Performance</SectionTitle>
               <Card>
-                {performanceMatrix.map((item: any, i: number) => (
-                  <View key={i} style={styles.perfRow}>
-                    <Text style={[styles.perfType, { color: colors.text }]}>{item.contentType || item.type}</Text>
-                    <View style={styles.perfStats}>
-                      {item.engagementRate != null && (
-                        <Text style={[styles.perfStat, { color: colors.primary }]}>{item.engagementRate}%</Text>
-                      )}
-                      {item.revenue != null && (
-                        <Text style={[styles.perfStat, { color: colors.success }]}>{formatCurrency(item.revenue)}</Text>
-                      )}
+                {performanceMatrix.map((item: any, i: number) => {
+                  const label = item.format || item.contentType || item.type || '';
+                  const platforms = ['tiktok', 'instagram', 'youtube', 'twitter'].filter(p => item[p] != null);
+                  return (
+                    <View key={i} style={styles.perfRow}>
+                      <Text style={[styles.perfType, { color: colors.text }]}>{label}</Text>
+                      <View style={styles.perfStats}>
+                        {platforms.length > 0 ? platforms.map(p => (
+                          <View key={p} style={styles.perfPlatform}>
+                            <Text style={[styles.perfPlatformLabel, { color: colors.textMuted }]}>{p.slice(0, 2).toUpperCase()}</Text>
+                            <Text style={[styles.perfStat, { color: colors.primary }]}>{item[p]}%</Text>
+                          </View>
+                        )) : (
+                          <>
+                            {item.engagementRate != null && <Text style={[styles.perfStat, { color: colors.primary }]}>{item.engagementRate}%</Text>}
+                            {item.revenue != null && <Text style={[styles.perfStat, { color: colors.success }]}>{formatCurrency(item.revenue)}</Text>}
+                          </>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
               </Card>
             </>
           )}
@@ -370,17 +379,25 @@ export default function MonetizeScreen() {
           {/* Weekly Deliverables */}
           {weeklyDeliverables.length > 0 && (
             <>
-              <SectionTitle>Weekly Deliverables</SectionTitle>
-              {weeklyDeliverables.map((d: any, i: number) => (
-                <Card key={i} style={styles.deliverableCard}>
-                  <View style={styles.deliverableHeader}>
-                    <Text style={[styles.deliverableDay, { color: colors.primary }]}>{d.day || d.week || `Week ${i + 1}`}</Text>
-                    {d.platform && <Text style={[styles.deliverablePlatform, { color: colors.textMuted }]}>{d.platform}</Text>}
-                  </View>
-                  <Text style={[styles.deliverableContent, { color: colors.text }]}>{d.content || d.task || d.description}</Text>
-                  {d.contentType && <Text style={[styles.deliverableType, { color: colors.textSecondary }]}>{d.contentType}</Text>}
-                </Card>
-              ))}
+              <SectionTitle>Weekly Plan</SectionTitle>
+              {weeklyDeliverables.map((d: any, i: number) => {
+                const items = d.items || [];
+                const flatContent = d.content || d.task || d.description;
+                return (
+                  <Card key={i} style={styles.deliverableCard}>
+                    <Text style={[styles.deliverableDay, { color: colors.primary }]}>{d.day || d.week || `Day ${i + 1}`}</Text>
+                    {items.length > 0 ? items.map((item: any, j: number) => (
+                      <View key={j} style={styles.deliverableItem}>
+                        <Text style={[styles.deliverableContent, { color: colors.text }]}>{item.task || item.content || item.description}</Text>
+                        {item.campaign && <Text style={[styles.deliverableType, { color: colors.textMuted }]}>{item.campaign}</Text>}
+                        {item.platform && <Text style={[styles.deliverablePlatform, { color: colors.textMuted }]}>{item.platform}</Text>}
+                      </View>
+                    )) : flatContent ? (
+                      <Text style={[styles.deliverableContent, { color: colors.text }]}>{flatContent}</Text>
+                    ) : null}
+                  </Card>
+                );
+              })}
             </>
           )}
 
@@ -468,11 +485,13 @@ const styles = StyleSheet.create({
   perfType: { fontSize: FontSize.sm, fontWeight: '500', flex: 1 },
   perfStats: { flexDirection: 'row', gap: Spacing.md },
   perfStat: { fontSize: FontSize.sm, fontWeight: '700' },
+  perfPlatform: { alignItems: 'center', gap: 2 },
+  perfPlatformLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 0.5 },
 
   // Deliverables
-  deliverableCard: { gap: Spacing.xs },
-  deliverableHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  deliverableCard: { gap: Spacing.sm },
   deliverableDay: { fontSize: FontSize.sm, fontWeight: '700' },
+  deliverableItem: { gap: 2, marginLeft: Spacing.sm },
   deliverablePlatform: { fontSize: FontSize.xs },
   deliverableContent: { fontSize: FontSize.sm, lineHeight: 20 },
   deliverableType: { fontSize: FontSize.xs },

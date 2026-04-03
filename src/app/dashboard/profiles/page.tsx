@@ -1,5 +1,5 @@
 import { getSocialProfiles } from "@/lib/dal/profiles";
-import { getAnalysisStatus } from "@/lib/dal/analyses";
+import { getAnalysisStatus, getLatestAnalysis } from "@/lib/dal/analyses";
 import { getCachedPosts } from "@/lib/cache/posts-cache";
 import { OverviewClient } from "@/components/dashboard/overview/OverviewClient";
 import type { RecentPost } from "@/types";
@@ -55,11 +55,24 @@ export default async function ProfilesPage() {
     }
   }
 
+  // Fetch est. earnings from the first profile's earnings_forecast analysis
+  let estEarnings = 0;
+  if (profiles.length > 0) {
+    const earningsAnalysis = await getLatestAnalysis(profiles[0].id, "earnings_forecast").catch(() => null);
+    if (earningsAnalysis?.result) {
+      const result = earningsAnalysis.result as Record<string, unknown>;
+      const forecast = (result.forecast ?? result) as Record<string, unknown>;
+      const stats = forecast?.summaryStats as { estMonthly?: number } | undefined;
+      estEarnings = stats?.estMonthly ?? 0;
+    }
+  }
+
   return (
     <OverviewClient
       profiles={profiles}
       recentPostsMap={recentPostsMap}
       analysisStatusMap={analysisStatusMap}
+      estEarnings={estEarnings}
     />
   );
 }

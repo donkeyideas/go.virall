@@ -70,7 +70,7 @@ export default function DashboardScreen() {
       .from('social_profiles')
       .select('*')
       .eq('organization_id', organization.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     const profileList = profs ?? [];
     setProfiles(profileList);
@@ -91,7 +91,7 @@ export default function DashboardScreen() {
           .from('social_metrics')
           .select('*')
           .eq('social_profile_id', metricsId)
-          .order('date', { ascending: true })
+          .order('date', { ascending: false })
           .limit(30),
         supabase
           .from('social_analyses')
@@ -102,23 +102,34 @@ export default function DashboardScreen() {
           .from('social_competitors')
           .select('*')
           .in('social_profile_id', allProfileIds)
-          .order('followers_count', { ascending: false })
-          .limit(5),
+          .order('followers_count', { ascending: false }),
       ]);
 
       setMetrics(metricsRes.data ?? []);
       setCompetitors(competitorsRes.data ?? []);
 
-      // Merge analyses from all selected profiles — first found per type wins
+      // Build analyses map — when a profile is selected, prefer its analyses
+      // When "All", pick latest analysis per type (already sorted desc by created_at)
       const aMap: Record<string, any> = {};
-      for (const row of analysesRes.data ?? []) {
-        if (!aMap[row.analysis_type]) {
+      const targetProfileId = selectedProfileId ?? allProfileIds[0];
+      const allRows = analysesRes.data ?? [];
+      // First pass: try to fill from target profile
+      for (const row of allRows) {
+        if (row.social_profile_id === targetProfileId && !aMap[row.analysis_type]) {
           aMap[row.analysis_type] = parseResult(row.result);
+        }
+      }
+      // Second pass: fill remaining from any profile (for "All" view completeness)
+      if (!selectedProfileId) {
+        for (const row of allRows) {
+          if (!aMap[row.analysis_type]) {
+            aMap[row.analysis_type] = parseResult(row.result);
+          }
         }
       }
       setAnalysisMap(aMap);
     }
-  }, [organization?.id]);
+  }, [organization?.id, selectedProfileId]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -142,9 +153,18 @@ export default function DashboardScreen() {
     : profiles;
 
   const totalFollowers = activeProfiles.reduce((s: number, p: any) => s + (p.followers_count || 0), 0);
-  const avgEngagement = activeProfiles.length > 0
-    ? activeProfiles.reduce((s: number, p: any) => s + (p.engagement_rate || 0), 0) / activeProfiles.length
-    : 0;
+  const avgLikesPerPost = (() => {
+    let totalLikes = 0;
+    let totalPostCount = 0;
+    for (const p of activeProfiles) {
+      const posts: any[] = p.recent_posts || [];
+      if (posts.length) {
+        totalLikes += posts.reduce((s: number, post: any) => s + (post.likesCount || 0), 0);
+        totalPostCount += posts.length;
+      }
+    }
+    return totalPostCount > 0 ? Math.round(totalLikes / totalPostCount) : 0;
+  })();
   const totalPosts = activeProfiles.reduce((s: number, p: any) => s + (p.posts_count || 0), 0);
 
   const networkData = analysisMap.network;
@@ -256,7 +276,7 @@ export default function DashboardScreen() {
       <View style={styles.kpiGrid}>
         <View style={styles.kpiRow}>
           <KpiCard label="Followers" value={formatNumber(totalFollowers)} change={0} icon="followers" accentColor="#E1306C" />
-          <KpiCard label="Engagement" value={avgEngagement.toFixed(1) + '%'} change={0} icon="engagement" accentColor={colors.success} />
+          <KpiCard label="Avg Likes" value={formatNumber(avgLikesPerPost)} change={0} icon="engagement" accentColor={colors.success} />
         </View>
         <View style={styles.kpiRow}>
           <KpiCard label="Posts" value={formatNumber(totalPosts)} change={0} icon="posts" accentColor={colors.accent} />
@@ -285,7 +305,7 @@ export default function DashboardScreen() {
           <View style={styles.perfStats}>
             {[
               { label: 'FOLLOWERS', value: formatNumber(selectedProfile.followers_count || 0), color: '#E1306C' },
-              { label: 'ENGAGEMENT', value: (selectedProfile.engagement_rate || 0).toFixed(1) + '%', color: colors.success },
+              { label: 'AVG LIKES', value: (() => { const posts: any[] = selectedProfile.recent_posts || []; if (!posts.length) return '---'; const total = posts.reduce((s: number, p: any) => s + (p.likesCount || 0), 0); return formatNumber(Math.round(total / posts.length)); })(), color: colors.success },
               { label: 'EST. EARNINGS', value: summaryStats?.estMonthly ? '$' + formatNumber(summaryStats.estMonthly) + '/mo' : '---', color: colors.primary },
               { label: 'TOTAL POSTS', value: formatNumber(selectedProfile.posts_count || 0), color: colors.accent },
             ].map((stat) => (

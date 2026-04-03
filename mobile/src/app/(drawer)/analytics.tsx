@@ -121,7 +121,7 @@ export default function AnalyticsScreen() {
       .from('social_profiles')
       .select('id, platform, handle, followers_count, engagement_rate, posts_count, recent_posts')
       .eq('organization_id', organization.id)
-      .order('followers_count', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (!profs || profs.length === 0) return;
 
@@ -157,21 +157,33 @@ export default function AnalyticsScreen() {
     allPosts.sort((a, b) => b.likesCount - a.likesCount);
     setPosts(allPosts);
 
-    // Platform growth
+    // Platform growth — batch fetch metrics for all profiles in one query
+    const profileIds = profs.map((p: any) => p.id);
+    const { data: allMetrics } = await supabase
+      .from('social_metrics')
+      .select('social_profile_id, date, followers')
+      .in('social_profile_id', profileIds)
+      .order('date', { ascending: false })
+      .limit(30 * profileIds.length);
+
+    // Group metrics by profile
+    const metricsByProfile: Record<string, Array<{ date: string; followers: number | null }>> = {};
+    for (const m of (allMetrics ?? [])) {
+      if (!metricsByProfile[m.social_profile_id]) metricsByProfile[m.social_profile_id] = [];
+      if (metricsByProfile[m.social_profile_id].length < 30) {
+        metricsByProfile[m.social_profile_id].push(m);
+      }
+    }
+
     const growthItems: PlatformGrowthItem[] = [];
     for (const prof of profs) {
-      const { data: metrics } = await supabase
-        .from('social_metrics')
-        .select('followers')
-        .eq('social_profile_id', prof.id)
-        .order('date', { ascending: false })
-        .limit(30);
-
-      const ml = (metrics ?? []) as Array<{ followers: number | null }>;
+      const ml = metricsByProfile[prof.id] ?? [];
       const current = ml[0]?.followers ?? prof.followers_count;
-      const previous = ml[ml.length - 1]?.followers ?? current;
+      const previous = ml.length > 1
+        ? (ml[ml.length - 1]?.followers ?? current)
+        : (prof.followers_count ?? current);
       const growth = current - previous;
-      const growthPct = previous > 0 ? (growth / previous) * 100 : 0;
+      const growthPct = previous > 0 && previous !== current ? (growth / previous) * 100 : 0;
 
       growthItems.push({
         platform: prof.platform,
@@ -185,15 +197,14 @@ export default function AnalyticsScreen() {
     }
     setPlatformGrowth(growthItems);
 
-    // Milestone — only for specific profile
+    // Milestone — only for specific profile (reuse already-fetched metrics)
     if (selectedId) {
-      await loadMilestone(selectedId, profs);
+      loadMilestoneFromMetrics(selectedId, profs, metricsByProfile);
     } else {
       setMilestone(null);
     }
 
     // Analyses
-    const profileIds = profs.map((p: any) => p.id);
     const { data: analysisRows } = await supabase
       .from('social_analyses')
       .select('*')
@@ -216,18 +227,15 @@ export default function AnalyticsScreen() {
     setCompetitorData(selAnalyses.competitors ?? null);
   }, [organization?.id, selectedId]);
 
-  const loadMilestone = async (profileId: string, profs: any[]) => {
+  const loadMilestoneFromMetrics = (
+    profileId: string,
+    profs: any[],
+    metricsByProfile: Record<string, Array<{ date: string; followers: number | null }>>,
+  ) => {
     const prof = profs.find((p: any) => p.id === profileId);
     if (!prof) { setMilestone(null); return; }
 
-    const { data: metrics } = await supabase
-      .from('social_metrics')
-      .select('date, followers')
-      .eq('social_profile_id', profileId)
-      .order('date', { ascending: false })
-      .limit(30);
-
-    const ml = (metrics ?? []) as Array<{ date: string; followers: number | null }>;
+    const ml = metricsByProfile[profileId] ?? [];
     if (ml.length < 2) {
       setMilestone({ currentFollowers: prof.followers_count, dailyGrowthRate: 0, milestones: [] });
       return;
@@ -314,7 +322,7 @@ export default function AnalyticsScreen() {
         {/* KPI Row */}
         <View style={styles.kpiRow}>
           <Card style={styles.kpiCard}>
-            <Text style={[styles.kpiValue, { color: colors.text }]}>{posts.length}</Text>
+            <Text style={[styles.kpiValue, { color: colors.text }]}>{filteredPosts.length}</Text>
             <Text style={[styles.kpiLabel, { color: colors.textMuted }]}>POSTS</Text>
           </Card>
           <Card style={styles.kpiCard}>
@@ -439,6 +447,7 @@ export default function AnalyticsScreen() {
         <SectionTitle>Growth Rate by Platform</SectionTitle>
         {filteredGrowth.map((pg) => {
           const isSelected = pg.profileId === selectedId;
+          const hasData = pg.growth !== 0 || pg.previousFollowers !== pg.currentFollowers;
           const barPct = Math.min(Math.abs(pg.growthPct) * 5, 100);
           return (
             <Card key={pg.profileId} style={styles.growthBarCard}>
@@ -446,20 +455,35 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.growthBarName, { color: isSelected ? colors.primary : colors.text }]}>
                   {pg.platform} · @{pg.handle}
                 </Text>
-                <Text style={[styles.growthBarPct, { color: pg.growth >= 0 ? colors.success : colors.error }]}>
-                  {pg.growth >= 0 ? '+' : ''}{pg.growthPct}%
-                </Text>
+                {hasData ? (
+                  <Text style={[styles.growthBarPct, { color: pg.growth >= 0 ? colors.success : colors.error }]}>
+                    {pg.growth >= 0 ? '+' : ''}{pg.growthPct}%
+                  </Text>
+                ) : (
+                  <Text style={[styles.growthBarPct, { color: colors.textMuted }]}>
+                    Collecting data...
+                  </Text>
+                )}
               </View>
               <View style={[styles.barTrack, { backgroundColor: colors.surfaceLight }]}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${barPct}%`,
-                      backgroundColor: pg.growth >= 0 ? colors.success : colors.error,
-                    },
-                  ]}
-                />
+                {hasData ? (
+                  <View
+                    style={[
+                      styles.barFill,
+                      {
+                        width: `${barPct}%`,
+                        backgroundColor: pg.growth >= 0 ? colors.success : colors.error,
+                      },
+                    ]}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.barFill,
+                      { width: '5%', backgroundColor: colors.textMuted + '60' },
+                    ]}
+                  />
+                )}
               </View>
             </Card>
           );
@@ -702,8 +726,8 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.positionLabel, { color: colors.textSecondary }]}>Followers</Text>
               </Card>
               <Card style={styles.positionCard}>
-                <Text style={[styles.positionValue, { color: colors.primary }]}>{profile.engagement_rate?.toFixed(2) ?? 'N/A'}%</Text>
-                <Text style={[styles.positionLabel, { color: colors.textSecondary }]}>Engagement</Text>
+                <Text style={[styles.positionValue, { color: colors.primary }]}>{(() => { const myPosts = posts.filter(p => p.platform === profile.platform); if (!myPosts.length) return 'N/A'; return fmtNum(Math.round(myPosts.reduce((s, p) => s + p.likesCount, 0) / myPosts.length)); })()}</Text>
+                <Text style={[styles.positionLabel, { color: colors.textSecondary }]}>Avg Likes</Text>
               </Card>
               <Card style={styles.positionCard}>
                 <Text style={[styles.positionValue, { color: colors.text }]}>{fmtNum(profile.posts_count)}</Text>

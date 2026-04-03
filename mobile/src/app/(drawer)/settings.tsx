@@ -20,7 +20,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { trackEvent } from '../../lib/track';
 
-const TABS = ['Account', 'Notifications', 'Billing', 'Connected', 'Media Kit', 'Team'];
+const TABS = ['Account', 'Notifications', 'Billing', 'Connected', 'Media Kit', 'Team', 'AI Keys'];
 
 export default function SettingsScreen() {
   const { colors, mode, toggleTheme } = useTheme();
@@ -57,6 +57,13 @@ export default function SettingsScreen() {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
 
+  // AI API Keys
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
+  const [newApiKey, setNewApiKey] = useState('');
+  const [savingKey, setSavingKey] = useState(false);
+  const [keyMessage, setKeyMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   const loadData = useCallback(async () => {
     if (!user?.id || !organization?.id) return;
 
@@ -92,7 +99,7 @@ export default function SettingsScreen() {
       .eq('id', user.id)
       .single();
     if (profile) {
-      setDisplayName(profile.display_name || displayName);
+      setDisplayName(profile.display_name || '');
       setBio(profile.bio || '');
       setNiche(profile.niche || '');
       setLocation(profile.location || '');
@@ -112,6 +119,14 @@ export default function SettingsScreen() {
       .eq('organization_id', organization.id)
       .order('sort_order', { ascending: true });
     setMediaSections(sections ?? []);
+
+    // Load AI API keys
+    const { data: keys } = await supabase
+      .from('user_api_keys')
+      .select('id, provider, model_preference, is_active, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+    setApiKeys(keys ?? []);
   }, [user?.id, organization?.id]);
 
   useEffect(() => {
@@ -403,9 +418,170 @@ export default function SettingsScreen() {
           </Card>
         </>
       )}
+      {/* ── AI API Keys Tab ──────────────────────────────────── */}
+      {tabIndex === 6 && (
+        <>
+          <SectionTitle>AI API Keys</SectionTitle>
+          <Card>
+            <Text style={[styles.emptyText, { color: colors.textSecondary, textAlign: 'left' }]}>
+              Bring your own API key for a premium AI experience in Chat. Your key is used first; Go Virall's system key is the fallback.
+            </Text>
+          </Card>
+
+          {keyMessage && (
+            <Card style={{ backgroundColor: keyMessage.type === 'success' ? colors.success + '15' : colors.error + '15' }}>
+              <Text style={{ fontSize: FontSize.sm, color: keyMessage.type === 'success' ? colors.success : colors.error }}>
+                {keyMessage.text}
+              </Text>
+            </Card>
+          )}
+
+          {AI_PROVIDERS.map((provider) => {
+            const existing = apiKeys.find((k: any) => k.provider === provider.id);
+            const isExpanded = expandedProvider === provider.id;
+
+            return (
+              <Card key={provider.id}>
+                <View style={styles.providerRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.providerName, { color: colors.text }]}>{provider.name}</Text>
+                    {existing && (
+                      <View style={[styles.keyStatusBadge, { backgroundColor: existing.is_active ? colors.success + '20' : colors.textMuted + '20' }]}>
+                        <Text style={[styles.keyStatusText, { color: existing.is_active ? colors.success : colors.textMuted }]}>
+                          {existing.is_active ? 'Active' : 'Inactive'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  {existing ? (
+                    <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+                      <Pressable onPress={async () => {
+                        await supabase
+                          .from('user_api_keys')
+                          .update({ is_active: !existing.is_active })
+                          .eq('id', existing.id);
+                        setApiKeys((prev) => prev.map((k: any) => k.id === existing.id ? { ...k, is_active: !existing.is_active } : k));
+                      }}>
+                        <Text style={[styles.keyAction, { color: colors.textSecondary }]}>
+                          {existing.is_active ? 'DISABLE' : 'ENABLE'}
+                        </Text>
+                      </Pressable>
+                      <Pressable onPress={async () => {
+                        await supabase
+                          .from('user_api_keys')
+                          .delete()
+                          .eq('id', existing.id);
+                        setApiKeys((prev) => prev.filter((k: any) => k.id !== existing.id));
+                        setKeyMessage({ type: 'success', text: 'Key removed.' });
+                      }}>
+                        <Text style={[styles.keyAction, { color: colors.error }]}>REMOVE</Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <Pressable onPress={() => {
+                      setExpandedProvider(isExpanded ? null : provider.id);
+                      setNewApiKey('');
+                      setKeyMessage(null);
+                    }}>
+                      <Text style={[styles.keyAction, { color: colors.primary }]}>
+                        {isExpanded ? 'CANCEL' : 'ADD KEY'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                {isExpanded && (
+                  <View style={[styles.keyExpandedArea, { borderTopColor: colors.border }]}>
+                    <Text style={[styles.keyGuideLabel, { color: colors.textMuted }]}>
+                      How to get your {provider.name} API key:
+                    </Text>
+                    <Text style={[styles.keyGuideText, { color: colors.textSecondary }]}>
+                      {provider.guide}
+                    </Text>
+                    <RNTextInput
+                      style={[styles.textInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+                      value={newApiKey}
+                      onChangeText={setNewApiKey}
+                      placeholder={`Paste your ${provider.name} API key...`}
+                      placeholderTextColor={colors.textMuted}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                    <Pressable
+                      onPress={async () => {
+                        if (!newApiKey.trim() || !user?.id) return;
+                        setSavingKey(true);
+                        setKeyMessage(null);
+                        const { error } = await supabase.from('user_api_keys').upsert({
+                          user_id: user.id,
+                          provider: provider.id,
+                          api_key_encrypted: newApiKey.trim(),
+                          model_preference: provider.defaultModel,
+                          is_active: true,
+                        }, { onConflict: 'user_id,provider' });
+                        if (error) {
+                          setKeyMessage({ type: 'error', text: error.message });
+                        } else {
+                          setKeyMessage({ type: 'success', text: `${provider.name} key saved!` });
+                          setNewApiKey('');
+                          setExpandedProvider(null);
+                          // Reload keys
+                          const { data: keys } = await supabase
+                            .from('user_api_keys')
+                            .select('id, provider, model_preference, is_active, created_at')
+                            .eq('user_id', user.id);
+                          setApiKeys(keys ?? []);
+                        }
+                        setSavingKey(false);
+                      }}
+                      disabled={!newApiKey.trim() || savingKey}
+                      style={[styles.saveBtn, { backgroundColor: colors.primary, opacity: (!newApiKey.trim() || savingKey) ? 0.5 : 1 }]}
+                    >
+                      <Text style={styles.saveBtnText}>{savingKey ? 'SAVING...' : 'SAVE KEY'}</Text>
+                    </Pressable>
+                    <Text style={[styles.keyModelNote, { color: colors.textMuted }]}>
+                      Model: {provider.defaultModel} · Your key is encrypted at rest.
+                    </Text>
+                  </View>
+                )}
+              </Card>
+            );
+          })}
+        </>
+      )}
     </ScrollView>
   );
 }
+
+// ── AI Provider Config ────────────────────────────────────────────
+
+const AI_PROVIDERS = [
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    defaultModel: 'gpt-4o',
+    guide: '1. Go to platform.openai.com/api-keys\n2. Click "Create new secret key"\n3. Copy the key (starts with sk-)\n4. Paste it below',
+  },
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    defaultModel: 'claude-sonnet-4-20250514',
+    guide: '1. Go to console.anthropic.com/settings/keys\n2. Click "Create Key"\n3. Copy the key (starts with sk-ant-)\n4. Paste it below',
+  },
+  {
+    id: 'google',
+    name: 'Google Gemini',
+    defaultModel: 'gemini-2.5-flash',
+    guide: '1. Go to aistudio.google.com/apikey\n2. Click "Create API key"\n3. Copy the key\n4. Paste it below',
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    defaultModel: 'deepseek-chat',
+    guide: '1. Go to platform.deepseek.com/api-keys\n2. Click "Create new API key"\n3. Copy the key\n4. Paste it below',
+  },
+];
 
 // ── Helper Components ─────────────────────────────────────────────
 
@@ -508,4 +684,15 @@ const styles = StyleSheet.create({
   linkRow: { paddingVertical: Spacing.md },
   linkText: { fontSize: FontSize.md },
   emptyText: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
+
+  // AI API Keys
+  providerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  providerName: { fontSize: FontSize.md, fontWeight: '600' },
+  keyStatusBadge: { borderRadius: BorderRadius.full, paddingHorizontal: Spacing.sm, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
+  keyStatusText: { fontSize: FontSize.xs, fontWeight: '600' },
+  keyAction: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  keyExpandedArea: { borderTopWidth: 1, marginTop: Spacing.md, paddingTop: Spacing.md, gap: Spacing.sm },
+  keyGuideLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  keyGuideText: { fontSize: FontSize.sm, lineHeight: 20 },
+  keyModelNote: { fontSize: 10, lineHeight: 16 },
 });

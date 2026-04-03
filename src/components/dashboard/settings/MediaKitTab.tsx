@@ -43,10 +43,18 @@ export function MediaKitTab({
   socialProfiles: SocialProfile[];
 }) {
   const totalFollowers = socialProfiles.reduce((s, p) => s + p.followers_count, 0);
-  const avgEngagement =
-    socialProfiles.length > 0
-      ? socialProfiles.reduce((s, p) => s + (p.engagement_rate ?? 0), 0) / socialProfiles.length
-      : 0;
+  const avgLikesPerPost = (() => {
+    let totalLikes = 0;
+    let totalPostCount = 0;
+    for (const p of socialProfiles) {
+      const posts = (p as unknown as { recent_posts?: { likesCount?: number }[] }).recent_posts;
+      if (posts?.length) {
+        totalLikes += posts.reduce((s, post) => s + (post.likesCount || 0), 0);
+        totalPostCount += posts.length;
+      }
+    }
+    return totalPostCount > 0 ? Math.round(totalLikes / totalPostCount) : 0;
+  })();
 
   const handle = profile?.display_name ?? socialProfiles[0]?.handle ?? "username";
   const initial = (profile?.full_name ?? "U")[0].toUpperCase();
@@ -180,7 +188,7 @@ export function MediaKitTab({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
         {[
           { label: "Followers", value: formatCompact(totalFollowers) },
-          { label: "Engagement", value: `${avgEngagement.toFixed(1)}%` },
+          { label: "Avg Likes/Post", value: avgLikesPerPost > 0 ? formatCompact(avgLikesPerPost) : "---" },
           { label: "Avg. Reach", value: formatCompact(Math.round(totalFollowers * 0.31)) },
           { label: "Post Rate", value: `$${formatCompact(Math.round(totalFollowers * 0.01))}` },
         ].map((stat) => (

@@ -11,6 +11,8 @@ import type { SocialProfile } from "@/types";
 interface AiStudioClientProps {
   profiles: SocialProfile[];
   cachedInsights: Record<string, Record<string, unknown>>;
+  /** Cached content generator results: profileId → contentType → result */
+  cachedContent: Record<string, Record<string, Record<string, unknown>>>;
 }
 
 const TABS = [
@@ -21,6 +23,7 @@ const TABS = [
 export function AiStudioClient({
   profiles,
   cachedInsights,
+  cachedContent,
 }: AiStudioClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -60,7 +63,7 @@ export function AiStudioClient({
 
       {/* Active tab */}
       {activeKey === "content" ? (
-        <ContentGenerator profiles={profiles} />
+        <ContentGenerator profiles={profiles} cachedContent={cachedContent} />
       ) : (
         <RunAnalysisTab
           profiles={profiles}

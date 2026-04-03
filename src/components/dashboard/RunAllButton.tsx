@@ -8,12 +8,17 @@ import { cn } from "@/lib/utils";
 
 interface RunAllButtonProps {
   profileId: string;
+  /** When provided, runs analyses for ALL profiles sequentially */
+  allProfileIds?: string[];
   className?: string;
 }
 
+// Recommendations excluded — user runs it manually after Run All completes
+const RUN_ALL_TYPES = ANALYSIS_TYPES.filter((a) => a.type !== "recommendations");
+
 function RunAllProcessing() {
-  const totalSteps = ANALYSIS_TYPES.length;
-  const estimatedSeconds = 180;
+  const totalSteps = RUN_ALL_TYPES.length;
+  const estimatedSeconds = 120;
   const [elapsed, setElapsed] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const startTime = useRef(Date.now());
@@ -78,7 +83,7 @@ function RunAllProcessing() {
             Running All Analyses
           </h3>
           <p className="text-[11px] text-ink-muted">
-            Processing 11 analysis types (3 at a time)
+            Processing {RUN_ALL_TYPES.length} analysis types
           </p>
         </div>
       </div>
@@ -97,7 +102,7 @@ function RunAllProcessing() {
       </div>
 
       <div className="mb-5 grid gap-1.5 sm:grid-cols-2">
-        {ANALYSIS_TYPES.map((analysis, i) => (
+        {RUN_ALL_TYPES.map((analysis, i) => (
           <div key={analysis.type} className="flex items-center gap-2">
             {i < currentStep ? (
               <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-surface-raised">
@@ -164,7 +169,7 @@ function RunAllProcessing() {
   );
 }
 
-export function RunAllButton({ profileId, className }: RunAllButtonProps) {
+export function RunAllButton({ profileId, allProfileIds, className }: RunAllButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{
     completed: number;
@@ -174,8 +179,25 @@ export function RunAllButton({ profileId, className }: RunAllButtonProps) {
   function handleClick() {
     setResult(null);
     startTransition(async () => {
-      const res = await runAllAnalyses(profileId);
-      setResult({ completed: res.completed, total: res.total });
+      const ids = allProfileIds ?? [profileId];
+      let totalCompleted = 0;
+      let totalCount = 0;
+
+      // Run profiles in batches of 2 to avoid AI rate limits
+      for (let i = 0; i < ids.length; i += 2) {
+        const batch = ids.slice(i, i + 2);
+        const batchResults = await Promise.allSettled(
+          batch.map((id) => runAllAnalyses(id)),
+        );
+        for (const r of batchResults) {
+          if (r.status === "fulfilled") {
+            totalCompleted += r.value.completed;
+            totalCount += r.value.total;
+          }
+        }
+      }
+
+      setResult({ completed: totalCompleted, total: totalCount });
     });
   }
 

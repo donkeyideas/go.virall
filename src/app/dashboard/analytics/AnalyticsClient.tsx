@@ -754,8 +754,8 @@ function CompetitiveTab({
               <p className="mt-1 text-2xl font-bold text-ink">{profile.followers_count.toLocaleString()}</p>
             </div>
             <div className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-4 text-center">
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Engagement</p>
-              <p className="mt-1 text-2xl font-bold text-editorial-red">{profile.engagement_rate?.toFixed(2) ?? "N/A"}%</p>
+              <p className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Avg Likes/Post</p>
+              <p className="mt-1 text-2xl font-bold text-editorial-red">{(() => { const rp = (profile as unknown as { recent_posts?: { likesCount?: number }[] }).recent_posts; if (!rp?.length) return "N/A"; return Math.round(rp.reduce((s, p) => s + (p.likesCount || 0), 0) / rp.length).toLocaleString(); })()}</p>
             </div>
             <div className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-4 text-center">
               <p className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Posts</p>

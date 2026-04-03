@@ -24,11 +24,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  const body = await req.json();
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
   const { message, conversationId, context } = body;
 
   if (!message || typeof message !== "string") {
     return NextResponse.json({ error: "Message is required" }, { status: 400 });
+  }
+
+  if (message.length > 10000) {
+    return NextResponse.json({ error: "Message too long (max 10,000 characters)" }, { status: 400 });
   }
 
   // Get user profile for personalization
@@ -126,28 +136,36 @@ export async function POST(req: NextRequest) {
 
   let response;
 
-  if (byokData?.api_key_encrypted) {
-    // Decrypt the BYOK key
-    const obfKey = process.env.API_KEY_ENCRYPTION_SECRET || "go-virall-byok-2026";
-    const decoded = Buffer.from(byokData.api_key_encrypted, "base64").toString();
-    let decrypted = "";
-    for (let i = 0; i < decoded.length; i++) {
-      decrypted += String.fromCharCode(
-        decoded.charCodeAt(i) ^ obfKey.charCodeAt(i % obfKey.length),
-      );
-    }
+  try {
+    if (byokData?.api_key_encrypted) {
+      // Decrypt the BYOK key using same logic as api-keys.ts deobfuscate()
+      const obfKey = process.env.API_KEY_ENCRYPTION_SECRET || "go-virall-byok-2026";
+      const decoded = Buffer.from(byokData.api_key_encrypted, "base64").toString();
+      let decrypted = "";
+      for (let i = 0; i < decoded.length; i++) {
+        decrypted += String.fromCharCode(
+          decoded.charCodeAt(i) ^ obfKey.charCodeAt(i % obfKey.length),
+        );
+      }
 
-    response = await aiChatWithBYOK(fullPrompt, {
-      provider: byokData.provider,
-      apiKey: decrypted,
-      model: byokData.model_preference,
-    }, { temperature: 0.7, maxTokens: 2048, timeout: 60000 });
-  } else {
-    response = await aiChat(fullPrompt, {
-      temperature: 0.7,
-      maxTokens: 2048,
-      timeout: 60000,
-    });
+      response = await aiChatWithBYOK(fullPrompt, {
+        provider: byokData.provider,
+        apiKey: decrypted,
+        model: byokData.model_preference,
+      }, { temperature: 0.7, maxTokens: 2048, timeout: 60000 });
+    } else {
+      response = await aiChat(fullPrompt, {
+        temperature: 0.7,
+        maxTokens: 2048,
+        timeout: 60000,
+      });
+    }
+  } catch (err: any) {
+    console.error("[chat/route] AI call failed:", err?.message);
+    return NextResponse.json(
+      { error: "AI service error. Please try again." },
+      { status: 502 },
+    );
   }
 
   if (!response) {
@@ -211,7 +229,17 @@ export async function GET(req: NextRequest) {
   const convId = searchParams.get("conversationId");
 
   if (convId) {
-    // Get messages for a specific conversation
+    // Verify the user owns this conversation before returning messages
+    const { data: conv } = await supabaseAdmin
+      .from("chat_conversations")
+      .select("user_id")
+      .eq("id", convId)
+      .single();
+
+    if (!conv || conv.user_id !== user.id) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
     const { data: messages } = await supabaseAdmin
       .from("chat_messages")
       .select("id, role, content, metadata, created_at")

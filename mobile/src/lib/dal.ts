@@ -6,7 +6,7 @@ export async function getSocialProfiles(orgId: string) {
     .from('social_profiles')
     .select('*')
     .eq('organization_id', orgId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: true });
   return data ?? [];
 }
 
@@ -25,7 +25,7 @@ export async function getLatestMetrics(profileId: string, limit = 30) {
     .from('social_metrics')
     .select('*')
     .eq('social_profile_id', profileId)
-    .order('date', { ascending: true })
+    .order('date', { ascending: false })
     .limit(limit);
   return data ?? [];
 }
@@ -40,7 +40,7 @@ export async function getAllMetricsForOrg(orgId: string, limit = 30) {
     .from('social_metrics')
     .select('*')
     .in('social_profile_id', ids)
-    .order('date', { ascending: true })
+    .order('date', { ascending: false })
     .limit(limit * ids.length);
   return data ?? [];
 }

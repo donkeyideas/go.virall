@@ -17,6 +17,7 @@ import { useAuth } from '../../contexts/auth-context';
 import { mobileApi } from '../../lib/api';
 import { trackEvent } from '../../lib/track';
 import { Spacing, FontSize, BorderRadius } from '../../constants/theme';
+import { SimpleMarkdown } from '../../components/ui/SimpleMarkdown';
 
 interface Message {
   id: string;
@@ -38,7 +39,7 @@ const QUICK_ACTIONS = [
   { label: 'Best hashtags', prompt: 'What are the best hashtags for my niche right now? Give me 4 sets: niche, growth, community, and trending.' },
   { label: 'Analyze my week', prompt: 'Analyze my performance over the last 7 days. What worked, what didn\'t, and what should I do next?' },
   { label: 'Growth tips', prompt: 'Based on my current metrics, give me 5 specific growth strategies for this week.' },
-  { label: 'Posting schedule', prompt: 'Based on my audience activity data, what\'s my optimal posting schedule for this week?' },
+  { label: 'Schedule posts', prompt: 'Based on my audience activity data, what\'s my optimal posting schedule for this week?' },
 ];
 
 export default function ChatScreen() {
@@ -178,8 +179,15 @@ export default function ChatScreen() {
 
   const renderMessage = useCallback(({ item }: { item: Message }) => {
     const isUser = item.role === 'user';
+    const textColor = isUser ? '#1A1035' : colors.text;
     return (
       <View style={[styles.msgRow, isUser ? styles.msgRowUser : styles.msgRowAssistant]}>
+        {/* Assistant avatar */}
+        {!isUser && (
+          <View style={[styles.avatar, { backgroundColor: colors.primary + '25' }]}>
+            <Text style={[styles.avatarIcon, { color: colors.primary }]}>V</Text>
+          </View>
+        )}
         <View
           style={[
             styles.msgBubble,
@@ -188,19 +196,18 @@ export default function ChatScreen() {
               : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
           ]}
         >
-          <Text
-            style={[
-              styles.msgText,
-              { color: isUser ? '#1A1035' : colors.text },
-            ]}
-            selectable
-          >
-            {item.content}
-          </Text>
-          {item.provider && (
-            <Text style={[styles.providerTag, { color: isUser ? '#1A103580' : colors.textMuted }]}>
-              {formatProvider(item.provider)}
+          {isUser ? (
+            <Text style={[styles.msgText, { color: textColor }]} selectable>
+              {item.content}
             </Text>
+          ) : (
+            <SimpleMarkdown
+              content={item.content}
+              color={textColor}
+              mutedColor={colors.textMuted}
+              accentColor={colors.primary}
+              baseStyle={styles.msgText}
+            />
           )}
         </View>
       </View>
@@ -250,28 +257,31 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={90}
     >
-      {/* Provider badge */}
-      <View style={[styles.providerBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Text style={[styles.providerBarText, { color: colors.textMuted }]}>
-          Virall AI
-        </Text>
-      </View>
-
       {!hasMessages ? (
-        /* Welcome Screen */
+        /* ── Welcome Screen ── */
         <View style={styles.welcomeContainer}>
-          <Text style={[styles.welcomeTitle, { color: colors.text }]}>Virall AI</Text>
+          {/* Strategist Avatar */}
+          <View style={[styles.welcomeAvatar, { backgroundColor: colors.primary + '20' }]}>
+            <Text style={{ fontSize: 28 }}>V</Text>
+          </View>
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>Smart Strategist</Text>
+          <View style={styles.onlineRow}>
+            <View style={[styles.onlineDot, { backgroundColor: '#4ADE80' }]} />
+            <Text style={[styles.onlineText, { color: '#4ADE80' }]}>Online</Text>
+          </View>
           <Text style={[styles.welcomeSubtitle, { color: colors.textSecondary }]}>
-            Your personal social media strategist
+            Your personal social media strategist.{'\n'}Ask me anything about your content and growth.
           </Text>
-          <View style={styles.quickGrid}>
+
+          {/* Welcome quick actions as compact pills */}
+          <View style={styles.welcomeChips}>
             {QUICK_ACTIONS.map((action) => (
               <Pressable
                 key={action.label}
                 onPress={() => sendMessage(action.prompt)}
-                style={[styles.quickBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.welcomeChip, { borderColor: colors.primary + '50' }]}
               >
-                <Text style={[styles.quickBtnText, { color: colors.text }]}>
+                <Text style={[styles.welcomeChipText, { color: colors.primary }]}>
                   {action.label}
                 </Text>
               </Pressable>
@@ -279,7 +289,7 @@ export default function ChatScreen() {
           </View>
         </View>
       ) : (
-        /* Messages */
+        /* ── Messages ── */
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -290,68 +300,50 @@ export default function ChatScreen() {
           ListFooterComponent={
             isLoading ? (
               <View style={styles.loadingRow}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Thinking...</Text>
+                <View style={[styles.avatar, { backgroundColor: colors.primary + '25' }]}>
+                  <Text style={[styles.avatarIcon, { color: colors.primary }]}>V</Text>
+                </View>
+                <View style={[styles.loadingBubble, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={[styles.loadingText, { color: colors.textMuted }]}>Thinking...</Text>
+                </View>
               </View>
             ) : null
           }
         />
       )}
 
-      {/* Quick actions (when in conversation) */}
-      {hasMessages && (
-        <FlatList
-          horizontal
-          data={QUICK_ACTIONS}
-          keyExtractor={(item) => item.label}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => sendMessage(item.prompt)}
-              disabled={isLoading}
-              style={[styles.quickChip, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            >
-              <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>
-                {item.label}
-              </Text>
-            </Pressable>
-          )}
-          contentContainerStyle={styles.quickChipList}
-          showsHorizontalScrollIndicator={false}
-        />
-      )}
-
-      {/* Input */}
-      <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="Ask about your content, growth..."
-          placeholderTextColor={colors.textMuted}
-          style={[styles.inputField, { color: colors.text, backgroundColor: colors.inputBg }]}
-          multiline
-          maxLength={2000}
-          editable={!isLoading}
-          onSubmitEditing={() => sendMessage()}
-          blurOnSubmit
-        />
-        <Pressable
-          onPress={() => sendMessage()}
-          disabled={!input.trim() || isLoading}
-          style={[styles.sendBtn, { backgroundColor: input.trim() ? colors.primary : colors.surfaceLight }]}
-        >
-          <Text style={[styles.sendBtnText, { color: input.trim() ? '#1A1035' : colors.textMuted }]}>
-            Send
-          </Text>
-        </Pressable>
+      {/* ── Input Bar ── */}
+      <View style={[styles.inputBar, { backgroundColor: colors.background }]}>
+        <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="Ask your strategist..."
+            placeholderTextColor={colors.textMuted}
+            style={[styles.inputField, { color: colors.text }]}
+            multiline
+            maxLength={2000}
+            editable={!isLoading}
+            onSubmitEditing={() => sendMessage()}
+            blurOnSubmit
+          />
+          <Pressable
+            onPress={() => sendMessage()}
+            disabled={!input.trim() || isLoading}
+            style={[
+              styles.sendBtn,
+              { backgroundColor: input.trim() ? colors.primary : colors.surfaceLight },
+            ]}
+          >
+            <Text style={[styles.sendArrow, { color: input.trim() ? '#1A1035' : colors.textMuted }]}>
+              {'>'}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
-}
-
-function formatProvider(provider: string): string {
-  const cleaned = provider.replace('byok_', '');
-  const map: Record<string, string> = { openai: 'GPT-4o', anthropic: 'Claude', google: 'Gemini', gemini: 'Gemini', deepseek: 'DeepSeek' };
-  return map[cleaned] || cleaned;
 }
 
 function formatRelativeTime(dateStr: string): string {
@@ -368,68 +360,198 @@ function formatRelativeTime(dateStr: string): string {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  providerBar: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
+
+  // ── Welcome ──
+  welcomeContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xxl,
+  },
+  welcomeAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: Spacing.md,
   },
-  providerBarText: { fontSize: FontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
-  welcomeContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.xl },
-  welcomeTitle: { fontSize: FontSize.xxl, fontWeight: '800', marginBottom: Spacing.xs },
-  welcomeSubtitle: { fontSize: FontSize.md, marginBottom: Spacing.xxxl, textAlign: 'center' },
-  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: Spacing.sm },
-  quickBtn: {
+  welcomeTitle: {
+    fontSize: FontSize.xl,
+    fontWeight: '800',
+    marginBottom: Spacing.xs,
+  },
+  onlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: Spacing.lg,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  onlineText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  welcomeSubtitle: {
+    fontSize: FontSize.sm,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: Spacing.xl,
+  },
+  welcomeChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  welcomeChip: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  welcomeChipText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+
+  // ── Messages ──
+  messagesList: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.sm,
+  },
+  msgRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  msgRowUser: {
+    justifyContent: 'flex-end',
+  },
+  msgRowAssistant: {
+    justifyContent: 'flex-start',
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  avatarIcon: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  msgBubble: {
+    maxWidth: '80%',
+    borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    minWidth: '45%',
   },
-  quickBtnText: { fontSize: FontSize.sm, fontWeight: '600', textAlign: 'center' },
-  messagesList: { padding: Spacing.lg, paddingBottom: Spacing.sm },
-  msgRow: { marginBottom: Spacing.md },
-  msgRowUser: { alignItems: 'flex-end' },
-  msgRowAssistant: { alignItems: 'flex-start' },
-  msgBubble: { maxWidth: '85%', borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
-  msgText: { fontSize: FontSize.md, lineHeight: 22 },
-  providerTag: { fontSize: FontSize.xs, marginTop: Spacing.xs, textAlign: 'right' },
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.md },
-  loadingText: { fontSize: FontSize.sm },
-  quickChipList: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, gap: Spacing.sm },
-  quickChip: { borderWidth: 1, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs },
-  quickChipText: { fontSize: FontSize.xs, fontWeight: '500' },
+  msgText: {
+    fontSize: FontSize.sm,
+    lineHeight: 21,
+  },
+
+  // ── Loading ──
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  loadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  loadingText: {
+    fontSize: FontSize.sm,
+  },
+
+  // ── Quick Chips ──
+  quickChipList: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  quickChip: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+  },
+  quickChipText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+
+  // ── Input Bar ──
   inputBar: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingBottom: Spacing.md,
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    padding: Spacing.md,
-    borderTopWidth: 1,
-    gap: Spacing.sm,
+    borderRadius: 28,
+    borderWidth: 1,
+    paddingLeft: Spacing.lg,
+    paddingRight: 4,
+    paddingVertical: 4,
   },
   inputField: {
     flex: 1,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
     fontSize: FontSize.md,
+    paddingVertical: Spacing.sm,
     maxHeight: 100,
   },
   sendBtn: {
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm + 2,
-    alignSelf: 'flex-end',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sendBtnText: { fontSize: FontSize.sm, fontWeight: '700' },
-  historyTitle: { fontSize: FontSize.xl, fontWeight: '800', padding: Spacing.lg, paddingBottom: Spacing.sm },
-  emptyText: { fontSize: FontSize.md, textAlign: 'center', paddingTop: Spacing.xxxl },
+  sendArrow: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+
+  // ── History ──
+  historyTitle: {
+    fontSize: FontSize.xl,
+    fontWeight: '800',
+    padding: Spacing.lg,
+    paddingBottom: Spacing.sm,
+  },
+  emptyText: {
+    fontSize: FontSize.md,
+    textAlign: 'center',
+    paddingTop: Spacing.xxxl,
+  },
   convItem: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
   },
-  convTitle: { fontSize: FontSize.md, fontWeight: '600' },
-  convDate: { fontSize: FontSize.xs, marginTop: Spacing.xs },
+  convTitle: {
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  convDate: {
+    fontSize: FontSize.xs,
+    marginTop: Spacing.xs,
+  },
 });

@@ -103,17 +103,16 @@ export function ModernOverview(props: OverviewProps) {
             changeFormat: "compact" as const,
           },
           {
-            label: "Avg Engagement",
+            label: "Avg Likes/Post",
             value: d.isAllProfiles
-              ? d.avgEngagement > 0
-                ? `${d.avgEngagement.toFixed(1)}%`
+              ? d.avgLikesPerPost > 0
+                ? formatCompact(d.avgLikesPerPost)
                 : "---"
-              : d.selectedProfile?.engagement_rate
-                ? `${d.selectedProfile.engagement_rate}%`
+              : d.profileAvgLikes > 0
+                ? formatCompact(d.profileAvgLikes)
                 : "---",
             accent: false,
-            change: d.engagementChange,
-            changeSuffix: "%",
+            change: null as number | null,
           },
           {
             label: "Total Posts",
@@ -168,12 +167,25 @@ export function ModernOverview(props: OverviewProps) {
                 {"changeFormat" in stat && stat.changeFormat === "compact"
                   ? formatCompact(Math.abs(stat.change))
                   : stat.change}
-                {"changeSuffix" in stat ? stat.changeSuffix : ""}
               </p>
             )}
           </div>
         ))}
       </div>
+
+      {/* ──── Last Synced ──── */}
+      {(() => {
+        const latest = d.profiles.reduce<string | null>((best, p) => {
+          if (!p.last_synced_at) return best;
+          if (!best) return p.last_synced_at;
+          return new Date(p.last_synced_at) > new Date(best) ? p.last_synced_at : best;
+        }, null);
+        return latest ? (
+          <p className="mb-2 text-right text-[10px] text-ink-muted">
+            Last synced: {new Date(latest).toLocaleString()}
+          </p>
+        ) : null;
+      })()}
 
       {/* ──── Three-Column Layout ──── */}
       <div className="grid gap-4 lg:grid-cols-[300px_1fr_280px]">
@@ -247,16 +259,16 @@ export function ModernOverview(props: OverviewProps) {
                     accent: true,
                   },
                   {
-                    label: "Engagement Rate",
-                    value: d.profileForData.engagement_rate
-                      ? `${d.profileForData.engagement_rate}%`
+                    label: "Avg Likes/Post",
+                    value: d.profileAvgLikes > 0
+                      ? formatCompact(d.profileAvgLikes)
                       : "---",
                     accent: false,
                   },
                   {
                     label: "Est. Earnings",
                     value: d.summaryStats
-                      ? `$${d.summaryStats.estMonthly.toLocaleString()}`
+                      ? `$${(d.summaryStats.estMonthly ?? 0).toLocaleString()}`
                       : "---",
                     sub: d.summaryStats ? "per month" : undefined,
                     accent: false,
@@ -445,9 +457,9 @@ export function ModernOverview(props: OverviewProps) {
                       </span>
                     </div>
                     {d.selectedCell.value > 60 && (
-                      <div className="mt-2 rounded-lg bg-editorial-red/10 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-editorial-red">
+                      <p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-editorial-gold">
                         Recommended posting time
-                      </div>
+                      </p>
                     )}
                   </div>
                 )}
@@ -976,6 +988,7 @@ export function ModernOverview(props: OverviewProps) {
                   code: "GR",
                   bg: "bg-editorial-red/10",
                   fg: "text-editorial-red",
+                  href: "/dashboard/growth",
                 },
                 {
                   label: "Revenue",
@@ -983,6 +996,7 @@ export function ModernOverview(props: OverviewProps) {
                   code: "RV",
                   bg: "bg-editorial-green/10",
                   fg: "text-editorial-green",
+                  href: "/dashboard/monetization",
                 },
                 {
                   label: "Audience Intel",
@@ -990,6 +1004,7 @@ export function ModernOverview(props: OverviewProps) {
                   code: "AU",
                   bg: "bg-editorial-blue/10",
                   fg: "text-editorial-blue",
+                  href: "/dashboard/intelligence",
                 },
                 {
                   label: "Campaigns",
@@ -997,6 +1012,7 @@ export function ModernOverview(props: OverviewProps) {
                   code: "CP",
                   bg: "bg-editorial-gold/10",
                   fg: "text-editorial-gold",
+                  href: "/dashboard/monetization",
                 },
                 {
                   label: "AI Studio",
@@ -1004,6 +1020,7 @@ export function ModernOverview(props: OverviewProps) {
                   code: "AI",
                   bg: "bg-editorial-blue/10",
                   fg: "text-editorial-blue",
+                  href: "/dashboard/ai-studio",
                 },
                 {
                   label: "Network",
@@ -1011,10 +1028,12 @@ export function ModernOverview(props: OverviewProps) {
                   code: "NW",
                   bg: "bg-editorial-red/10",
                   fg: "text-editorial-red",
+                  href: "/dashboard/network",
                 },
               ].map((item) => (
-                <div
+                <a
                   key={item.label}
+                  href={item.href}
                   className="flex items-center justify-between rounded-lg border border-modern-card-border bg-surface-raised px-3 py-2 cursor-pointer hover:bg-editorial-red/5 hover:border-editorial-red/20 transition-all"
                 >
                   <div className="flex items-center gap-2">
@@ -1041,7 +1060,7 @@ export function ModernOverview(props: OverviewProps) {
                   <span className="text-[9px] font-semibold text-ink-muted">
                     View &rarr;
                   </span>
-                </div>
+                </a>
               ))}
             </div>
           </div>
@@ -1249,19 +1268,19 @@ export function ModernOverview(props: OverviewProps) {
             {[
               {
                 label: "Est. Monthly",
-                value: `$${d.summaryStats.estMonthly.toLocaleString()}`,
+                value: `$${(d.summaryStats.estMonthly ?? 0).toLocaleString()}`,
                 color: "text-editorial-green",
                 sub: "Realistic scenario",
               },
               {
                 label: "Active Deals",
-                value: d.summaryStats.activeDeals,
+                value: d.summaryStats.activeDeals ?? 0,
                 color: "text-editorial-blue",
                 sub: undefined,
               },
               {
                 label: "YTD Revenue",
-                value: `$${d.summaryStats.ytdRevenue.toLocaleString()}`,
+                value: `$${(d.summaryStats.ytdRevenue ?? 0).toLocaleString()}`,
                 color: "text-editorial-green",
                 sub: d.summaryStats.ytdDealsCompleted != null
                   ? `${d.summaryStats.ytdDealsCompleted} deals completed`

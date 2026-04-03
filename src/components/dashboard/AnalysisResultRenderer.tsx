@@ -1732,9 +1732,9 @@ function AudienceResult({ data, platform }: { data: Record<string, unknown>; pla
                 </div>
                 {/* Recommended posting time banner */}
                 {selectedCell.value > 60 && (
-                  <div className="mt-2 bg-surface-raised px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-editorial-red">
+                  <p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-editorial-gold">
                     Recommended posting time
-                  </div>
+                  </p>
                 )}
               </div>
             )}

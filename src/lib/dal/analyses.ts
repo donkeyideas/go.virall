@@ -171,6 +171,49 @@ export async function getAnalysisStatus(
   >;
 }
 
+/**
+ * Fetch cached content generator results for multiple profiles.
+ * Returns a map of profileId → contentType → result JSONB.
+ * Unlike getCachedResults (which keeps 1 per profile), this keeps
+ * the latest result per profile per contentType.
+ */
+export async function getCachedContentResults(
+  profileIds: string[],
+): Promise<Record<string, Record<string, Record<string, unknown>>>> {
+  if (profileIds.length === 0) return {};
+
+  const userId = await getAuthUserId();
+  if (!userId) return {};
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("social_analyses")
+    .select("social_profile_id, result, created_at")
+    .in("social_profile_id", profileIds)
+    .eq("analysis_type", "content_generator")
+    .order("created_at", { ascending: false });
+
+  const analyses = (data ?? []) as Array<{
+    social_profile_id: string;
+    result: Record<string, unknown>;
+    created_at: string;
+  }>;
+
+  // Keep the latest per profile per contentType
+  const result: Record<string, Record<string, Record<string, unknown>>> = {};
+  for (const a of analyses) {
+    const pid = a.social_profile_id;
+    const ct = (a.result?.contentType as string) ?? "post_ideas";
+    if (!result[pid]) result[pid] = {};
+    // Only keep the first (latest) for each contentType
+    if (!result[pid][ct]) {
+      result[pid][ct] = a.result;
+    }
+  }
+
+  return result;
+}
+
 function emptyAnalysesRecord(): Record<AnalysisType, SocialAnalysis | null> {
   const types: AnalysisType[] = [
     "growth",

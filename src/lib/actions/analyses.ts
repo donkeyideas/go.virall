@@ -181,20 +181,20 @@ export async function runRecommendations(profileId: string) {
       analyses: analysesRecord as never,
     });
 
-    try {
-      await admin.from("social_analyses").insert({
-        social_profile_id: profileId,
-        analysis_type: "recommendations",
-        result: result.data,
-        ai_provider: result.provider,
-        tokens_used: 0,
-        cost_cents: 0,
-        expires_at: new Date(
-          Date.now() + 24 * 60 * 60 * 1000,
-        ).toISOString(),
-      });
-    } catch {
-      // Ignore DB errors — results still returned
+    const { error: insertError } = await admin.from("social_analyses").insert({
+      social_profile_id: profileId,
+      analysis_type: "recommendations",
+      result: result.data,
+      ai_provider: result.provider,
+      tokens_used: 0,
+      cost_cents: 0,
+      expires_at: new Date(
+        Date.now() + 24 * 60 * 60 * 1000,
+      ).toISOString(),
+    });
+
+    if (insertError) {
+      console.error("[runRecommendations] DB insert failed:", insertError.message);
     }
 
     revalidatePath("/dashboard", "layout");
@@ -207,7 +207,7 @@ export async function runRecommendations(profileId: string) {
 }
 
 export async function runAllAnalyses(profileId: string) {
-  const analysisTypes: AnalysisType[] = [
+  const coreTypes: AnalysisType[] = [
     "growth",
     "content_strategy",
     "hashtags",
@@ -223,26 +223,81 @@ export async function runAllAnalyses(profileId: string) {
 
   const results: { type: AnalysisType; success: boolean; error?: string }[] = [];
 
-  // Run 3 at a time (concurrent queue)
-  for (let i = 0; i < analysisTypes.length; i += 3) {
-    const batch = analysisTypes.slice(i, i + 3);
-    const batchResults = await Promise.allSettled(
-      batch.map((type) => runAnalysis(profileId, type)),
-    );
-
-    for (let j = 0; j < batch.length; j++) {
-      const result = batchResults[j];
-      if (result.status === "fulfilled" && result.value.success) {
-        results.push({ type: batch[j], success: true });
-      } else {
-        const error =
-          result.status === "fulfilled"
-            ? result.value.error
-            : result.reason?.message;
-        results.push({ type: batch[j], success: false, error });
+  // ── Phase 1: Run core analyses (batches of 5) + content generator (3 at a time) IN PARALLEL ──
+  const corePromise = (async () => {
+    for (let i = 0; i < coreTypes.length; i += 5) {
+      const batch = coreTypes.slice(i, i + 5);
+      const batchResults = await Promise.allSettled(
+        batch.map((type) => runAnalysis(profileId, type)),
+      );
+      for (let j = 0; j < batch.length; j++) {
+        const r = batchResults[j];
+        if (r.status === "fulfilled" && r.value.success) {
+          results.push({ type: batch[j], success: true });
+        } else {
+          const error = r.status === "fulfilled" ? r.value.error : r.reason?.message;
+          results.push({ type: batch[j], success: false, error });
+        }
       }
     }
-  }
+  })();
+
+  const contentPromise = (async () => {
+    try {
+      const admin = createAdminClient();
+      const { data: profile } = await admin
+        .from("social_profiles")
+        .select("platform, niche, display_name, handle")
+        .eq("id", profileId)
+        .single();
+
+      const niche = (profile?.niche as string) || (profile?.display_name as string) || "general";
+      const { generateContentAI } = await import("@/lib/ai/content-generator");
+
+      const { data: metrics } = await admin
+        .from("social_metrics")
+        .select("*")
+        .eq("social_profile_id", profileId)
+        .order("date", { ascending: false })
+        .limit(10);
+
+      // Only generate post_ideas in Run All — other types generated on-demand from AI Studio
+      const cgResult = await generateContentAI({
+        profile: profile as Record<string, unknown>,
+        metrics: (metrics ?? []) as Record<string, unknown>[],
+        contentType: "post_ideas",
+        topic: niche,
+        tone: "Professional",
+        count: 5,
+      });
+      const resultData = { contentType: "post_ideas", topic: niche, tone: "Professional", ...cgResult.data };
+      const { error: cgInsertError } = await admin.from("social_analyses").insert({
+        social_profile_id: profileId,
+        analysis_type: "content_generator",
+        result: resultData,
+        ai_provider: cgResult.provider,
+        tokens_used: 0,
+        cost_cents: 0,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+      if (cgInsertError) {
+        console.error("[runAllAnalyses] content_generator DB insert failed:", cgInsertError.message);
+      }
+      results.push({ type: "content_generator", success: true });
+    } catch (err) {
+      results.push({
+        type: "content_generator",
+        success: false,
+        error: err instanceof Error ? err.message : "Content generation failed",
+      });
+    }
+  })();
+
+  // Wait for both core analyses and content generation to finish
+  await Promise.all([corePromise, contentPromise]);
+
+  // Recommendations excluded from Run All — too heavy (reads all analyses, 3-min AI timeout).
+  // Users can run it manually from the Recommendations page after all other analyses are done.
 
   revalidatePath("/dashboard", "layout");
   return {

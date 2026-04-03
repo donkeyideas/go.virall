@@ -12,7 +12,7 @@ export function AnalysisStatus({ status }: AnalysisStatusProps) {
     <div className="border border-rule bg-surface-card p-4">
       <h3 className="font-serif text-sm font-bold text-ink mb-3">Analysis Status</h3>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {ANALYSIS_TYPES.map(({ type, label }) => {
+        {ANALYSIS_TYPES.filter(({ type }) => type !== "recommendations").map(({ type, label }) => {
           const s = status[type];
           const hasData = s?.hasData ?? false;
           return (

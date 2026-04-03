@@ -103,20 +103,18 @@ export default function SmoScoreScreen() {
   const smo = smoData?.smo || smoData;
   const factors: any[] = smo?.factors || [];
 
-  // Calculate overall weighted score
-  let overallScore = 0;
-  if (factors.length > 0) {
+  // Use AI-provided overall score, fallback to weighted calculation
+  let overallScore = smo?.overallScore || smo?.overall_score || 0;
+  if (!overallScore && factors.length > 0) {
     const totalWeight = factors.reduce((s: number, f: any) => s + (f.weight || 1), 0);
     const weightedSum = factors.reduce(
       (s: number, f: any) => s + (f.score || 0) * (f.weight || 1),
       0,
     );
     overallScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
-  } else if (smo?.overall_score) {
-    overallScore = Math.round(smo.overall_score);
   }
 
-  const grade: string = smo?.grade || '';
+  const grade: string = smo?.gradeLabel || smo?.grade || '';
 
   const handleRunAnalysis = useCallback(() => {
     if (!bestProfileId) {

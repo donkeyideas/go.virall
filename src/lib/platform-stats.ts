@@ -34,43 +34,43 @@ export const PLATFORM_STATS: Record<SocialPlatform, PlatformStatDef[]> = {
     { label: "Posts", icon: "file-text", profileKey: "posts_count", format: "compact" },
     { label: "Followers", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Following", icon: "user-plus", profileKey: "following_count", format: "compact" },
-    { label: "Engagement", icon: "heart", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   tiktok: [
     { label: "Following", icon: "user-plus", profileKey: "following_count", format: "compact" },
     { label: "Followers", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Likes", icon: "heart", platformDataKey: "hearts", format: "compact" },
-    { label: "Engagement", icon: "trending-up", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   youtube: [
     { label: "Videos", icon: "play-circle", profileKey: "posts_count", format: "compact" },
     { label: "Subscribers", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Total Views", icon: "eye", platformDataKey: "totalViews", format: "compact" },
-    { label: "Engagement", icon: "heart", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   twitter: [
     { label: "Posts", icon: "file-text", profileKey: "posts_count", format: "compact" },
     { label: "Followers", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Following", icon: "user-plus", profileKey: "following_count", format: "compact" },
-    { label: "Engagement", icon: "heart", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   linkedin: [
     { label: "Posts", icon: "file-text", profileKey: "posts_count", format: "compact" },
     { label: "Connections", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Following", icon: "user-plus", profileKey: "following_count", format: "compact" },
-    { label: "Engagement", icon: "heart", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   threads: [
     { label: "Replies", icon: "message-circle", profileKey: "posts_count", format: "compact" },
     { label: "Followers", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Following", icon: "user-plus", profileKey: "following_count", format: "compact" },
-    { label: "Engagement", icon: "heart", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   pinterest: [
     { label: "Pins", icon: "pin", profileKey: "posts_count", format: "compact" },
     { label: "Followers", icon: "users", profileKey: "followers_count", format: "compact" },
     { label: "Monthly Views", icon: "eye", profileKey: "following_count", format: "compact" },
-    { label: "Engagement", icon: "heart", profileKey: "engagement_rate", format: "percent" },
+    { label: "Avg Likes", icon: "heart", profileKey: "_avg_likes" as keyof SocialProfile, format: "compact" },
   ],
   twitch: [
     { label: "Total Views", icon: "eye", platformDataKey: "totalViews", format: "compact" },
@@ -100,7 +100,14 @@ export function resolveStatsForProfile(
   return defs.map((def) => {
     // Resolve raw value
     let raw: unknown;
-    if (def.platformDataKey) {
+    if (def.profileKey === ("_avg_likes" as keyof SocialProfile)) {
+      // Compute avg likes from recent_posts JSONB
+      const posts = (profile as unknown as { recent_posts?: { likesCount?: number }[] }).recent_posts;
+      if (posts?.length) {
+        const total = posts.reduce((s, p) => s + (p.likesCount || 0), 0);
+        raw = Math.round(total / posts.length);
+      }
+    } else if (def.platformDataKey) {
       raw = pd[def.platformDataKey];
     } else if (def.profileKey) {
       raw = profile[def.profileKey];

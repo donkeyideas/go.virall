@@ -462,17 +462,35 @@ export function SocialIntelligenceOverview({
     (sum, p) => sum + (p.followers_count || 0),
     0,
   );
-  const avgEngagement =
-    profiles.length > 0
-      ? profiles.reduce((sum, p) => sum + (p.engagement_rate || 0), 0) /
-        profiles.length
-      : 0;
+  // Avg Likes/Post across all profiles
+  const avgLikesPerPost = (() => {
+    let totalLikes = 0;
+    let totalPostCount = 0;
+    for (const p of profiles) {
+      const posts = (p as unknown as { recent_posts?: RecentPost[] }).recent_posts;
+      if (posts?.length) {
+        totalLikes += posts.reduce((s, post) => s + (post.likesCount || 0), 0);
+        totalPostCount += posts.length;
+      }
+    }
+    return totalPostCount > 0 ? Math.round(totalLikes / totalPostCount) : 0;
+  })();
   const totalPosts = profiles.reduce(
     (sum, p) => sum + (p.posts_count || 0),
     0,
   );
 
   const profileForData = selectedProfile ?? profiles[0] ?? null;
+
+  // Avg Likes/Post for the selected profile
+  const profileAvgLikes = (() => {
+    if (!profileForData) return 0;
+    const posts = (profileForData as unknown as { recent_posts?: RecentPost[] }).recent_posts;
+    if (!posts?.length) return 0;
+    const totalLikes = posts.reduce((s, p) => s + (p.likesCount || 0), 0);
+    return Math.round(totalLikes / posts.length);
+  })();
+
   const pid = profileForData?.id ?? "";
   const analyses =
     analysisMap[pid] ?? ({} as Record<AnalysisType, SocialAnalysis | null>);
@@ -713,8 +731,8 @@ export function SocialIntelligenceOverview({
       if (insights.length > 0) return insights[0].insight;
     }
     const followers = formatCompact(profileForData.followers_count);
-    const eng = profileForData.engagement_rate;
-    return `With ${followers} followers${eng ? ` and ${eng}% engagement` : ""}, @${profileForData.handle} has growth potential. Run AI analyses in the AI Studio tab for detailed strategic insights.`;
+    const likes = profileAvgLikes;
+    return `With ${followers} followers${likes ? ` and ${formatCompact(likes)} avg likes/post` : ""}, @${profileForData.handle} has growth potential. Run AI analyses in the AI Studio tab for detailed strategic insights.`;
   })();
 
   // ──── Competitors for sidebar ────
@@ -838,13 +856,13 @@ export function SocialIntelligenceOverview({
                 : "---",
           },
           {
-            label: "Avg Engagement",
+            label: "Avg Likes/Post",
             value: isAllProfiles
-              ? avgEngagement > 0
-                ? `${avgEngagement.toFixed(1)}%`
+              ? avgLikesPerPost > 0
+                ? formatCompact(avgLikesPerPost)
                 : "---"
-              : selectedProfile?.engagement_rate
-                ? `${selectedProfile.engagement_rate}%`
+              : profileAvgLikes > 0
+                ? formatCompact(profileAvgLikes)
                 : "---",
           },
           {
@@ -873,6 +891,20 @@ export function SocialIntelligenceOverview({
           </div>
         ))}
       </div>
+
+      {/* ──── Last Synced ──── */}
+      {(() => {
+        const latest = profiles.reduce<string | null>((best, p) => {
+          if (!p.last_synced_at) return best;
+          if (!best) return p.last_synced_at;
+          return new Date(p.last_synced_at) > new Date(best) ? p.last_synced_at : best;
+        }, null);
+        return latest ? (
+          <p className="mt-2 text-right text-[10px] text-ink-muted">
+            Last synced: {new Date(latest).toLocaleString()}
+          </p>
+        ) : null;
+      })()}
 
       {/* ──── Three-Column Newspaper Layout ──── */}
       <div className="mt-6 border-t-4 border-double border-rule-dark pt-4">
@@ -947,10 +979,10 @@ export function SocialIntelligenceOverview({
                     </p>
                   </div>
                   <div>
-                    <p className="editorial-overline">Engagement Rate</p>
+                    <p className="editorial-overline">Avg Likes/Post</p>
                     <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                      {profileForData.engagement_rate
-                        ? `${profileForData.engagement_rate}%`
+                      {profileAvgLikes > 0
+                        ? formatCompact(profileAvgLikes)
                         : "---"}
                     </p>
                   </div>
@@ -1131,9 +1163,9 @@ export function SocialIntelligenceOverview({
                         </span>
                       </div>
                       {selectedCell.value > 60 && (
-                        <div className="mt-2 bg-surface-raised px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-editorial-red">
+                        <p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-editorial-gold">
                           Recommended posting time
-                        </div>
+                        </p>
                       )}
                     </div>
                   )}
@@ -1604,41 +1636,53 @@ export function SocialIntelligenceOverview({
                     count: growthData
                       ? ((growthData.tips ?? []) as unknown[]).length
                       : 0,
+                    href: "/dashboard/growth",
                   },
                   {
                     label: "Revenue",
                     count: summaryStats ? 1 : 0,
+                    href: "/dashboard/monetization",
                   },
                   {
                     label: "Audience Intel",
                     count: audienceData ? 1 : 0,
+                    href: "/dashboard/intelligence",
                   },
                   {
                     label: "Campaigns",
                     count: campaigns.length,
+                    href: "/dashboard/monetization",
                   },
                   {
                     label: "AI Studio",
                     count: 0,
+                    href: "/dashboard/ai-studio",
                   },
                   {
                     label: "Network",
                     count: networkData ? 1 : 0,
+                    href: "/dashboard/network",
                   },
                 ].map((item) => (
-                  <div
+                  <a
                     key={item.label}
-                    className="border border-rule bg-surface-raised px-2 py-2"
+                    href={item.href}
+                    className="border border-rule bg-surface-raised px-2 py-2 transition-colors hover:border-ink-muted"
                   >
                     <p className="text-[10px] font-bold uppercase tracking-wider text-ink">
                       {item.label}
                     </p>
-                    {item.count > 0 && (
-                      <p className="text-[9px] text-ink-muted">
-                        {item.count} item{item.count !== 1 ? "s" : ""}
-                      </p>
-                    )}
-                  </div>
+                    <div className="flex items-center justify-between">
+                      {item.count > 0 && (
+                        <p className="text-[9px] text-ink-muted">
+                          {item.count} item{item.count !== 1 ? "s" : ""}
+                        </p>
+                      )}
+                      <span className="text-[9px] font-semibold text-ink-muted">
+                        View &rarr;
+                      </span>
+                    </div>
+                  </a>
                 ))}
               </div>
             </div>
