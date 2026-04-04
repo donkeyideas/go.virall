@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import {
   Search,
   ChevronDown,
@@ -392,7 +392,7 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
       <div className="border border-rule overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-rule bg-surface-raised">
+            <tr className="border-b border-rule">
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted w-8" />
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Name
@@ -436,9 +436,8 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
               filtered.map((org) => {
                 const isExpanded = expandedId === org.id;
                 return (
-                  <>
+                  <React.Fragment key={org.id}>
                     <tr
-                      key={org.id}
                       onClick={() => handleToggleExpand(org.id)}
                       className="border-b border-rule hover:bg-surface-raised/50 cursor-pointer transition-colors"
                     >
@@ -485,7 +484,7 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
                         isPending={isPending}
                       />
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })
             )}

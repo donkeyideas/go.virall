@@ -111,7 +111,7 @@ export function PaperNav({ items, onNavigate, className }: PaperNavProps) {
       >
         <div className="flex items-center justify-between border-b border-rule px-4 py-4">
           <span className="font-serif text-lg font-bold text-ink">
-            <span className="text-editorial-red">Go</span>Viral
+            <span className="text-editorial-red">Go</span>Virall
           </span>
           <button
             type="button"

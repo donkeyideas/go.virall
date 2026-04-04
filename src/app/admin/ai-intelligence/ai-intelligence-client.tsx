@@ -295,7 +295,7 @@ export function AIIntelligenceClient({
           </div>
 
           {/* Table header */}
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] gap-2 px-4 py-2 border-b border-rule bg-surface-card text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-2.5 border-b border-rule text-[11px] font-bold uppercase tracking-widest text-ink-muted">
             <span>Feature</span>
             <span>Sub Type</span>
             <span>Provider</span>
@@ -319,7 +319,7 @@ export function AIIntelligenceClient({
                 <div key={row.id}>
                   <button
                     onClick={() => toggleRow(row.id)}
-                    className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] gap-2 px-4 py-2.5 border-b border-rule text-left hover:bg-surface-raised transition-colors items-center"
+                    className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-rule text-left hover:bg-surface-raised transition-colors items-center"
                   >
                     <span className="flex items-center gap-1.5 text-xs text-ink font-medium">
                       {isExpanded ? (
@@ -420,7 +420,7 @@ export function AIIntelligenceClient({
                 Calls by Feature
               </span>
             </div>
-            <div className="p-4">
+            <div className="p-4 min-w-0">
               {featureData.length === 0 ? (
                 <div className="p-6 text-center text-sm text-ink-muted">
                   No usage data available
@@ -466,7 +466,7 @@ export function AIIntelligenceClient({
                   Cost Distribution by Feature
                 </span>
               </div>
-              <div className="p-4">
+              <div className="p-4 min-w-0">
                 {costByFeature.length === 0 ? (
                   <div className="p-6 text-center text-sm text-ink-muted">
                     No cost data available
@@ -513,7 +513,7 @@ export function AIIntelligenceClient({
                 </span>
               </div>
 
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2 border-b border-rule bg-surface-card text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-2.5 border-b border-rule text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 <span>Feature</span>
                 <span className="text-right">Calls</span>
                 <span className="text-right">Tokens</span>
@@ -530,7 +530,7 @@ export function AIIntelligenceClient({
                 featureData.map((row) => (
                   <div
                     key={row.feature}
-                    className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 items-center"
+                    className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 border-b border-rule last:border-b-0 items-center"
                   >
                     <span className="text-sm font-medium text-ink">
                       {row.feature}
@@ -577,7 +577,7 @@ export function AIIntelligenceClient({
             </span>
           </div>
 
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2 border-b border-rule bg-surface-card text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-2.5 border-b border-rule text-[11px] font-bold uppercase tracking-widest text-ink-muted">
             <span>Provider</span>
             <span className="text-right">Calls</span>
             <span className="text-right">Cost</span>
@@ -595,7 +595,7 @@ export function AIIntelligenceClient({
             providerData.map((row) => (
               <div
                 key={row.provider}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 items-center"
+                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 border-b border-rule last:border-b-0 items-center"
               >
                 <span className="text-sm font-medium text-ink">
                   {row.provider}
@@ -648,7 +648,7 @@ export function AIIntelligenceClient({
                 Daily Cost Trend (30 Days)
               </span>
             </div>
-            <div className="p-4">
+            <div className="p-4 min-w-0">
               {costTrendChart.length === 0 ? (
                 <div className="p-6 text-center text-sm text-ink-muted">
                   No cost trend data available
@@ -722,7 +722,7 @@ export function AIIntelligenceClient({
                 Cost per Feature
               </span>
             </div>
-            <div className="p-4">
+            <div className="p-4 min-w-0">
               {costByFeature.length === 0 ? (
                 <div className="p-6 text-center text-sm text-ink-muted">
                   No feature cost data available

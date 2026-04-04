@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Shield, ArrowLeft, LogOut } from "lucide-react";
 import { requireAdmin, getUnreadContactCount } from "@/lib/dal/admin";
 import { AdminNav } from "./admin-nav";
+import { AdminThemeToggle } from "./admin-theme-toggle";
 
 export default async function AdminLayout({
   children,
@@ -19,8 +20,8 @@ export default async function AdminLayout({
       {/* Header */}
       <header
         style={{
-          background: "#150D2E",
-          borderBottom: "1px solid rgba(139,92,246,0.15)",
+          background: "var(--color-surface-inset)",
+          borderBottom: "1px solid var(--color-rule)",
           padding: "12px 24px",
           display: "flex",
           alignItems: "center",
@@ -33,12 +34,12 @@ export default async function AdminLayout({
             style={{
               fontSize: 16,
               fontWeight: 800,
-              color: "#F0ECF8",
+              color: "var(--color-ink)",
               letterSpacing: 0.5,
               fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
-            Go<span style={{ color: "#FFB84D" }}>Viral</span>
+            Go<span style={{ color: "#FFB84D" }}>Virall</span>
           </span>
           <span
             style={{
@@ -55,7 +56,7 @@ export default async function AdminLayout({
             Admin
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <Link
             href="/dashboard"
             style={{
@@ -63,12 +64,13 @@ export default async function AdminLayout({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: 1.5,
-              color: "#8A7AAE",
+              color: "var(--color-ink-muted)",
               textDecoration: "none",
             }}
           >
             User Dashboard
           </Link>
+          <AdminThemeToggle />
           <form action="/api/auth/signout" method="POST">
             <button
               type="submit"
@@ -80,7 +82,7 @@ export default async function AdminLayout({
                 fontWeight: 600,
                 textTransform: "uppercase",
                 letterSpacing: 1.5,
-                color: "#8A7AAE",
+                color: "var(--color-ink-muted)",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -99,8 +101,8 @@ export default async function AdminLayout({
           style={{
             width: 260,
             flexShrink: 0,
-            borderRight: "1px solid rgba(139,92,246,0.12)",
-            background: "#1E1242",
+            borderRight: "1px solid var(--color-rule)",
+            background: "var(--color-surface-card)",
             overflowY: "auto",
             position: "sticky",
             top: 0,
@@ -114,7 +116,7 @@ export default async function AdminLayout({
           <div
             style={{
               marginTop: "auto",
-              borderTop: "1px solid rgba(139,92,246,0.12)",
+              borderTop: "1px solid var(--color-rule)",
               padding: "16px 20px",
             }}
           >
@@ -128,7 +130,7 @@ export default async function AdminLayout({
                 fontWeight: 600,
                 textTransform: "uppercase",
                 letterSpacing: 1.5,
-                color: "#6B5D8E",
+                color: "var(--color-ink-muted)",
                 textDecoration: "none",
               }}
             >
@@ -144,7 +146,7 @@ export default async function AdminLayout({
             flex: 1,
             padding: 32,
             overflowY: "auto",
-            background: "#1A1035",
+            background: "var(--color-surface-cream)",
           }}
         >
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>{children}</div>

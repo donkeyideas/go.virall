@@ -186,8 +186,8 @@ export async function runRecommendations(profileId: string) {
       analysis_type: "recommendations",
       result: result.data,
       ai_provider: result.provider,
-      tokens_used: 0,
-      cost_cents: 0,
+      tokens_used: result.tokensUsed ?? 0,
+      cost_cents: result.costCents ?? 0,
       expires_at: new Date(
         Date.now() + 24 * 60 * 60 * 1000,
       ).toISOString(),
@@ -276,8 +276,8 @@ export async function runAllAnalyses(profileId: string) {
         analysis_type: "content_generator",
         result: resultData,
         ai_provider: cgResult.provider,
-        tokens_used: 0,
-        cost_cents: 0,
+        tokens_used: cgResult.tokensUsed ?? 0,
+        cost_cents: cgResult.costCents ?? 0,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
       if (cgInsertError) {

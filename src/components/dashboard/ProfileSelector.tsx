@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useViewMode } from "@/lib/contexts/view-mode";
 import { AddProfileModal } from "./AddProfileModal";
 import { PlatformIcon } from "@/components/icons/PlatformIcons";
 import { PLATFORM_CONFIG, type SocialProfile } from "@/types";
@@ -24,8 +25,15 @@ export function ProfileSelector({
 }: ProfileSelectorProps) {
   const [showModal, setShowModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
 
   const selected = profiles.find((p) => p.id === selectedId);
+
+  const chipBase = cn(
+    "flex shrink-0 items-center gap-1.5 border px-3.5 py-1.5 text-xs font-semibold transition-all",
+    !ed && "rounded-lg",
+  );
 
   return (
     <>
@@ -36,7 +44,7 @@ export function ProfileSelector({
             <button
               onClick={() => onSelectAll?.()}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
+                chipBase,
                 selectedId === null
                   ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
                   : "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
@@ -53,7 +61,7 @@ export function ProfileSelector({
                 key={profile.id}
                 onClick={() => onSelect(profile.id)}
                 className={cn(
-                  "flex shrink-0 items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
+                  chipBase,
                   isActive
                     ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
                     : "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
@@ -74,7 +82,10 @@ export function ProfileSelector({
         {/* Add button */}
         <button
           onClick={() => setShowModal(true)}
-          className="flex shrink-0 items-center gap-1 rounded-lg border border-rule bg-surface-card px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-ink-secondary transition-all hover:border-editorial-red hover:text-ink"
+          className={cn(
+            "flex shrink-0 items-center gap-1 border border-rule bg-surface-card px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-ink-secondary transition-all hover:border-editorial-red hover:text-ink",
+            !ed && "rounded-lg",
+          )}
         >
           <Plus size={12} />
           Add

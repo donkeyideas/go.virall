@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
+import { useViewMode } from "@/lib/contexts/view-mode";
 import type { ChatConversation, ChatMessage, SocialProfile, AIProvider } from "@/types";
 
 interface ChatClientProps {
@@ -158,6 +159,11 @@ export function ChatClient({
   const [showSidebar, setShowSidebar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
+  const card = ed ? "border border-rule bg-surface-card" : "rounded-[14px] border border-modern-card-border bg-surface-card";
+  const subCard = ed ? "border border-rule bg-surface-raised" : "rounded-[14px] border border-modern-card-border bg-surface-raised";
 
   const providerLabel = activeProvider
     ? { openai: "GPT-4o", anthropic: "Claude", google: "Gemini", deepseek: "DeepSeek" }[activeProvider]
@@ -319,12 +325,12 @@ export function ChatClient({
     <div className="flex h-[calc(100vh-220px)] min-h-[500px] gap-3">
       {/* Sidebar — Conversation History (separate card) */}
       {showSidebar && (
-        <div className="flex w-72 shrink-0 flex-col overflow-hidden rounded-[14px] border border-modern-card-border bg-surface-card">
-          <div className="flex items-center justify-between border-b border-modern-card-border/50 p-4">
+        <div className={cn("flex w-72 shrink-0 flex-col overflow-hidden", card)}>
+          <div className={cn("flex items-center justify-between p-4", ed ? "border-b border-rule" : "border-b border-modern-card-border/50")}>
             <h3 className="text-sm font-bold text-ink">Conversations</h3>
             <button
               onClick={startNewChat}
-              className="rounded-full bg-editorial-red px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-editorial-red/90"
+              className={cn("bg-editorial-red px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-editorial-red/90", !ed && "rounded-full")}
             >
               + New
             </button>
@@ -339,7 +345,7 @@ export function ChatClient({
               <div
                 key={conv.id}
                 className={cn(
-                  "group mb-1 flex cursor-pointer items-center gap-2 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-surface-raised",
+                  cn("group mb-1 flex cursor-pointer items-center gap-2 px-3 py-2.5 transition-colors hover:bg-surface-raised", ed ? "" : "rounded-[10px]"),
                   activeConvId === conv.id && "bg-surface-raised",
                 )}
                 onClick={() => selectConversation(conv.id)}
@@ -370,7 +376,7 @@ export function ChatClient({
       {/* Main Chat Area */}
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         {/* Header Card */}
-        <div className="flex items-center justify-between rounded-[14px] border border-modern-card-border bg-surface-card px-5 py-3">
+        <div className={cn("flex items-center justify-between px-5 py-3", card)}>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
@@ -378,7 +384,7 @@ export function ChatClient({
             >
               {showSidebar ? "Hide" : "Show"} History
             </button>
-            <div className="h-4 w-px bg-modern-card-border" />
+            <div className={cn("h-4 w-px", ed ? "bg-rule" : "bg-modern-card-border")} />
             <h2 className="text-sm font-bold text-ink">Virall AI</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -386,7 +392,7 @@ export function ChatClient({
               Powered by {providerLabel}
             </span>
             {profiles.length > 0 && (
-              <span className="rounded-full bg-editorial-red/10 px-2.5 py-0.5 text-[10px] font-semibold text-editorial-red">
+              <span className={cn("bg-editorial-red/10 px-2.5 py-0.5 text-[10px] font-semibold text-editorial-red", !ed && "rounded-full")}>
                 {profiles.length} profile{profiles.length !== 1 ? "s" : ""} connected
               </span>
             )}
@@ -394,7 +400,7 @@ export function ChatClient({
         </div>
 
         {/* Messages Card */}
-        <div className="flex-1 overflow-hidden rounded-[14px] border border-modern-card-border bg-surface-card">
+        <div className={cn("flex-1 overflow-hidden", card)}>
           <div className="h-full overflow-y-auto px-5 py-5">
             {!hasMessages ? (
               /* Welcome Screen */
@@ -420,7 +426,7 @@ export function ChatClient({
                     <button
                       key={action.label}
                       onClick={() => sendMessage(action.prompt)}
-                      className="rounded-[14px] border border-modern-card-border bg-surface-raised px-4 py-3 text-left text-xs text-ink-secondary transition-all hover:border-editorial-red/30 hover:text-ink"
+                      className={cn("px-4 py-3 text-left text-xs text-ink-secondary transition-all hover:text-ink", ed ? "border border-rule bg-surface-raised hover:border-ink-muted" : "rounded-[14px] border border-modern-card-border bg-surface-raised hover:border-editorial-red/30")}
                     >
                       {action.label}
                     </button>
@@ -442,8 +448,8 @@ export function ChatClient({
                       className={cn(
                         "max-w-[85%] px-4 py-3",
                         msg.role === "user"
-                          ? "rounded-2xl rounded-br-md bg-editorial-red text-white"
-                          : "rounded-2xl rounded-bl-md border border-modern-card-border bg-surface-raised text-ink",
+                          ? cn("bg-editorial-red text-white", !ed && "rounded-2xl rounded-br-md")
+                          : cn("bg-surface-raised text-ink", ed ? "border border-rule" : "rounded-2xl rounded-bl-md border border-modern-card-border"),
                       )}
                     >
                       {msg.role === "assistant" ? (
@@ -461,7 +467,7 @@ export function ChatClient({
                 ))}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="rounded-2xl rounded-bl-md border border-modern-card-border bg-surface-raised px-4 py-3">
+                    <div className={cn("bg-surface-raised px-4 py-3", ed ? "border border-rule" : "rounded-2xl rounded-bl-md border border-modern-card-border")}>
                       <div className="flex gap-1">
                         <span className="inline-block h-2 w-2 animate-bounce rounded-full bg-ink-secondary" />
                         <span className="inline-block h-2 w-2 animate-bounce rounded-full bg-ink-secondary [animation-delay:150ms]" />
@@ -477,16 +483,16 @@ export function ChatClient({
         </div>
 
         {/* Quick Actions + Input Card */}
-        <div className="rounded-[14px] border border-modern-card-border bg-surface-card p-4">
+        <div className={cn("p-4", card)}>
           {/* Quick action pills (shown when conversation active) */}
           {hasMessages && (
-            <div className="mb-3 flex gap-1.5 overflow-x-auto pb-3 border-b border-modern-card-border/30">
+            <div className={cn("mb-3 flex gap-1.5 overflow-x-auto pb-3", ed ? "border-b border-rule" : "border-b border-modern-card-border/30")}>
               {QUICK_ACTIONS.map((action) => (
                 <button
                   key={action.label}
                   onClick={() => sendMessage(action.prompt)}
                   disabled={isLoading}
-                  className="shrink-0 rounded-full border border-modern-card-border px-3 py-1 text-[10px] text-ink-secondary transition-colors hover:border-editorial-red/30 hover:text-ink disabled:opacity-50"
+                  className={cn("shrink-0 px-3 py-1 text-[10px] text-ink-secondary transition-colors hover:text-ink disabled:opacity-50", ed ? "border border-rule hover:border-ink-muted" : "rounded-full border border-modern-card-border hover:border-editorial-red/30")}
                 >
                   {action.label}
                 </button>
@@ -502,14 +508,14 @@ export function ChatClient({
               onKeyDown={handleKeyDown}
               placeholder="Ask about your content, growth, audience..."
               rows={1}
-              className="flex-1 resize-none rounded-[14px] border border-modern-card-border bg-surface-raised px-4 py-2.5 text-sm text-ink placeholder-ink-secondary/50 outline-none transition-colors focus:border-editorial-red"
+              className={cn("flex-1 resize-none bg-surface-raised px-4 py-2.5 text-sm text-ink placeholder-ink-secondary/50 outline-none transition-colors focus:border-editorial-red", ed ? "border border-rule" : "rounded-[14px] border border-modern-card-border")}
               style={{ maxHeight: "120px" }}
               disabled={isLoading}
             />
             <button
               onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading}
-              className="shrink-0 rounded-[14px] bg-editorial-red px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-editorial-red/90 disabled:opacity-50"
+              className={cn("shrink-0 bg-editorial-red px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-editorial-red/90 disabled:opacity-50", ed ? "" : "rounded-[14px]")}
             >
               Send
             </button>

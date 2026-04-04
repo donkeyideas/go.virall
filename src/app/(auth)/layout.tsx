@@ -31,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           letterSpacing: -0.5,
         }}
       >
-        Go<span style={{ color: C.textSecondary }}>Viral</span>
+        Go<span style={{ color: C.textSecondary }}>Virall</span>
       </Link>
       {children}
     </div>

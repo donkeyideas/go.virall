@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4000 -H 0.0.0.0",
+    "dev": "next dev -p 3600 -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.1.0",
     "@stripe/stripe-js": "^8.11.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.3",
@@ -18,6 +19,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.0",
+    "resend": "^6.10.0",
     "stripe": "^20.4.1",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6",

@@ -28,6 +28,8 @@ export interface ContentGeneratorInput {
 interface ContentResult {
   data: Record<string, unknown>;
   provider: string;
+  tokensUsed?: number;
+  costCents?: number;
 }
 
 const CONTENT_PROMPTS: Record<ContentType, (input: ContentGeneratorInput) => string> = {
@@ -351,13 +353,15 @@ export async function generateContentAI(
     const expectedKey = CONTENT_KEY[input.contentType];
     console.log("[ContentGen v2] Parse SUCCESS. Keys:", Object.keys(data));
     console.log("[ContentGen v2] Expected key present:", expectedKey, "→", !!data[expectedKey]);
-    return { data, provider: response.provider };
+    return { data, provider: response.provider, tokensUsed: response.tokensUsed, costCents: response.costCents };
   } catch (parseErr) {
     console.error("[ContentGen v2] Parse FAILED:", parseErr);
     console.log("[ContentGen v2] Falling back to raw. Full text length:", response.text.length);
     return {
       data: { raw: response.text },
       provider: response.provider,
+      tokensUsed: response.tokensUsed,
+      costCents: response.costCents,
     };
   }
 }

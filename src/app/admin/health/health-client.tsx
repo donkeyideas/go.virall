@@ -140,26 +140,26 @@ export function HealthClient({
       <div className="border border-rule overflow-x-auto">
         <table className="w-full min-w-[700px]">
           <thead>
-            <tr className="border-b border-rule bg-surface-raised">
-              <th className="px-4 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+            <tr className="border-b border-rule">
+              <th className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Provider
               </th>
-              <th className="px-4 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <th className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Endpoint
               </th>
-              <th className="px-4 py-2 text-right text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <th className="px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Status
               </th>
-              <th className="px-4 py-2 text-right text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <th className="px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Response
               </th>
-              <th className="px-4 py-2 text-center text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <th className="px-4 py-2.5 text-center text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Result
               </th>
-              <th className="px-4 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <th className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Error
               </th>
-              <th className="px-4 py-2 text-right text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+              <th className="px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Time
               </th>
             </tr>

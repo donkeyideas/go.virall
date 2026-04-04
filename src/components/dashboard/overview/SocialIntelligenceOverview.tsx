@@ -118,9 +118,9 @@ function extractRevenueBrief(
   if (summaryStats) {
     return {
       category: "REVENUE OPPORTUNITY",
-      headline: `$${summaryStats.estMonthly.toLocaleString()} Month Achievable`,
+      headline: `$${(summaryStats.estMonthly ?? 0).toLocaleString()} Month Achievable`,
       body: optimistic
-        ? `Current monthly estimate with potential to reach $${optimistic.monthlyEarnings.toLocaleString()}/mo in the optimistic scenario.`
+        ? `Current monthly estimate with potential to reach $${(optimistic.monthlyEarnings ?? 0).toLocaleString()}/mo in the optimistic scenario.`
         : summaryStats.estMonthlyLabel ??
           "Based on current performance and market rates.",
     };
@@ -791,7 +791,7 @@ export function SocialIntelligenceOverview({
     return (
       <div className="py-20 text-center">
         <h2 className="font-serif text-2xl font-bold text-ink">
-          Welcome to <span className="text-editorial-red">Go</span>Viral
+          Welcome to <span className="text-editorial-red">Go</span>Virall
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
           Connect your first social media profile in the Profiles tab to unlock
@@ -989,7 +989,7 @@ export function SocialIntelligenceOverview({
                   <div>
                     <p className="editorial-overline">Est. Earnings</p>
                     <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                      {summaryStats
+                      {summaryStats?.estMonthly != null
                         ? `$${summaryStats.estMonthly.toLocaleString()}`
                         : "---"}
                     </p>
@@ -1449,7 +1449,7 @@ export function SocialIntelligenceOverview({
                             {src.percentage}%
                           </span>
                           <span className="w-24 text-right font-mono text-xs font-bold text-ink">
-                            ${src.monthlyAmount.toLocaleString()}/mo
+                            ${(src.monthlyAmount ?? 0).toLocaleString()}/mo
                           </span>
                         </div>
                       </div>
@@ -1890,19 +1890,19 @@ export function SocialIntelligenceOverview({
             <div className="border border-rule bg-surface-card px-4 py-3">
               <p className="editorial-overline">Est. Monthly</p>
               <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                ${summaryStats.estMonthly.toLocaleString()}
+                ${(summaryStats.estMonthly ?? 0).toLocaleString()}
               </p>
             </div>
             <div className="border border-rule bg-surface-card px-4 py-3">
               <p className="editorial-overline">Active Deals</p>
               <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                {summaryStats.activeDeals}
+                {summaryStats.activeDeals ?? 0}
               </p>
             </div>
             <div className="border border-rule bg-surface-card px-4 py-3">
               <p className="editorial-overline">YTD Revenue</p>
               <p className="mt-1 font-serif text-2xl font-bold text-editorial-green">
-                ${summaryStats.ytdRevenue.toLocaleString()}
+                ${(summaryStats.ytdRevenue ?? 0).toLocaleString()}
               </p>
               {summaryStats.ytdDealsCompleted != null && (
                 <p className="text-[9px] text-ink-muted">

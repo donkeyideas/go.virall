@@ -248,7 +248,7 @@ export function AnalyticsClient({
             Growth Over Time
           </span>
         </div>
-        <div className="p-4">
+        <div className="p-4 min-w-0">
           {growth.length === 0 ? (
             <div className="text-center text-sm text-ink-muted py-8">
               No growth data available
@@ -360,7 +360,7 @@ export function AnalyticsClient({
               Plan Distribution
             </span>
           </div>
-          <div className="p-4 flex justify-center">
+          <div className="p-4 flex justify-center min-w-0">
             {pieData.length === 0 ? (
               <div className="text-center text-sm text-ink-muted py-8">
                 No plan data
@@ -488,7 +488,7 @@ export function AnalyticsClient({
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-5 gap-2 px-4 py-2 border-b border-rule bg-surface-raised">
+        <div className="grid grid-cols-5 gap-4 px-4 py-2.5 border-b border-rule">
           {["Month", "Users", "Orgs", "Profiles", "Analyses"].map(
             (heading) => (
               <span
@@ -509,7 +509,7 @@ export function AnalyticsClient({
           growth.map((row) => (
             <div
               key={row.month}
-              className="grid grid-cols-5 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0"
+              className="grid grid-cols-5 gap-4 px-4 py-3 border-b border-rule last:border-b-0"
             >
               <span className="font-mono text-sm text-ink-secondary">
                 {row.month}
@@ -554,9 +554,9 @@ export function AnalyticsClient({
                         {step.count.toLocaleString()} ({step.pct}%)
                       </span>
                     </div>
-                    <div className="h-3 w-full overflow-hidden rounded bg-surface-raised">
+                    <div className="h-3 w-full overflow-hidden rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                       <div
-                        className="h-full rounded transition-all"
+                        className="h-full rounded-full transition-all"
                         style={{
                           width: `${step.pct}%`,
                           backgroundColor: PIE_COLORS[i % PIE_COLORS.length],
@@ -597,7 +597,7 @@ export function AnalyticsClient({
             Cohort Retention
           </p>
           <div className="border border-rule mb-8 overflow-x-auto">
-            <div className="grid grid-cols-6 gap-2 px-4 py-2 border-b border-rule bg-surface-raised min-w-[600px]">
+            <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-rule min-w-[600px]">
               {["Cohort", "Signups", "Week 1", "Week 2", "Week 4", "Week 8"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
@@ -608,7 +608,7 @@ export function AnalyticsClient({
               </div>
             ) : (
               cohorts.map((c) => (
-                <div key={c.cohort} className="grid grid-cols-6 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 min-w-[600px]">
+                <div key={c.cohort} className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[600px]">
                   <span className="font-mono text-sm text-ink-secondary">{c.cohort}</span>
                   <span className="font-mono text-sm text-ink font-bold">{c.signupCount}</span>
                   <span className={cn("font-mono text-sm font-bold", retentionColor(c.week1))}>{c.week1}%</span>
@@ -625,7 +625,7 @@ export function AnalyticsClient({
             Feature Adoption
           </p>
           <div className="border border-rule mb-8">
-            <div className="grid grid-cols-3 gap-2 px-4 py-2 border-b border-rule bg-surface-raised">
+            <div className="grid grid-cols-3 gap-4 px-4 py-2.5 border-b border-rule">
               {["Feature", "Unique Users", "Total Events"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
@@ -634,7 +634,7 @@ export function AnalyticsClient({
               <div className="p-4 text-center text-sm text-ink-muted">No event data yet</div>
             ) : (
               featureAdoption.slice(0, 15).map((f) => (
-                <div key={f.feature} className="grid grid-cols-3 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0">
+                <div key={f.feature} className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-rule last:border-b-0">
                   <span className="font-mono text-sm text-ink">{f.feature}</span>
                   <span className="font-mono text-sm text-ink font-bold">{f.users.toLocaleString()}</span>
                   <span className="font-mono text-sm text-ink-secondary">{f.totalEvents.toLocaleString()}</span>
@@ -655,7 +655,7 @@ export function AnalyticsClient({
             Top Engaged Users (30 Days)
           </p>
           <div className="border border-rule mb-8 overflow-x-auto">
-            <div className="grid grid-cols-6 gap-2 px-4 py-2 border-b border-rule bg-surface-raised min-w-[700px]">
+            <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-rule min-w-[700px]">
               {["User", "Email", "Plan", "Score", "Events", "Last Active"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
@@ -664,7 +664,7 @@ export function AnalyticsClient({
               <div className="p-4 text-center text-sm text-ink-muted">No engagement data yet</div>
             ) : (
               engagementScores.slice(0, 20).map((u) => (
-                <div key={u.userId} className="grid grid-cols-6 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 min-w-[700px]">
+                <div key={u.userId} className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[700px]">
                   <span className="font-sans text-sm text-ink truncate">{u.name || "—"}</span>
                   <span className="font-mono text-xs text-ink-secondary truncate">{u.email}</span>
                   <span className={cn("font-sans text-sm font-semibold capitalize", PLAN_COLORS[u.plan] ?? "text-ink")}>{u.plan}</span>
@@ -681,7 +681,7 @@ export function AnalyticsClient({
             Churn Risk (Paid Users)
           </p>
           <div className="border border-rule mb-8 overflow-x-auto">
-            <div className="grid grid-cols-6 gap-2 px-4 py-2 border-b border-rule bg-surface-raised min-w-[700px]">
+            <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-rule min-w-[700px]">
               {["User", "Plan", "Risk", "Days Inactive", "Prev Month", "This Month"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
@@ -690,7 +690,7 @@ export function AnalyticsClient({
               <div className="p-4 text-center text-sm text-ink-muted">No churn risks detected</div>
             ) : (
               churnRisk.map((u) => (
-                <div key={u.userId} className="grid grid-cols-6 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 min-w-[700px]">
+                <div key={u.userId} className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[700px]">
                   <span className="font-sans text-sm text-ink truncate">{u.name || u.email}</span>
                   <span className={cn("font-sans text-sm font-semibold capitalize", PLAN_COLORS[u.plan] ?? "text-ink")}>{u.plan}</span>
                   <span className={cn(
@@ -762,7 +762,7 @@ export function AnalyticsClient({
             Cross-Platform Benchmarks
           </p>
           <div className="border border-rule mb-8 overflow-x-auto">
-            <div className="grid grid-cols-6 gap-2 px-4 py-2 border-b border-rule bg-surface-raised min-w-[700px]">
+            <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-rule min-w-[700px]">
               {["Platform", "Bracket", "Avg Eng.", "Avg Growth", "Posts/Week", "Sample"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
@@ -771,7 +771,7 @@ export function AnalyticsClient({
               <div className="p-4 text-center text-sm text-ink-muted">Not enough data to compute benchmarks yet</div>
             ) : (
               benchmarks.slice(0, 25).map((b, i) => (
-                <div key={`${b.platform}-${b.followerBracket}-${i}`} className="grid grid-cols-6 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 min-w-[700px]">
+                <div key={`${b.platform}-${b.followerBracket}-${i}`} className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[700px]">
                   <span className="font-sans text-sm text-ink capitalize">{b.platform}</span>
                   <span className="font-mono text-sm text-ink-secondary">{b.followerBracket}</span>
                   <span className="font-mono text-sm font-bold text-editorial-red">{b.avgEngagement}%</span>

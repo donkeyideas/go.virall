@@ -73,9 +73,9 @@ export function AdminNav({ unreadContacts }: { unreadContacts: number }) {
               letterSpacing: 0.3,
               textDecoration: "none",
               transition: "all 0.15s",
-              borderLeft: `3px solid ${isActive ? "#FFB84D" : "transparent"}`,
-              background: isActive ? "rgba(139,92,246,0.12)" : "transparent",
-              color: isActive ? "#F0ECF8" : "#8A7AAE",
+              borderLeft: `3px solid ${isActive ? "var(--color-editorial-red)" : "transparent"}`,
+              background: isActive ? "var(--color-surface-raised)" : "transparent",
+              color: isActive ? "var(--color-ink)" : "var(--color-ink-muted)",
             }}
           >
             <Icon size={18} style={{ flexShrink: 0 }} />
@@ -89,8 +89,8 @@ export function AdminNav({ unreadContacts }: { unreadContacts: number }) {
                   minWidth: 20,
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "#FFB84D",
-                  color: "#1A1035",
+                  background: "var(--color-editorial-red)",
+                  color: "var(--color-surface-cream)",
                   fontSize: 10,
                   fontWeight: 700,
                   padding: "0 4px",

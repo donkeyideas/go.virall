@@ -1,4 +1,7 @@
 import Stripe from "stripe";
+import { loadStripe, type Stripe as StripeClient } from "@stripe/stripe-js";
+
+// ─── Server-side Stripe ──────────────────────────────────────
 
 function getStripeClient(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -8,7 +11,6 @@ function getStripeClient(): Stripe {
   return new Stripe(key, { typescript: true });
 }
 
-/** Lazy-initialized Stripe client — only throws when actually used without a key. */
 let _stripe: Stripe | null = null;
 export function getStripe(): Stripe {
   if (!_stripe) _stripe = getStripeClient();
@@ -22,7 +24,19 @@ export const stripe = new Proxy({} as Stripe, {
   },
 });
 
-/** Map plan names to Stripe Price IDs (from env vars). */
+// ─── Client-side Stripe (browser) ────────────────────────────
+
+let _stripePromise: Promise<StripeClient | null> | null = null;
+export function getStripePromise(): Promise<StripeClient | null> {
+  if (!_stripePromise) {
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    _stripePromise = loadStripe(key ?? "");
+  }
+  return _stripePromise;
+}
+
+// ─── Plan → Price ID mapping ─────────────────────────────────
+
 export const PLAN_PRICE_IDS: Record<string, string | null> = {
   free: null,
   pro: process.env.STRIPE_PRICE_PRO_MONTHLY ?? null,
@@ -30,10 +44,18 @@ export const PLAN_PRICE_IDS: Record<string, string | null> = {
   enterprise: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY ?? null,
 };
 
-/** Reverse lookup: Stripe Price ID → plan name. */
 export function planNameFromPriceId(priceId: string): string {
   for (const [plan, id] of Object.entries(PLAN_PRICE_IDS)) {
     if (id === priceId) return plan;
   }
   return "free";
 }
+
+// ─── Plan limits for DB updates ──────────────────────────────
+
+export const PLAN_PROFILE_LIMITS: Record<string, number> = {
+  free: 1,
+  pro: 3,
+  business: 10,
+  enterprise: 999,
+};

@@ -126,29 +126,70 @@
   --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
 }
 
+/* --- ADMIN LIGHT THEME --- */
+.admin-light {
+  --color-surface-cream: #f5f3f0;
+  --color-surface-card: #ffffff;
+  --color-surface-raised: #f0ede8;
+  --color-surface-inset: #e8e4de;
+
+  --color-ink: #1a1035;
+  --color-ink-secondary: #5b4d8a;
+  --color-ink-muted: #8a7aae;
+  --color-ink-faint: #c4bdd6;
+
+  --color-editorial-red: #d97706;
+  --color-editorial-green: #16a34a;
+  --color-editorial-gold: #b45309;
+  --color-editorial-blue: #7c3aed;
+
+  --color-rule: rgba(124, 58, 237, 0.1);
+  --color-rule-light: rgba(124, 58, 237, 0.05);
+  --color-rule-dark: rgba(124, 58, 237, 0.2);
+
+  --color-background: var(--color-surface-cream);
+  --color-foreground: var(--color-ink);
+
+  --font-serif: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
 .admin-dark .border,
-.admin-dark .border-2 {
-  border-radius: 14px !important;
+.admin-dark .border-2,
+.admin-light .border,
+.admin-light .border-2 {
+  border-radius: 6px !important;
 }
 
 .admin-dark button,
 .admin-dark input,
 .admin-dark select,
 .admin-dark textarea,
-.admin-dark a.border {
-  border-radius: 8px !important;
+.admin-dark a.border,
+.admin-light button,
+.admin-light input,
+.admin-light select,
+.admin-light textarea,
+.admin-light a.border {
+  border-radius: 6px !important;
 }
 
-.admin-dark .bg-surface-raised {
-  border-radius: 8px !important;
+
+.admin-dark .bg-surface-raised,
+.admin-light .bg-surface-raised {
+  border-radius: 6px !important;
 }
 
-.admin-dark .rounded-full {
+.admin-dark .rounded-full,
+.admin-light .rounded-full {
   border-radius: 9999px !important;
 }
 
 .admin-dark,
-.admin-dark * {
+.admin-dark *,
+.admin-light,
+.admin-light * {
   font-family: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
 }
 

@@ -271,9 +271,9 @@ export function SocialPostsClient({ posts }: { posts: SocialPost[] }) {
                     {item.count} post{item.count !== 1 ? "s" : ""}
                   </span>
                 </div>
-                <div className="w-full bg-surface-raised h-2">
+                <div className="w-full h-2 rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                   <div
-                    className="h-2 transition-all duration-300"
+                    className="h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${item.pct}%`,
                       backgroundColor: item.color,
@@ -406,7 +406,7 @@ export function SocialPostsClient({ posts }: { posts: SocialPost[] }) {
       <div className="border border-rule overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-rule bg-surface-raised">
+            <tr className="border-b border-rule">
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Platform
               </th>

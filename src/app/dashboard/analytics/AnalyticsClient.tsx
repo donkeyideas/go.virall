@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
+import { useViewMode } from "@/lib/contexts/view-mode";
 import { ProfileSelector } from "@/components/dashboard/ProfileSelector";
 import type { SocialProfile } from "@/types";
 import type { PostPerformance, PlatformGrowthComparison } from "@/lib/dal/analytics";
@@ -39,14 +40,59 @@ interface AnalyticsClientProps {
 /* ─── Shared helpers ─── */
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
   return (
-    <div className={cn("rounded-[14px] border border-modern-card-border bg-surface-card p-5", className)}>
+    <div className={cn(
+      ed
+        ? "border border-rule bg-surface-card p-5"
+        : "rounded-[14px] border border-modern-card-border bg-surface-card p-5",
+      className,
+    )}>
+      {children}
+    </div>
+  );
+}
+function SubCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
+  return (
+    <div className={cn(
+      ed
+        ? "border border-rule bg-surface-raised"
+        : "rounded-[10px] border border-modern-card-border/50 bg-surface-raised",
+      className,
+    )}>
       {children}
     </div>
   );
 }
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-[11px] font-semibold uppercase tracking-[1.5px] text-ink-secondary">{children}</h3>;
+  const { viewMode } = useViewMode();
+  return viewMode === "editorial"
+    ? <h3 className="font-serif text-sm font-bold text-ink">{children}</h3>
+    : <h3 className="text-[11px] font-semibold uppercase tracking-[1.5px] text-ink-secondary">{children}</h3>;
+}
+function KpiLabel({ children }: { children: React.ReactNode }) {
+  const { viewMode } = useViewMode();
+  return viewMode === "editorial"
+    ? <p className="editorial-overline">{children}</p>
+    : <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">{children}</div>;
+}
+function KpiValue({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { viewMode } = useViewMode();
+  return viewMode === "editorial"
+    ? <p className={cn("mt-1 font-serif text-2xl font-bold text-ink", className)}>{children}</p>
+    : <div className={cn("mt-1 text-3xl font-bold text-ink", className)}>{children}</div>;
+}
+function ProgressBar({ pct, color = "bg-editorial-red" }: { pct: number; color?: string }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
+  return (
+    <div className={cn("mt-1 h-2.5 w-full overflow-hidden bg-surface-raised", !ed && "rounded-full")}>
+      <div className={cn("h-full transition-all", color, !ed && "rounded-full")} style={{ width: `${pct}%` }} />
+    </div>
+  );
 }
 
 export function AnalyticsClient({
@@ -153,6 +199,8 @@ export function AnalyticsClient({
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
   if (posts.length === 0) {
     return (
       <EmptyState
@@ -192,20 +240,20 @@ function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
       {/* KPI row */}
       <div className="grid gap-3 sm:grid-cols-4">
         <Card className="text-center">
-          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Total Posts</div>
-          <div className="mt-1 text-3xl font-bold text-ink">{posts.length}</div>
+          <KpiLabel>Total Posts</KpiLabel>
+          <KpiValue>{posts.length}</KpiValue>
         </Card>
         <Card className="text-center">
-          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Total Likes</div>
-          <div className="mt-1 text-3xl font-bold text-ink">{totalLikes.toLocaleString()}</div>
+          <KpiLabel>Total Likes</KpiLabel>
+          <KpiValue>{totalLikes.toLocaleString()}</KpiValue>
         </Card>
         <Card className="text-center">
-          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Total Comments</div>
-          <div className="mt-1 text-3xl font-bold text-ink">{totalComments.toLocaleString()}</div>
+          <KpiLabel>Total Comments</KpiLabel>
+          <KpiValue>{totalComments.toLocaleString()}</KpiValue>
         </Card>
         <Card className="text-center">
-          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Avg Engagement</div>
-          <div className="mt-1 text-3xl font-bold text-editorial-red">{avgEngRate.toFixed(2)}%</div>
+          <KpiLabel>Avg Engagement</KpiLabel>
+          <KpiValue className="text-editorial-red">{avgEngRate.toFixed(2)}%</KpiValue>
         </Card>
       </div>
 
@@ -245,7 +293,7 @@ function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
               <RechartsTooltip
                 contentStyle={{ backgroundColor: "var(--color-surface-card, #1a1a2e)", border: "1px solid var(--color-modern-card-border, #333)", borderRadius: "8px", fontSize: "11px" }}
               />
-              <Bar dataKey="count" name="Posts" radius={[0, 4, 4, 0]} barSize={24}>
+              <Bar dataKey="count" name="Posts" radius={ed ? [0, 0, 0, 0] : [0, 4, 4, 0]} barSize={24}>
                 {typeData.map((entry, i) => (
                   <Cell key={i} fill={entry.fill} />
                 ))}
@@ -254,10 +302,10 @@ function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
           </ResponsiveContainer>
           <div className="flex flex-col justify-center gap-3">
             {typeData.map((t) => (
-              <div key={t.name} className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-3 text-center">
-                <div className="text-xl font-bold text-ink">{t.count}</div>
+              <SubCard key={t.name} className="p-3 text-center">
+                <KpiValue>{t.count}</KpiValue>
                 <div className="text-[9px] text-ink-muted">Avg {t.avgLikes.toLocaleString()} likes</div>
-              </div>
+              </SubCard>
             ))}
           </div>
         </div>
@@ -281,7 +329,7 @@ function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
             </thead>
             <tbody>
               {topPosts.map((post, i) => (
-                <tr key={post.id} className="border-b border-modern-card-border/20">
+                <tr key={post.id} className="border-b border-rule">
                   <td className="py-2.5 pr-4 font-mono text-ink-muted">{i + 1}</td>
                   <td className="max-w-[200px] truncate py-2.5 pr-4 font-medium text-ink">{post.caption || "(no caption)"}</td>
                   <td className="py-2.5 pr-4 capitalize text-ink-secondary">{post.platform}</td>
@@ -312,9 +360,7 @@ function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
                       <span className="max-w-[300px] truncate font-medium text-ink">{post.caption || "(no caption)"}</span>
                       <span className="font-mono font-bold text-ink">{post.likesCount.toLocaleString()} likes</span>
                     </div>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-surface-raised">
-                      <div className="h-full rounded bg-editorial-red/40" style={{ width: `${pct}%` }} />
-                    </div>
+                    <ProgressBar pct={pct} color="bg-editorial-red/40" />
                   </div>
                 </div>
               );
@@ -337,6 +383,9 @@ function GrowthTab({
   platformGrowth: PlatformGrowthComparison[];
   selectedProfileId: string | null;
 }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
+
   if (platformGrowth.length === 0) {
     return (
       <EmptyState
@@ -365,12 +414,8 @@ function GrowthTab({
       {/* Selected profile highlight */}
       {selected && (
         <Card className="text-center">
-          <div className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">
-            {selected.platform} &middot; @{selected.handle}
-          </div>
-          <div className="mt-2 text-5xl font-bold text-ink">
-            {selected.currentFollowers.toLocaleString()}
-          </div>
+          <KpiLabel>{selected.platform} &middot; @{selected.handle}</KpiLabel>
+          <KpiValue className="!text-5xl">{selected.currentFollowers.toLocaleString()}</KpiValue>
           <div className="text-xs text-ink-muted">followers</div>
           <div className={cn("mt-2 text-lg font-bold", selected.growth >= 0 ? "text-editorial-green" : "text-editorial-red")}>
             {selected.growth >= 0 ? "+" : ""}{selected.growth.toLocaleString()} ({selected.growthPct}%)
@@ -391,7 +436,7 @@ function GrowthTab({
                 contentStyle={{ backgroundColor: "var(--color-surface-card, #1a1a2e)", border: "1px solid var(--color-modern-card-border, #333)", borderRadius: "8px", fontSize: "11px" }}
                 formatter={(value: unknown) => [`${Number(value).toLocaleString()}`, "Followers"]}
               />
-              <Bar dataKey="followers" name="Followers" radius={[0, 4, 4, 0]} barSize={20}>
+              <Bar dataKey="followers" name="Followers" radius={ed ? [0, 0, 0, 0] : [0, 4, 4, 0]} barSize={20}>
                 {chartData.map((entry, i) => (
                   <Cell key={i} fill={entry.fill} />
                 ))}
@@ -418,12 +463,7 @@ function GrowthTab({
                     {pg.growth >= 0 ? "+" : ""}{pg.growthPct}%
                   </span>
                 </div>
-                <div className="mt-1 h-2.5 w-full overflow-hidden bg-surface-raised">
-                  <div
-                    className={cn("h-full transition-all", pg.growth >= 0 ? "bg-editorial-green" : "bg-editorial-red")}
-                    style={{ width: `${barPct}%` }}
-                  />
-                </div>
+                <ProgressBar pct={barPct} color={pg.growth >= 0 ? "bg-editorial-green" : "bg-editorial-red"} />
               </div>
             );
           })}
@@ -472,18 +512,16 @@ function MilestoneSection({ profileId }: { profileId: string }) {
       {milestones.milestones.map((m) => {
         const progress = m.daysAway ? Math.min((milestones.currentFollowers / m.target) * 100, 100) : 0;
         return (
-          <div key={m.target} className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-3">
+          <SubCard key={m.target} className="p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-ink">{m.label} followers</span>
               <span className="text-[10px] text-ink-muted">
                 {m.daysAway ? `~${m.daysAway} days (${m.estimatedDate})` : "Insufficient data"}
               </span>
             </div>
-            <div className="mt-2 h-2 w-full overflow-hidden bg-surface-card">
-              <div className="h-full bg-editorial-red transition-all" style={{ width: `${progress}%` }} />
-            </div>
+            <ProgressBar pct={progress} />
             <div className="mt-1 text-right text-[9px] font-mono text-ink-muted">{progress.toFixed(0)}%</div>
-          </div>
+          </SubCard>
         );
       })}
     </div>
@@ -495,6 +533,8 @@ function MilestoneSection({ profileId }: { profileId: string }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function RevenueTab({ data }: { data?: Record<string, unknown> }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
   if (!data) {
     return (
       <EmptyState
@@ -525,13 +565,13 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
               const monthly = (s.monthly ?? s.monthlyEarnings) as number | undefined;
               const annual = (s.annually ?? s.annualEarnings ?? (monthly ? monthly * 12 : null)) as number | null;
               return (
-                <div key={i} className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-4 text-center">
+                <SubCard key={i} className="p-4 text-center">
                   <div className="mb-2 h-1 w-full" style={{ backgroundColor: scenarioColors[i] ?? "#999" }} />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">{label}</p>
-                  <p className="mt-2 text-3xl font-bold text-ink">${monthly?.toLocaleString() ?? "N/A"}</p>
+                  <KpiLabel>{label}</KpiLabel>
+                  <KpiValue>${monthly?.toLocaleString() ?? "N/A"}</KpiValue>
                   <p className="text-xs text-ink-muted">/month</p>
                   {annual && <p className="mt-1 text-[10px] text-ink-secondary">${annual.toLocaleString()}/year</p>}
-                </div>
+                </SubCard>
               );
             })}
           </div>
@@ -555,7 +595,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
                     contentStyle={{ backgroundColor: "var(--color-surface-card, #1a1a2e)", border: "1px solid var(--color-modern-card-border, #333)", borderRadius: "8px", fontSize: "11px" }}
                     formatter={(value: unknown) => [`$${Number(value).toLocaleString()}`, "Monthly"]}
                   />
-                  <Bar dataKey="monthly" name="Monthly" radius={[4, 4, 0, 0]} barSize={40}>
+                  <Bar dataKey="monthly" name="Monthly" radius={ed ? [0, 0, 0, 0] : [4, 4, 0, 0]} barSize={40}>
                     {scenarios.map((_, i) => (
                       <Cell key={i} fill={scenarioColors[i] ?? "#999"} />
                     ))}
@@ -584,9 +624,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
                       <span className="font-medium text-ink">{name}</span>
                       <span className="font-mono font-bold text-ink">{amount != null ? `$${amount.toLocaleString()}/mo` : "N/A"}</span>
                     </div>
-                    <div className="mt-1 h-2.5 w-full overflow-hidden bg-surface-raised">
-                      <div className="h-full bg-editorial-red transition-all" style={{ width: `${pct}%` }} />
-                    </div>
+                    <ProgressBar pct={pct} />
                   </div>
                 );
               });
@@ -605,7 +643,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
               const minRate = (rate.rate ?? rate.price ?? rate.suggestedRate ?? rate.minRate) as number | undefined;
               const maxRate = (rate.maxRate ?? rate.highRate) as number | undefined;
               return (
-                <div key={i} className="flex items-center justify-between rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-3">
+                <SubCard key={i} className="flex items-center justify-between p-3">
                   <span className="text-xs font-medium text-ink">{typeName}</span>
                   <div className="text-right">
                     <span className="font-mono text-sm font-bold text-editorial-red">
@@ -615,7 +653,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
                       <span className="font-mono text-xs text-ink-muted"> — ${maxRate.toLocaleString()}</span>
                     )}
                   </div>
-                </div>
+                </SubCard>
               );
             })}
           </div>
@@ -727,7 +765,7 @@ function CompetitiveTab({
               </thead>
               <tbody>
                 {competitors.map((comp, i) => (
-                  <tr key={i} className="border-b border-modern-card-border/20">
+                  <tr key={i} className="border-b border-rule">
                     <td className="py-2.5 pr-4 font-medium text-ink">@{(comp.handle ?? comp.name ?? comp.username) as string}</td>
                     <td className="py-2.5 pr-4 text-right font-mono text-ink">{((comp.followers ?? comp.followerCount) as number)?.toLocaleString() ?? "—"}</td>
                     <td className="py-2.5 pr-4 text-right font-mono text-ink">{((comp.engagementRate ?? comp.engagement_rate) as number)?.toFixed(2) ?? "—"}%</td>
@@ -749,18 +787,18 @@ function CompetitiveTab({
         <Card>
           <SectionTitle>Your Position</SectionTitle>
           <div className="mt-3 grid grid-cols-3 gap-3">
-            <div className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-4 text-center">
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Followers</p>
-              <p className="mt-1 text-2xl font-bold text-ink">{profile.followers_count.toLocaleString()}</p>
-            </div>
-            <div className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-4 text-center">
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Avg Likes/Post</p>
-              <p className="mt-1 text-2xl font-bold text-editorial-red">{(() => { const rp = (profile as unknown as { recent_posts?: { likesCount?: number }[] }).recent_posts; if (!rp?.length) return "N/A"; return Math.round(rp.reduce((s, p) => s + (p.likesCount || 0), 0) / rp.length).toLocaleString(); })()}</p>
-            </div>
-            <div className="rounded-[10px] border border-modern-card-border/50 bg-surface-raised p-4 text-center">
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-ink-muted">Posts</p>
-              <p className="mt-1 text-2xl font-bold text-ink">{profile.posts_count.toLocaleString()}</p>
-            </div>
+            <SubCard className="p-4 text-center">
+              <KpiLabel>Followers</KpiLabel>
+              <KpiValue>{profile.followers_count.toLocaleString()}</KpiValue>
+            </SubCard>
+            <SubCard className="p-4 text-center">
+              <KpiLabel>Avg Likes/Post</KpiLabel>
+              <KpiValue className="text-editorial-red">{(() => { const rp = (profile as unknown as { recent_posts?: { likesCount?: number }[] }).recent_posts; if (!rp?.length) return "N/A"; return Math.round(rp.reduce((s, p) => s + (p.likesCount || 0), 0) / rp.length).toLocaleString(); })()}</KpiValue>
+            </SubCard>
+            <SubCard className="p-4 text-center">
+              <KpiLabel>Posts</KpiLabel>
+              <KpiValue>{profile.posts_count.toLocaleString()}</KpiValue>
+            </SubCard>
           </div>
         </Card>
       )}
@@ -782,8 +820,10 @@ function CompetitiveTab({
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function EmptyState({ title, message, action, href }: { title: string; message: string; action?: string; href?: string }) {
+  const { viewMode } = useViewMode();
+  const ed = viewMode === "editorial";
   return (
-    <div className="flex flex-col items-center justify-center rounded-[14px] border border-modern-card-border bg-surface-card py-16 text-center">
+    <div className={cn("flex flex-col items-center justify-center bg-surface-card py-16 text-center", ed ? "border border-rule" : "rounded-[14px] border border-modern-card-border")}>
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-raised">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink-secondary">
           <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round" />
@@ -792,7 +832,7 @@ function EmptyState({ title, message, action, href }: { title: string; message: 
       <h3 className="text-sm font-bold text-ink">{title}</h3>
       <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-ink-secondary">{message}</p>
       {action && href && (
-        <a href={href} className="mt-4 rounded-full border border-editorial-red/30 bg-editorial-red/5 px-4 py-2 text-[11px] font-semibold text-editorial-red transition-colors hover:bg-editorial-red/10">
+        <a href={href} className={cn("mt-4 border border-editorial-red/30 bg-editorial-red/5 px-4 py-2 text-[11px] font-semibold text-editorial-red transition-colors hover:bg-editorial-red/10", !ed && "rounded-full")}>
           {action}
         </a>
       )}

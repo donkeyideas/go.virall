@@ -33,7 +33,7 @@ export function ModernOverview(props: OverviewProps) {
     return (
       <div className="py-20 text-center">
         <h2 className="text-2xl font-bold text-ink">
-          Welcome to <span className="text-editorial-red">Go</span>Viral
+          Welcome to <span className="text-editorial-red">Go</span>Virall
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
           Connect your first social media profile in the Profiles tab to unlock

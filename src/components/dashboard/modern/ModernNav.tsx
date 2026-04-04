@@ -108,7 +108,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
           }}
         >
           Go
-          <span style={{ color: "var(--color-ink-secondary)" }}>Viral</span>
+          <span style={{ color: "var(--color-ink-secondary)" }}>Virall</span>
         </div>
 
         {/* Right actions */}

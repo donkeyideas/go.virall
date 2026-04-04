@@ -316,7 +316,7 @@ export function OverviewClient({
               Details
             </Link>
           </div>
-          <div className="p-4 h-[260px]">
+          <div className="p-4 h-[260px] min-w-0">
             {apiChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={apiChartData}>
@@ -367,7 +367,7 @@ export function OverviewClient({
               Details
             </Link>
           </div>
-          <div className="p-4 h-[260px]">
+          <div className="p-4 h-[260px] min-w-0">
             {growthChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={growthChartData}>
@@ -477,9 +477,9 @@ export function OverviewClient({
                           ${data.cost.toFixed(2)} · {data.calls} calls
                         </span>
                       </div>
-                      <div className="h-2 bg-surface-raised w-full">
+                      <div className="h-2 w-full rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                         <div
-                          className="h-2 transition-all"
+                          className="h-2 rounded-full transition-all"
                           style={{ background: "#8B5CF6", width: `${Math.max(pct, 1)}%` }}
                         />
                       </div>
@@ -554,9 +554,9 @@ export function OverviewClient({
                         {pct.toFixed(0)}%
                       </span>
                     </div>
-                    <div className="h-3 bg-surface-raised w-full">
+                    <div className="h-3 w-full rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                       <div
-                        className="h-3 transition-all"
+                        className="h-3 rounded-full transition-all"
                         style={{
                           width: `${Math.max(pct, 2)}%`,
                           backgroundColor: color,
@@ -649,7 +649,7 @@ export function OverviewClient({
           ) : (
             <div>
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_1fr_80px_90px] gap-2 px-4 py-2 border-b border-rule bg-surface-raised/50">
+              <div className="grid grid-cols-[1fr_1fr_80px_90px] gap-4 px-4 py-2.5 border-b border-rule">
                 <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                   Name
                 </span>
@@ -666,7 +666,7 @@ export function OverviewClient({
               {signups.map((s) => (
                 <div
                   key={s.id}
-                  className="grid grid-cols-[1fr_1fr_80px_90px] gap-2 px-4 py-2.5 border-b border-rule last:border-b-0"
+                  className="grid grid-cols-[1fr_1fr_80px_90px] gap-4 px-4 py-3 border-b border-rule last:border-b-0"
                 >
                   <div className="truncate">
                     <span className="text-sm font-medium text-ink">

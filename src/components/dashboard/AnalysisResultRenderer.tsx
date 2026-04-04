@@ -237,9 +237,9 @@ function ContentStrategyResult({ data }: { data: Record<string, unknown> }) {
                     {pct}%
                   </span>
                 </div>
-                <div className="h-2 w-full overflow-hidden bg-surface-raised">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
                   <div
-                    className="h-full bg-editorial-red/80 transition-all"
+                    className="h-full rounded-full bg-editorial-red/80 transition-all"
                     style={{ width: `${(pct / totalMix) * 100}%` }}
                   />
                 </div>

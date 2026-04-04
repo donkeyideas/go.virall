@@ -280,7 +280,7 @@ export function OverviewClient({
         {profiles.length === 0 ? (
           <div className="mt-8 border border-rule bg-surface-card px-6 py-16 text-center">
             <h2 className="font-serif text-2xl font-bold text-ink">
-              Welcome to <span className="text-editorial-red">Go</span>Viral
+              Welcome to <span className="text-editorial-red">Go</span>Virall
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
               Connect your first social media profile to get started with

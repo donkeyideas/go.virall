@@ -44,6 +44,8 @@ export async function generateContentAction(
 
   let resultData: Record<string, unknown>;
   let provider: string;
+  let tokensUsed = 0;
+  let costCents = 0;
 
   try {
     const { generateContentAI } = await import("@/lib/ai/content-generator");
@@ -59,6 +61,8 @@ export async function generateContentAction(
 
     resultData = { contentType, topic, tone, ...result.data } as Record<string, unknown>;
     provider = result.provider;
+    tokensUsed = result.tokensUsed ?? 0;
+    costCents = result.costCents ?? 0;
     console.log("[ContentAction v2] resultData keys:", Object.keys(resultData));
     console.log("[ContentAction v2] has raw?:", "raw" in resultData);
   } catch (err) {
@@ -75,8 +79,8 @@ export async function generateContentAction(
         analysis_type: "content_generator",
         result: resultData,
         ai_provider: provider,
-        tokens_used: 0,
-        cost_cents: 0,
+        tokens_used: tokensUsed,
+        cost_cents: costCents,
         expires_at: new Date(
           Date.now() + 24 * 60 * 60 * 1000,
         ).toISOString(),

@@ -194,6 +194,8 @@ export async function POST(req: NextRequest) {
       prompt_text: message,
       response_text: response.text,
       provider: response.provider,
+      total_tokens: response.tokensUsed ?? 0,
+      cost_usd: response.costCents ? response.costCents / 100 : 0,
       is_success: true,
     })
     .then(({ error }) => {

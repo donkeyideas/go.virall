@@ -358,7 +358,7 @@ export default function WelcomePage() {
             letterSpacing: -0.5,
           }}
         >
-          Go<span style={{ color: C.textSecondary }}>Viral</span>
+          Go<span style={{ color: C.textSecondary }}>Virall</span>
         </div>
         <h1
           style={{

@@ -234,7 +234,7 @@ export function RoadmapClient({ items }: { items: RoadmapItem[] }) {
       <div className="border border-rule overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-rule bg-surface-raised">
+            <tr className="border-b border-rule">
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Title
               </th>

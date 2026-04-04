@@ -27,7 +27,8 @@ function formatDate(dateStr: string): string {
 }
 
 function formatCost(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  const usd = cents / 100;
+  return usd < 0.01 && usd > 0 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
 }
 
 function formatCostUsd(usd: number): string {
@@ -298,7 +299,7 @@ export function SearchAIClient({
             </span>
           </div>
 
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2 border-b border-rule bg-surface-card text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-2.5 border-b border-rule text-[11px] font-bold uppercase tracking-widest text-ink-muted">
             <span>Feature</span>
             <span className="text-right">Calls</span>
             <span className="text-right">Tokens</span>
@@ -315,7 +316,7 @@ export function SearchAIClient({
             aiUsageSorted.map((row) => (
               <div
                 key={row.feature}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 items-center"
+                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 border-b border-rule last:border-b-0 items-center"
               >
                 <span className="text-sm font-medium text-ink">
                   {row.feature}
@@ -357,7 +358,7 @@ export function SearchAIClient({
           </span>
         </div>
 
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] gap-2 px-4 py-2 border-b border-rule bg-surface-card text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-2.5 border-b border-rule text-[11px] font-bold uppercase tracking-widest text-ink-muted">
           <span>Type</span>
           <span>Provider</span>
           <span className="text-right">Tokens</span>
@@ -373,7 +374,7 @@ export function SearchAIClient({
           overview.recentAnalyses.map((row) => (
             <div
               key={row.id}
-              className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] gap-2 px-4 py-2.5 border-b border-rule last:border-b-0 items-center"
+              className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-rule last:border-b-0 items-center"
             >
               <span className="text-sm font-medium text-ink">
                 {row.analysis_type}

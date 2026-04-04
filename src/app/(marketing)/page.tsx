@@ -145,11 +145,7 @@ export default async function HomePage() {
         <div
           style={{
             display: "inline-block",
-            background: "rgba(139,92,246,0.15)",
-            border: "1px solid rgba(139,92,246,0.3)",
-            color: C.purple,
-            padding: "8px 20px",
-            borderRadius: 100,
+            color: C.primary,
             fontSize: 13,
             fontWeight: 600,
             letterSpacing: 1,
@@ -376,26 +372,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ═══ TESTIMONIALS ═══ */}
-      <section id="testimonials" aria-label="Creator testimonials" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
-        <SectionHeader
-          label={testimonialsContent.label}
-          title={<>{testimonialsContent.title_line1}<br />{testimonialsContent.title_line2}</>}
-          sub={testimonialsContent.subtitle}
-        />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
-          {testimonialsContent.items.map((t) => (
-            <article key={t.name} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 36 }}>
-              <div style={{ fontSize: 32, color: C.primary, marginBottom: 16, lineHeight: 1 }}>&ldquo;</div>
-              <p style={{ fontSize: 15, color: C.textSecondary, lineHeight: 1.7, marginBottom: 24 }}>{t.quote}</p>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>{t.name}</div>
-                <div style={{ fontSize: 13, color: C.textSecondary }}>{t.handle} &middot; {t.platform}</div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
 
       {/* ═══ PRICING ═══ */}
       <section id="pricing" aria-label="Pricing plans" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>

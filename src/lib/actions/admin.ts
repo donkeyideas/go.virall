@@ -153,6 +153,22 @@ export async function updateUserRole(userId: string, systemRole: string) {
   return { success: true };
 }
 
+export async function deleteUser(userId: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  // Delete profile (cascades to related data via FK)
+  await admin.from("profiles").delete().eq("id", userId);
+
+  // Delete auth user
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
 export async function updateOrgPlan(orgId: string, plan: string) {
   await requireAdmin();
   const admin = createAdminClient();
@@ -718,6 +734,106 @@ TAGS: [3-5 comma-separated relevant tags]`;
 // ============================================================
 // Contact Management
 // ============================================================
+
+// ============================================================
+// API Key Management
+// ============================================================
+
+export async function upsertApiKey(
+  provider: string,
+  data: {
+    api_key?: string;
+    display_name?: string;
+    base_url?: string;
+    is_active?: boolean;
+    config?: Record<string, unknown>;
+  },
+) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  // Check if provider exists
+  const { data: existing } = await admin
+    .from("platform_api_configs")
+    .select("id")
+    .eq("provider", provider)
+    .single();
+
+  if (existing) {
+    const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (data.api_key !== undefined) update.api_key = data.api_key;
+    if (data.display_name !== undefined) update.display_name = data.display_name;
+    if (data.base_url !== undefined) update.base_url = data.base_url;
+    if (data.is_active !== undefined) update.is_active = data.is_active;
+    if (data.config !== undefined) update.config = data.config;
+
+    const { error } = await admin
+      .from("platform_api_configs")
+      .update(update)
+      .eq("provider", provider);
+
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await admin.from("platform_api_configs").insert({
+      provider,
+      display_name: data.display_name ?? provider,
+      api_key: data.api_key ?? null,
+      base_url: data.base_url ?? null,
+      is_active: data.is_active ?? true,
+      config: data.config ?? {},
+    });
+
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/admin/api");
+  return { success: true };
+}
+
+export async function rotateApiKey(provider: string, newKey: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("platform_api_configs")
+    .update({ api_key: newKey, updated_at: new Date().toISOString() })
+    .eq("provider", provider);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/api");
+  return { success: true };
+}
+
+export async function toggleApiProvider(provider: string, isActive: boolean) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("platform_api_configs")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("provider", provider);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/api");
+  return { success: true };
+}
+
+export async function deleteApiProvider(provider: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("platform_api_configs")
+    .delete()
+    .eq("provider", provider);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/api");
+  return { success: true };
+}
 
 export async function updateContactStatus(id: string, status: string) {
   await requireAdmin();

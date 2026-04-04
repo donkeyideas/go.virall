@@ -47,6 +47,8 @@ export interface RecommendationsInput {
 interface RecommendationsResult {
   data: Record<string, unknown>;
   provider: string;
+  tokensUsed?: number;
+  costCents?: number;
 }
 
 /** Condense available analysis results into a text summary for the prompt */
@@ -256,11 +258,13 @@ export async function generateRecommendations(
 
   try {
     const data = parseResponse(response.text, response.provider);
-    return { data, provider: response.provider };
+    return { data, provider: response.provider, tokensUsed: response.tokensUsed, costCents: response.costCents };
   } catch {
     return {
       data: { raw: response.text },
       provider: response.provider,
+      tokensUsed: response.tokensUsed,
+      costCents: response.costCents,
     };
   }
 }

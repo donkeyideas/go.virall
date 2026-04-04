@@ -110,8 +110,8 @@ function ProcessingAnimation() {
           <span>Progress</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden bg-surface-raised">
-          <div className="h-full bg-editorial-red transition-all duration-1000 ease-out" style={{ width: `${progress}%` }} />
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
+          <div className="h-full rounded-full bg-editorial-red transition-all duration-1000 ease-out" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
@@ -252,9 +252,9 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
         </span>
         <span className="font-mono text-sm font-bold text-ink">{score}</span>
       </div>
-      <div className="h-2 w-full overflow-hidden bg-surface-raised">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
         <div
-          className={cn("h-full transition-all", color)}
+          className={cn("h-full rounded-full transition-all", color)}
           style={{ width: `${score}%` }}
         />
       </div>

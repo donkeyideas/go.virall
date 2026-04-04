@@ -561,12 +561,19 @@ export async function analyzeSocialProfile(
 
   try {
     const data = parseJSON(response.text);
-    return { data, provider: response.provider };
+    return {
+      data,
+      provider: response.provider,
+      tokensUsed: response.tokensUsed,
+      costCents: response.costCents,
+    };
   } catch {
     // If JSON parsing fails, wrap raw text
     return {
       data: { raw: response.text },
       provider: response.provider,
+      tokensUsed: response.tokensUsed,
+      costCents: response.costCents,
     };
   }
 }

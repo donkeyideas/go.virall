@@ -10,6 +10,8 @@ import { logAPICall } from "@/lib/api/api-logger";
 interface AIResponse {
   text: string;
   provider: string;
+  tokensUsed?: number;
+  costCents?: number;
 }
 
 interface AIConfig {
@@ -170,7 +172,13 @@ export async function aiChatWithBYOK(
         .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "")
         .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
         .trim();
-      return { text: cleaned, provider: `byok_${providerName}` };
+      const totalTokens = callResult.prompt_tokens + callResult.completion_tokens;
+      return {
+        text: cleaned,
+        provider: `byok_${providerName}`,
+        tokensUsed: totalTokens,
+        costCents: 0,
+      };
     }
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
@@ -269,7 +277,13 @@ export async function aiChat(
             .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "")
             .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
             .trim();
-          return { text: cleaned, provider: providerName };
+          const totalTokens = callResult.prompt_tokens + callResult.completion_tokens;
+          return {
+            text: cleaned,
+            provider: providerName,
+            tokensUsed: totalTokens,
+            costCents: parseFloat((costUsd * 100).toFixed(6)),
+          };
         }
         break; // Got a response (even if empty text), don't retry
       } catch (err) {

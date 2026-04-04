@@ -147,7 +147,7 @@ export function BillingClient({
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-4 gap-2 px-4 py-2 border-b border-rule bg-surface-raised">
+        <div className="grid grid-cols-4 gap-4 px-4 py-2.5 border-b border-rule">
           <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
             Event
           </span>
@@ -170,7 +170,7 @@ export function BillingClient({
           overview.recentEvents.map((event) => (
             <div
               key={event.id}
-              className="grid grid-cols-4 gap-2 px-4 py-2.5 border-b border-rule last:border-b-0"
+              className="grid grid-cols-4 gap-4 px-4 py-3 border-b border-rule last:border-b-0"
             >
               <span className="text-sm font-medium text-ink truncate">
                 {event.event_type}
