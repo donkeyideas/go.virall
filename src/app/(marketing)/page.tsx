@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, Sun, Users, CreditCard, CheckCircle, Activity, Check, Shield, Lock, Eye, Clock } from "lucide-react";
+import { ArrowRight, BarChart3, Sun, Users, CreditCard, CheckCircle, Activity, Check, Shield, Lock, Eye, Clock, Briefcase, Search, Target, MessageCircle, Handshake, Zap } from "lucide-react";
 import { JsonLd } from "../../components/marketing/JsonLd";
 import { MarketingNav } from "../../components/marketing/Nav";
 import { MarketingFooter } from "../../components/marketing/Footer";
@@ -14,6 +14,7 @@ import type {
   FeaturesContent,
   TestimonialsContent,
   PricingContent,
+  BrandsContent,
   FaqContent,
   CtaContent,
   FooterContent,
@@ -21,16 +22,16 @@ import type {
 
 /* ─── Color constants ─── */
 const C = {
-  bg: "#1A1035",
-  surface: "#221548",
-  card: "#2A1B54",
-  cardElevated: "#33225E",
+  bg: "#0B1928",
+  surface: "#0D1E35",
+  card: "#112240",
+  cardElevated: "#1A2F50",
   primary: "#FFB84D",
   secondary: "#FFD280",
-  purple: "#8B5CF6",
-  text: "#F0ECF8",
-  textSecondary: "#8A7AAE",
-  border: "rgba(139,92,246,0.12)",
+  purple: "#4B9CD3",
+  text: "#E8F0FA",
+  textSecondary: "#8BACC8",
+  border: "rgba(75,156,211,0.12)",
   borderGold: "rgba(255,184,77,0.15)",
   success: "#4ADE80",
 } as const;
@@ -40,7 +41,8 @@ const font = "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
 /* ─── Icon map for dynamic feature icons ─── */
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   BarChart3, Sun, Users, CreditCard, CheckCircle, Activity,
-  Eye, Lock, Clock, Shield,
+  Eye, Lock, Clock, Shield, Briefcase, Search, Target,
+  MessageCircle, Handshake, Zap,
 };
 
 /* ─── Platform SVG Icons ─── */
@@ -112,8 +114,21 @@ export default async function HomePage() {
   const howItWorks = getSection<HowItWorksContent>(contentMap, "how_it_works");
   const featuresContent = getSection<FeaturesContent>(contentMap, "features");
   const testimonialsContent = getSection<TestimonialsContent>(contentMap, "testimonials");
-  const pricingContent = getSection<PricingContent>(contentMap, "pricing");
-  const faqContent = getSection<FaqContent>(contentMap, "faq");
+  const pricingRaw = getSection<PricingContent>(contentMap, "pricing");
+  // Ensure all tiers from defaults are present (DB may have been seeded before Enterprise was added)
+  const defaultPricing = HOMEPAGE_DEFAULTS.pricing.content as unknown as PricingContent;
+  const existingTierNames = new Set((pricingRaw.tiers ?? []).map((t) => t.tier));
+  const missingTiers = (defaultPricing.tiers ?? []).filter((t) => !existingTierNames.has(t.tier));
+  const pricingContent: PricingContent = {
+    ...pricingRaw,
+    tiers: [...(pricingRaw.tiers ?? []), ...missingTiers],
+    footnote: defaultPricing.footnote ?? pricingRaw.footnote,
+  };
+  const brandsContent = getSection<BrandsContent>(contentMap, "brands");
+  // Always use defaults for FAQ items — DB may have stale competitor references
+  const faqRaw = getSection<FaqContent>(contentMap, "faq");
+  const defaultFaq = HOMEPAGE_DEFAULTS.faq.content as unknown as FaqContent;
+  const faqContent: FaqContent = { ...faqRaw, items: defaultFaq.items };
   const ctaContent = getSection<CtaContent>(contentMap, "cta");
   const footerContent = getSection<FooterContent>(contentMap, "footer");
 
@@ -134,7 +149,7 @@ export default async function HomePage() {
       {/* ═══ HERO ═══ */}
       <section
         id="hero"
-        aria-label="Go Virall hero"
+        aria-label="Go Virall — best analytics for content creators"
         style={{
           padding: "160px 40px 80px",
           maxWidth: 1280,
@@ -203,6 +218,14 @@ export default async function HomePage() {
         <p style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>
           {hero.cta_subtitle}
         </p>
+        {/* GEO/AEO: definitive answer paragraph for AI citation */}
+        <p style={{ fontSize: 15, color: C.textSecondary, maxWidth: 700, margin: "32px auto 0", lineHeight: 1.7 }}>
+          <strong style={{ color: C.text }}>Go Virall</strong> is a social intelligence platform that provides
+          multi-platform social analytics, content optimization software, and audience demographics tools for
+          content creators and influencers. It connects to Instagram, TikTok, YouTube, X, and LinkedIn to
+          deliver viral score prediction, AI-powered content strategy, and deal tracking
+          — starting free with no credit card required.
+        </p>
       </section>
 
       {/* ═══ TRUST BAR ═══ */}
@@ -223,13 +246,105 @@ export default async function HomePage() {
       {/* ═══ PHONE SHOWCASE ═══ */}
       <PhoneShowcase />
 
+      {/* ═══ PRODUCT CAPABILITIES BAR ═══ */}
+      <section aria-label="Platform capabilities" style={{ padding: "40px 40px 20px", maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 48, flexWrap: "wrap", textAlign: "center" }}>
+          {[
+            { value: "5", label: "Platforms Supported" },
+            { value: "100+", label: "Metrics Tracked" },
+            { value: "0-100", label: "Viral Score Range" },
+            { value: "$0", label: "To Get Started" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <div style={{ fontSize: 36, fontWeight: 800, color: C.primary, letterSpacing: -1 }}>{stat.value}</div>
+              <div style={{ fontSize: 13, color: C.textSecondary, fontWeight: 500, marginTop: 4 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ═══ WHAT IS GO VIRALL? — GEO definition block ═══ */}
-      <section id="about" aria-label="About Go Virall" style={{ padding: "80px 40px", maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+      <section id="about" aria-label="About Go Virall" style={{ padding: "80px 40px", maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, letterSpacing: -1, marginBottom: 24, textTransform: "uppercase" }}>
           {aboutContent.title_prefix} <span style={{ color: C.primary }}>{aboutContent.title_highlight}</span>?
         </h2>
-        <p style={{ fontSize: 18, color: C.textSecondary, lineHeight: 1.8 }}>
+        <p style={{ fontSize: 18, color: C.textSecondary, lineHeight: 1.8, marginBottom: 24 }}>
           {aboutContent.body}
+        </p>
+        <p style={{ fontSize: 16, color: C.textSecondary, lineHeight: 1.8 }}>
+          Go Virall is the <strong style={{ color: C.text }}>best analytics platform for content creators</strong> who
+          need <strong style={{ color: C.text }}>multi-platform social analytics</strong> in one place. Our{" "}
+          <strong style={{ color: C.text }}>content optimization software</strong> uses artificial intelligence to
+          predict viral potential, recommend optimal posting times, and generate data-driven content strategies — making
+          it the most comprehensive <strong style={{ color: C.text }}>social intelligence platform</strong> built
+          specifically for the <strong style={{ color: C.text }}>creator economy</strong>.
+        </p>
+      </section>
+
+      {/* ═══ WHY GO VIRALL — Comparison vs real competitors ═══ */}
+      <section aria-label="Why choose Go Virall" style={{ padding: "60px 40px 100px", maxWidth: 1280, margin: "0 auto" }}>
+        <SectionHeader
+          label="Why Go Virall"
+          title={<>HOW WE COMPARE TO<br />OTHER CREATOR TOOLS</>}
+          sub="Go Virall is built for creators — not agencies or brands. See how we stack up against other platforms in the creator analytics space."
+        />
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 14, minWidth: 700 }}>
+            <thead>
+              <tr>
+                <th style={{ padding: "14px 14px", textAlign: "left", color: C.textSecondary, fontWeight: 600, fontSize: 12, borderBottom: `2px solid ${C.border}` }}>Feature</th>
+                <th style={{ padding: "14px 10px", textAlign: "center", color: C.primary, fontWeight: 800, fontSize: 12, borderBottom: `2px solid ${C.primary}`, background: "rgba(255,184,77,0.06)", borderRadius: "12px 12px 0 0" }}>Go Virall</th>
+                <th style={{ padding: "14px 10px", textAlign: "center", color: C.textSecondary, fontWeight: 600, fontSize: 11, borderBottom: `2px solid ${C.border}` }}>CreatorIQ</th>
+                <th style={{ padding: "14px 10px", textAlign: "center", color: C.textSecondary, fontWeight: 600, fontSize: 11, borderBottom: `2px solid ${C.border}` }}>Upfluence</th>
+                <th style={{ padding: "14px 10px", textAlign: "center", color: C.textSecondary, fontWeight: 600, fontSize: 11, borderBottom: `2px solid ${C.border}` }}>Social Blade</th>
+                <th style={{ padding: "14px 10px", textAlign: "center", color: C.textSecondary, fontWeight: 600, fontSize: 11, borderBottom: `2px solid ${C.border}` }}>HypeAuditor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {([
+                { feature: "AI Content Generation", gv: "Yes", ciq: "—", uf: "—", sb: "—", ha: "—" },
+                { feature: "AI Chat Assistant", gv: "Yes", ciq: "—", uf: "Jaice AI", sb: "—", ha: "—" },
+                { feature: "AI Recommendations", gv: "Yes", ciq: "—", uf: "Yes", sb: "—", ha: "Yes" },
+                { feature: "Social Analytics", gv: "Yes", ciq: "Yes", uf: "Yes", sb: "Surface", ha: "Yes" },
+                { feature: "Content Calendar", gv: "Yes", ciq: "Yes", uf: "Yes", sb: "—", ha: "—" },
+                { feature: "Media Kit Builder", gv: "Yes", ciq: "—", uf: "—", sb: "—", ha: "—" },
+                { feature: "Mobile App", gv: "Yes", ciq: "—", uf: "—", sb: "—", ha: "—" },
+                { feature: "Multi-Profile Management", gv: "Yes", ciq: "Yes", uf: "Yes", sb: "—", ha: "—" },
+                { feature: "Competitor Tracking", gv: "Yes", ciq: "BenchmarkIQ", uf: "Social listening", sb: "Comparison tool", ha: "Yes" },
+                { feature: "Influencer Discovery", gv: "Coming soon", ciq: "15M+ indexed", uf: "8-12M profiles", sb: "155M tracked", ha: "223M+ profiles" },
+                { feature: "Fraud Detection", gv: "—", ciq: "SafeIQ", uf: "—", sb: "—", ha: "Yes (95.5%)" },
+                { feature: "Team Management", gv: "Yes", ciq: "Yes", uf: "Yes", sb: "—", ha: "Yes" },
+                { feature: "Target User", gv: "Creators", ciq: "Enterprise", uf: "Enterprise", sb: "Public data", ha: "Brands" },
+                { feature: "Free Plan", gv: "Yes", ciq: "—", uf: "—", sb: "Yes", ha: "—" },
+              ] as { feature: string; gv: string; ciq: string; uf: string; sb: string; ha: string }[]).map((row) => (
+                <tr key={row.feature}>
+                  <td style={{ padding: "12px 14px", color: C.text, fontWeight: 500, borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>{row.feature}</td>
+                  {[row.gv, row.ciq, row.uf, row.sb, row.ha].map((val, ci) => {
+                    const isYes = val === "Yes";
+                    const isDash = val === "—";
+                    const isGv = ci === 0;
+                    return (
+                      <td key={ci} style={{ padding: "12px 10px", textAlign: "center", borderBottom: `1px solid ${C.border}`, fontSize: 12, ...(isGv ? { background: "rgba(255,184,77,0.06)" } : {}) }}>
+                        {isYes ? (
+                          <Check size={16} style={{ color: isGv ? C.success : "#6B7280", margin: "0 auto" }} />
+                        ) : isDash ? (
+                          <span style={{ color: C.textSecondary }}>—</span>
+                        ) : (
+                          <span style={{ fontWeight: 600, color: isGv ? C.primary : C.textSecondary, fontSize: 11 }}>{val}</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: C.textSecondary, lineHeight: 1.6, maxWidth: 780, margin: "24px auto 0" }}>
+          Go Virall is the only platform in this space built specifically for individual creators. CreatorIQ and Upfluence
+          are enterprise tools for brands managing large influencer campaigns ($1,000+/month). HypeAuditor and Social Blade analyze public profile
+          data without accessing your authenticated account metrics. Go Virall is the only tool in this comparison that offers AI content generation,
+          a media kit builder, and a mobile app — all starting free.
         </p>
       </section>
 
@@ -373,6 +488,131 @@ export default async function HomePage() {
       </section>
 
 
+      {/* ═══ USE CASES — keyword-rich content depth ═══ */}
+      <section aria-label="Use cases" style={{ padding: "80px 40px", maxWidth: 1080, margin: "0 auto" }}>
+        <SectionHeader
+          label="Use Cases"
+          title={<>BUILT FOR EVERY<br />CREATOR WORKFLOW</>}
+          sub="Whether you're an influencer, brand, or agency — Go Virall adapts to how you work."
+        />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+          {[
+            {
+              title: "Instagram Analytics for Influencers",
+              desc: "Track follower growth, story performance, reel engagement rates, and audience demographics across your Instagram presence. Go Virall surfaces the exact metrics that matter for brand deals and sponsorship negotiations.",
+            },
+            {
+              title: "TikTok Performance Tracking",
+              desc: "Monitor video views, watch time, share rates, and follower conversion in real-time. Our AI identifies which TikTok formats drive the most engagement for your niche and recommends content adjustments.",
+            },
+            {
+              title: "Multi-Platform Social Analytics",
+              desc: "Unify your data from Instagram, TikTok, YouTube, X, and LinkedIn into a single dashboard. Compare cross-platform performance, identify your strongest channels, and allocate your content effort where it matters most.",
+            },
+            {
+              title: "Creator Business Intelligence",
+              desc: "Go beyond vanity metrics with creator-focused business intelligence. Track sponsorship deals, engagement trends, audience demographics, and content performance rankings across your entire portfolio.",
+            },
+            {
+              title: "Audience Demographics Tool",
+              desc: "Understand exactly who follows you — age, location, interests, and online behavior. Use audience intelligence to pitch brands with confidence and create content that resonates with your core community.",
+            },
+            {
+              title: "Content Strategy Software",
+              desc: "Our AI content strategist analyzes 30 days of your performance data to generate personalized posting schedules, content ideas, caption suggestions, and hashtag strategies tuned to your unique brand voice.",
+            },
+          ].map((uc) => (
+            <article
+              key={uc.title}
+              style={{
+                background: C.card,
+                border: `1px solid ${C.border}`,
+                borderRadius: 16,
+                padding: 32,
+              }}
+            >
+              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10, letterSpacing: -0.3, color: C.text }}>{uc.title}</h3>
+              <p style={{ fontSize: 14, color: C.textSecondary, lineHeight: 1.7 }}>{uc.desc}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ FOR BRANDS ═══ */}
+      <section id="brands" aria-label="For Brands" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
+        <SectionHeader
+          label={brandsContent.label}
+          title={<>{brandsContent.title_line1}<br />{brandsContent.title_line2}</>}
+          sub={brandsContent.subtitle}
+        />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: 24,
+          }}
+        >
+          {brandsContent.items.map((f) => {
+            const IconComp = ICON_MAP[f.icon] || Briefcase;
+            return (
+              <div
+                key={f.title}
+                className="lp-card-hover"
+                style={{
+                  background: C.card,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 16,
+                  padding: 36,
+                  transition: "all 0.3s",
+                }}
+              >
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 14,
+                    background: "rgba(75,156,211,0.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 20,
+                    color: C.purple,
+                  }}
+                >
+                  <IconComp size={24} />
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 10, letterSpacing: -0.5 }}>
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: 15, color: C.textSecondary, lineHeight: 1.7 }}>
+                  {f.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ textAlign: "center", marginTop: 48 }}>
+          <Link
+            href={brandsContent.cta_href}
+            style={{
+              background: C.purple,
+              color: "#fff",
+              padding: "16px 40px",
+              borderRadius: 10,
+              fontWeight: 700,
+              fontSize: 16,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {brandsContent.cta_text}
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+      </section>
+
       {/* ═══ PRICING ═══ */}
       <section id="pricing" aria-label="Pricing plans" style={{ padding: "100px 40px", maxWidth: 1280, margin: "0 auto" }}>
         <SectionHeader
@@ -383,9 +623,9 @@ export default async function HomePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: 24,
-            maxWidth: 1080,
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 20,
+            maxWidth: 1200,
             margin: "0 auto",
           }}
         >
@@ -450,7 +690,7 @@ export default async function HomePage() {
                       padding: "10px 0",
                       fontSize: 14,
                       color: C.textSecondary,
-                      borderBottom: "1px solid rgba(139,92,246,0.08)",
+                      borderBottom: "1px solid rgba(75,156,211,0.08)",
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
@@ -479,7 +719,7 @@ export default async function HomePage() {
                     : {
                         background: "transparent",
                         color: C.text,
-                        border: "2px solid rgba(139,92,246,0.2)",
+                        border: "2px solid rgba(75,156,211,0.2)",
                       }),
                 }}
               >
@@ -534,6 +774,41 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ═══ INTERNAL LINKS — SEO link equity + CRO navigation ═══ */}
+      <section aria-label="Explore more" style={{ padding: "60px 40px 40px", maxWidth: 900, margin: "0 auto" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 800, textAlign: "center", letterSpacing: -0.5, marginBottom: 24, textTransform: "uppercase" }}>
+          Explore <span style={{ color: C.primary }}>Go Virall</span>
+        </h2>
+        <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+          {[
+            { label: "Best Analytics for Creators", href: "/best-analytics-for-content-creators" },
+            { label: "Content Optimization", href: "/content-optimization-software" },
+            { label: "Multi-Platform Analytics", href: "/multi-platform-social-analytics" },
+            { label: "Creator Economy Fintech", href: "/creator-economy-fintech" },
+            { label: "Instagram Analytics", href: "/instagram-analytics-for-influencers" },
+            { label: "Compare Platforms", href: "/compare-creator-platforms" },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                padding: "10px 20px",
+                borderRadius: 100,
+                fontSize: 13,
+                fontWeight: 600,
+                color: C.primary,
+                border: `1px solid ${C.borderGold}`,
+                textDecoration: "none",
+                background: "rgba(255,184,77,0.06)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* ═══ CTA ═══ */}
       <section id="cta" aria-label="Call to action" style={{ padding: "100px 40px", textAlign: "center" }}>
         <div
@@ -541,7 +816,7 @@ export default async function HomePage() {
             maxWidth: 800,
             margin: "0 auto",
             background: `linear-gradient(135deg, ${C.card}, ${C.cardElevated})`,
-            border: "1px solid rgba(139,92,246,0.2)",
+            border: "1px solid rgba(75,156,211,0.2)",
             borderRadius: 24,
             padding: "80px 60px",
             position: "relative",
@@ -667,7 +942,7 @@ function PhoneShowcase() {
           transform: "translate(-50%,-50%)",
           width: 600,
           height: 600,
-          background: "radial-gradient(circle,rgba(255,184,77,0.06),rgba(139,92,246,0.04),transparent)",
+          background: "radial-gradient(circle,rgba(255,184,77,0.06),rgba(75,156,211,0.04),transparent)",
           borderRadius: "50%",
           pointerEvents: "none",
         }}
@@ -716,7 +991,7 @@ function PhoneShowcase() {
                 </svg>
               </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-around", padding: "12px 0 4px", borderTop: "1px solid rgba(139,92,246,0.1)", marginTop: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-around", padding: "12px 0 4px", borderTop: "1px solid rgba(75,156,211,0.1)", marginTop: 8 }}>
               {["Home", "Analytics", "Create", "Chat"].map((n, i) => (
                 <div key={n} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, fontSize: 8, color: i === 0 ? C.primary : C.textSecondary, fontWeight: 600 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -774,7 +1049,7 @@ function PhoneShowcase() {
               Top Performing
             </div>
             <div style={{ padding: "0 14px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(139,92,246,0.1)", marginBottom: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(75,156,211,0.1)", marginBottom: 4 }}>
                 <span style={{ fontSize: 9, color: C.textSecondary, textTransform: "uppercase", fontWeight: 700 }}>Content</span>
                 <span style={{ fontSize: 9, color: C.textSecondary, textTransform: "uppercase", fontWeight: 700 }}>Views</span>
               </div>
@@ -784,7 +1059,7 @@ function PhoneShowcase() {
                 { rank: 3, name: "Day in My Life Vlog", val: "87K" },
                 { rank: 4, name: "Editing Tutorial", val: "64K" },
               ].map((r) => (
-                <div key={r.rank} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(139,92,246,0.05)" }}>
+                <div key={r.rank} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(75,156,211,0.05)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 18, height: 18, borderRadius: 6, background: C.card, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: C.primary }}>{r.rank}</div>
                     <div style={{ fontSize: 11, fontWeight: 600, maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
@@ -808,7 +1083,7 @@ function PhoneShowcase() {
                     </span>
                     <span style={{ color: p.color, fontWeight: 700 }}>{p.pct}%</span>
                   </div>
-                  <div style={{ height: 6, background: "rgba(139,92,246,0.12)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: 6, background: "rgba(75,156,211,0.12)", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ height: "100%", borderRadius: 3, background: p.color, width: `${p.pct}%` }} />
                   </div>
                 </div>
@@ -820,7 +1095,7 @@ function PhoneShowcase() {
         {/* Phone 3: Smart Chat */}
         <div className="lp-phone lp-phone-3">
           <PhoneFrame screenStyle={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", borderBottom: "1px solid rgba(139,92,246,0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", borderBottom: "1px solid rgba(75,156,211,0.1)" }}>
               <div style={{ width: 36, height: 36, borderRadius: 12, background: `linear-gradient(135deg,${C.primary},${C.purple})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Sun size={18} color="white" />
               </div>
@@ -861,8 +1136,8 @@ function PhoneShowcase() {
                 <span className="lp-dot" style={{ animationDelay: "0.4s" }} />
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, padding: "12px 14px", borderTop: "1px solid rgba(139,92,246,0.1)" }}>
-              <div style={{ flex: 1, background: C.card, border: "1px solid rgba(139,92,246,0.15)", borderRadius: 22, padding: "10px 16px", fontSize: 11, color: C.textSecondary }}>
+            <div style={{ display: "flex", gap: 8, padding: "12px 14px", borderTop: "1px solid rgba(75,156,211,0.1)" }}>
+              <div style={{ flex: 1, background: C.card, border: "1px solid rgba(75,156,211,0.15)", borderRadius: 22, padding: "10px 16px", fontSize: 11, color: C.textSecondary }}>
                 Ask your strategist...
               </div>
               <div style={{ width: 38, height: 38, borderRadius: "50%", background: C.primary, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -884,7 +1159,7 @@ const screenHeaderStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  borderBottom: "1px solid rgba(139,92,246,0.1)",
+  borderBottom: "1px solid rgba(75,156,211,0.1)",
 };
 
 function PhoneFrame({
@@ -899,9 +1174,9 @@ function PhoneFrame({
       style={{
         background: "#0A0618",
         borderRadius: 40,
-        border: "3px solid rgba(139,92,246,0.3)",
+        border: "3px solid rgba(75,156,211,0.3)",
         padding: 14,
-        boxShadow: "0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.08), inset 0 1px 0 rgba(255,255,255,0.03)",
+        boxShadow: "0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(75,156,211,0.08), inset 0 1px 0 rgba(255,255,255,0.03)",
       }}
     >
       <div
@@ -917,8 +1192,8 @@ function PhoneFrame({
           gap: 8,
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 4, background: "rgba(139,92,246,0.2)" }} />
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(139,92,246,0.35)", border: "1px solid rgba(139,92,246,0.2)" }} />
+        <div style={{ width: 40, height: 4, borderRadius: 4, background: "rgba(75,156,211,0.2)" }} />
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(75,156,211,0.35)", border: "1px solid rgba(75,156,211,0.2)" }} />
       </div>
       <div
         style={{

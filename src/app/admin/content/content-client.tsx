@@ -271,6 +271,48 @@ function SectionEditor({
         </div>
       );
 
+    case "brands":
+      return (
+        <div className="space-y-4">
+          <SectionHeaderEditor content={c} onChange={onChange} />
+          <div className="grid grid-cols-2 gap-3">
+            <TextInput label="CTA Button Text" value={(c.cta_text as string) || ""} onChange={(v) => set("cta_text", v)} placeholder="Explore Brand Dashboard" />
+            <TextInput label="CTA Link" value={(c.cta_href as string) || ""} onChange={(v) => set("cta_href", v)} placeholder="/brand" />
+          </div>
+          <RepeaterEditor
+            label="Brand Features"
+            items={(c.items as Array<Record<string, string>>) || []}
+            onChange={(items) => set("items", items)}
+            renderItem={(item, setItem) => (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className={labelCls}>Icon</label>
+                    <select value={item.icon || ""} onChange={(e) => setItem({ ...item, icon: e.target.value })} className={inputCls}>
+                      <option value="Search">Search</option>
+                      <option value="Target">Target</option>
+                      <option value="Briefcase">Briefcase</option>
+                      <option value="BarChart3">BarChart3</option>
+                      <option value="CreditCard">CreditCard</option>
+                      <option value="MessageCircle">MessageCircle</option>
+                      <option value="Users">Users</option>
+                      <option value="Handshake">Handshake</option>
+                      <option value="Shield">Shield</option>
+                      <option value="Zap">Zap</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <TextInput label="Title" value={item.title || ""} onChange={(v) => setItem({ ...item, title: v })} />
+                  </div>
+                </div>
+                <TextArea label="Description" value={item.description || ""} onChange={(v) => setItem({ ...item, description: v })} rows={2} />
+              </div>
+            )}
+            newItem={{ icon: "Briefcase", title: "", description: "" }}
+          />
+        </div>
+      );
+
     case "pricing":
       return <PricingEditor content={c} onChange={onChange} />;
 

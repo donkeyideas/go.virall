@@ -7,6 +7,7 @@ import type {
   FeaturesContent,
   TestimonialsContent,
   PricingContent,
+  BrandsContent,
   FaqContent,
   CtaContent,
   FooterContent,
@@ -160,7 +161,7 @@ const pricing: PricingContent = {
   subtitle:
     "No hidden fees. No contracts. Cancel anytime. Start free and scale when you are ready.",
   footnote:
-    "Need more? See all 5 plans on our full pricing page. Annual billing saves 20%.",
+    "No hidden fees. No contracts. Cancel anytime. Annual billing saves 20%.",
   tiers: [
     {
       tier: "Free",
@@ -210,6 +211,70 @@ const pricing: PricingContent = {
       is_primary: false,
       is_recommended: false,
     },
+    {
+      tier: "Enterprise",
+      price: "$199",
+      description:
+        "For agencies and large creator teams who need unlimited everything.",
+      features: [
+        "Unlimited connected platforms",
+        "Unlimited AI analyses",
+        "Unlimited content generation",
+        "Dedicated account manager",
+        "Priority support & SLA",
+      ],
+      cta_text: "Contact Sales",
+      is_primary: false,
+      is_recommended: false,
+    },
+  ],
+};
+
+const brands: BrandsContent = {
+  label: "For Brands",
+  title_line1: "FIND YOUR PERFECT",
+  title_line2: "CREATORS",
+  subtitle:
+    "Go Virall isn't just for creators. Brands get a powerful dashboard to discover, manage, and pay creators \u2014 all in one platform.",
+  cta_text: "Explore Brand Dashboard",
+  cta_href: "/brand",
+  items: [
+    {
+      icon: "Search",
+      title: "Creator Discovery",
+      description:
+        "Search and filter thousands of creators by niche, platform, engagement rate, audience quality score, and budget to find your perfect match.",
+    },
+    {
+      icon: "Target",
+      title: "Smart Creator Matching",
+      description:
+        "Intelligent recommendations based on your brand profile, campaign goals, and past performance. Find the creators that drive real results.",
+    },
+    {
+      icon: "Briefcase",
+      title: "Deal Pipeline",
+      description:
+        "Track every collaboration through 9 stages from lead to paid. Full deliverable tracking, milestones, and contract management.",
+    },
+    {
+      icon: "BarChart3",
+      title: "Campaign Management",
+      description:
+        "Run multi-creator campaigns with budgets, timelines, content approval workflows, and real-time ROI tracking across every channel.",
+    },
+    {
+      icon: "CreditCard",
+      title: "Secure Payments",
+      description:
+        "Stripe-powered payouts, automated invoicing, spending analytics, and tax document management. Pay creators with confidence.",
+    },
+    {
+      icon: "MessageCircle",
+      title: "Real-Time Messaging",
+      description:
+        "Direct communication with creators, proposal negotiation, and deal room collaboration. Everything in one place, no more email chains.",
+    },
   ],
 };
 
@@ -222,12 +287,12 @@ const faq: FaqContent = {
     {
       question: "What is Go Virall?",
       answer:
-        "Go Virall is a social intelligence platform designed for influencers and content creators. It provides deep analytics across Instagram, TikTok, YouTube, X (Twitter), and LinkedIn, along with smart content strategy, audience intelligence, revenue tracking, and viral score prediction \u2014 helping creators turn raw social media data into actionable growth strategies.",
+        "Go Virall is a social intelligence platform designed for influencers and content creators. It provides deep analytics across Instagram, TikTok, YouTube, X (Twitter), and LinkedIn, along with smart content strategy, audience intelligence, deal tracking, and viral score prediction \u2014 helping creators turn raw social media data into actionable growth strategies.",
     },
     {
       question: "How much does Go Virall cost?",
       answer:
-        "Go Virall offers three pricing tiers: Free ($0/month with 2 connected platforms, 10 AI analyses, and 5 chat messages/day), Creator ($29/month with 10 platforms and 200 smart analyses), and Pro ($59/month with 30 platforms and 1,000 smart analyses). All paid plans include a free trial. Annual billing saves 20%. No credit card is required for the free plan.",
+        "Go Virall offers four pricing tiers: Free ($0/month with 2 connected platforms and 10 AI analyses), Creator ($29/month with 10 platforms and 200 smart analyses), Pro ($59/month with 30 platforms, 1,000 smart analyses, and unlimited deals CRM), and Enterprise ($199/month with unlimited everything and dedicated support). All paid plans include a free trial. Annual billing saves 20%. No credit card is required for the free plan.",
     },
     {
       question: "Which social media platforms does Go Virall support?",
@@ -251,9 +316,9 @@ const faq: FaqContent = {
     },
     {
       question:
-        "How is Go Virall different from Hootsuite or Sprout Social?",
+        "How is Go Virall different from HypeAuditor or Social Blade?",
       answer:
-        "Unlike general-purpose social media management tools, Go Virall is purpose-built for content creators and influencers. It offers smart viral score prediction, personalized content strategy, creator-specific revenue tracking for sponsorships and affiliate deals, and audience intelligence \u2014 features that generic tools don't provide. Go Virall also starts free, while most alternatives start at $49+/month.",
+        "HypeAuditor and Social Blade analyze publicly available profile data — useful for third-party research, but they cannot access your private analytics like Reels metrics, Story data, or audience demographics. Go Virall connects directly to your accounts via secure OAuth to provide deep, authenticated analytics, plus AI content strategy, viral score prediction, and deal tracking that public-data tools simply cannot offer. CreatorIQ is another competitor, but it targets enterprise brands managing large influencer campaigns at $1,000+/month. Go Virall is purpose-built for individual creators and starts free.",
     },
     {
       question: "Is my data safe with Go Virall?",
@@ -292,7 +357,8 @@ export const HOMEPAGE_DEFAULTS: Record<
   features: { content: features as unknown as Record<string, unknown>, sort_order: 6 },
   testimonials: { content: testimonials as unknown as Record<string, unknown>, sort_order: 7 },
   pricing: { content: pricing as unknown as Record<string, unknown>, sort_order: 8 },
-  faq: { content: faq as unknown as Record<string, unknown>, sort_order: 9 },
-  cta: { content: cta as unknown as Record<string, unknown>, sort_order: 10 },
-  footer: { content: footer as unknown as Record<string, unknown>, sort_order: 11 },
+  brands: { content: brands as unknown as Record<string, unknown>, sort_order: 9 },
+  faq: { content: faq as unknown as Record<string, unknown>, sort_order: 10 },
+  cta: { content: cta as unknown as Record<string, unknown>, sort_order: 11 },
+  footer: { content: footer as unknown as Record<string, unknown>, sort_order: 12 },
 };

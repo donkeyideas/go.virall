@@ -102,6 +102,21 @@ export interface FaqContent {
   items: FaqItem[];
 }
 
+export interface BrandFeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+export interface BrandsContent {
+  label: string;
+  title_line1: string;
+  title_line2: string;
+  subtitle: string;
+  cta_text: string;
+  cta_href: string;
+  items: BrandFeatureItem[];
+}
+
 export interface CtaContent {
   heading_prefix: string;
   heading_highlight: string;
@@ -124,6 +139,7 @@ export type SectionContentMap = {
   features: FeaturesContent;
   testimonials: TestimonialsContent;
   pricing: PricingContent;
+  brands: BrandsContent;
   faq: FaqContent;
   cta: CtaContent;
   footer: FooterContent;
@@ -141,6 +157,7 @@ export const SECTION_LABELS: Record<HomeSectionName, string> = {
   features: "Features",
   testimonials: "Testimonials",
   pricing: "Pricing",
+  brands: "For Brands",
   faq: "FAQ",
   cta: "Call to Action",
   footer: "Footer",
@@ -156,6 +173,7 @@ export const HOME_SECTIONS_ORDER: HomeSectionName[] = [
   "features",
   "testimonials",
   "pricing",
+  "brands",
   "faq",
   "cta",
   "footer",
