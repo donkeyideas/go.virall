@@ -107,6 +107,88 @@ export async function toggleUserApiKey(
   return { success: true };
 }
 
+// ─── API Key Verification ─────────────────────────────────────
+// Makes a lightweight test call to each provider to verify the key works.
+
+export async function verifyApiKey(
+  provider: AIProvider,
+  apiKey: string,
+): Promise<{ valid: boolean; error?: string }> {
+  try {
+    switch (provider) {
+      case "openai": {
+        // List models — lightweight GET, no tokens consumed
+        const res = await fetch("https://api.openai.com/v1/models", {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (res.status === 401) return { valid: false, error: "Invalid API key" };
+        if (res.status === 429) return { valid: true }; // rate-limited but key is valid
+        if (!res.ok) return { valid: false, error: `OpenAI returned ${res.status}` };
+        return { valid: true };
+      }
+
+      case "anthropic": {
+        // Send a minimal message — costs ~1 token
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 1,
+            messages: [{ role: "user", content: "hi" }],
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (res.status === 401) return { valid: false, error: "Invalid API key" };
+        if (res.status === 429) return { valid: true };
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          const msg = (body as Record<string, Record<string, string>>)?.error?.message || `Anthropic returned ${res.status}`;
+          return { valid: false, error: msg };
+        }
+        return { valid: true };
+      }
+
+      case "google": {
+        // List models — no tokens consumed
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+          { signal: AbortSignal.timeout(10000) },
+        );
+        if (res.status === 400 || res.status === 403) return { valid: false, error: "Invalid API key" };
+        if (res.status === 429) return { valid: true };
+        if (!res.ok) return { valid: false, error: `Google returned ${res.status}` };
+        return { valid: true };
+      }
+
+      case "deepseek": {
+        // OpenAI-compatible — list models
+        const res = await fetch("https://api.deepseek.com/v1/models", {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (res.status === 401) return { valid: false, error: "Invalid API key" };
+        if (res.status === 429) return { valid: true };
+        if (!res.ok) return { valid: false, error: `DeepSeek returned ${res.status}` };
+        return { valid: true };
+      }
+
+      default:
+        return { valid: false, error: "Unknown provider" };
+    }
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      return { valid: false, error: "Request timed out — check your key and try again" };
+    }
+    return { valid: false, error: err instanceof Error ? err.message : "Verification failed" };
+  }
+}
+
 // NOTE: getDecryptedApiKey and getUserBYOKConfig have been moved to
 // src/lib/ai/byok.ts — they return plaintext API keys and MUST NOT
 // be in a "use server" file (which exposes all exports as callable from client).

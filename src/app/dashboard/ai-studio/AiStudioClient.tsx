@@ -29,7 +29,7 @@ export function AiStudioClient({
   const router = useRouter();
   const pathname = usePathname();
 
-  const activeKey = searchParams.get("tab") || "content";
+  const activeKey = searchParams.get("studio") || "content";
 
   useEffect(() => {
     trackEvent("page_view", "ai-studio");
@@ -37,7 +37,7 @@ export function AiStudioClient({
 
   function switchTab(key: string) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", key);
+    params.set("studio", key);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
@@ -69,7 +69,7 @@ export function AiStudioClient({
           profiles={profiles}
           analysisType="insights"
           title="Strategic Analysis"
-          description="Click 'Generate Insights' to get deep strategic AI analysis covering trends, opportunities, and personalized recommendations."
+          description="Click 'Generate Insights' to get deep strategic analysis covering trends, opportunities, and personalized recommendations."
           buttonLabel="Generate Insights"
           cachedResults={cachedInsights}
         />

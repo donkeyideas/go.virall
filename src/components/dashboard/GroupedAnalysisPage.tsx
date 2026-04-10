@@ -19,6 +19,8 @@ interface GroupedAnalysisPageProps {
   tabs: TabDef[];
   cachedResultsByTab: Record<string, Record<string, Record<string, unknown>>>;
   defaultTab: string;
+  /** URL search-param name for the active sub-tab (default "tab") */
+  paramName?: string;
 }
 
 export function GroupedAnalysisPage({
@@ -26,17 +28,18 @@ export function GroupedAnalysisPage({
   tabs,
   cachedResultsByTab,
   defaultTab,
+  paramName = "tab",
 }: GroupedAnalysisPageProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const activeKey = searchParams.get("tab") || defaultTab;
+  const activeKey = searchParams.get(paramName) || defaultTab;
   const activeTab = tabs.find((t) => t.key === activeKey) ?? tabs[0];
 
   function switchTab(key: string) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", key);
+    params.set(paramName, key);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 

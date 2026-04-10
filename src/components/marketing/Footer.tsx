@@ -1,9 +1,9 @@
 import type { FooterContent } from "@/types/site-content";
 
 const C = {
-  surface: "#221548",
+  surface: "#0D1E35",
   primary: "#FFB84D",
-  textSecondary: "#8A7AAE",
+  textSecondary: "#8BACC8",
 } as const;
 
 const DEFAULT_FOOTER: FooterContent = {
@@ -19,7 +19,7 @@ export function MarketingFooter({ content }: { content?: FooterContent }) {
     <footer
       style={{
         background: C.surface,
-        borderTop: "1px solid rgba(139,92,246,0.1)",
+        borderTop: "1px solid rgba(75,156,211,0.1)",
         padding: "60px 40px 30px",
       }}
     >
@@ -114,7 +114,7 @@ export function MarketingFooter({ content }: { content?: FooterContent }) {
         </div>
         <div
           style={{
-            borderTop: "1px solid rgba(139,92,246,0.08)",
+            borderTop: "1px solid rgba(75,156,211,0.08)",
             paddingTop: 24,
             display: "flex",
             justifyContent: "space-between",

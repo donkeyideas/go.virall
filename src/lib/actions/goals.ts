@@ -8,6 +8,7 @@ import { profileSummary, metricsSummary } from "@/lib/ai/social-analysis";
 
 export async function saveGoal(formData: FormData) {
   const profileId = formData.get("profileId") as string;
+  const goalId = formData.get("goalId") as string | null; // if editing existing
   const primaryObjective = formData.get("primaryObjective") as string;
   const targetValue = parseInt(formData.get("targetValue") as string) || null;
   const targetDays = parseInt(formData.get("targetDays") as string) || null;
@@ -26,14 +27,7 @@ export async function saveGoal(formData: FormData) {
 
   if (!user) return { error: "Not authenticated." };
 
-  // Deactivate existing goals for this profile
-  await supabase
-    .from("social_goals")
-    .update({ is_active: false })
-    .eq("social_profile_id", profileId);
-
-  // Insert new goal
-  const { error } = await supabase.from("social_goals").insert({
+  const goalData = {
     social_profile_id: profileId,
     primary_objective: primaryObjective || null,
     target_value: targetValue,
@@ -44,9 +38,58 @@ export async function saveGoal(formData: FormData) {
     target_audience: targetAudience || null,
     competitive_aspiration: competitiveAspiration || null,
     is_active: true,
-  });
+  };
 
-  if (error) return { error: "Failed to save goal." };
+  if (goalId) {
+    // Update existing goal
+    const { error } = await supabase
+      .from("social_goals")
+      .update({ ...goalData, updated_at: new Date().toISOString() })
+      .eq("id", goalId);
+    if (error) return { error: "Failed to update goal." };
+  } else {
+    // Insert new goal (keep existing goals)
+    const { error } = await supabase.from("social_goals").insert(goalData);
+    if (error) return { error: "Failed to save goal." };
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function deleteGoal(goalId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated." };
+
+  const { error } = await supabase
+    .from("social_goals")
+    .delete()
+    .eq("id", goalId);
+
+  if (error) return { error: "Failed to delete goal." };
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function toggleGoalActive(goalId: string, isActive: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated." };
+
+  const { error } = await supabase
+    .from("social_goals")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("id", goalId);
+
+  if (error) return { error: "Failed to update goal." };
 
   revalidatePath("/dashboard");
   return { success: true };

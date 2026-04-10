@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const C = {
-  bg: "#1A1035",
+  bg: "#0B1928",
   primary: "#FFB84D",
-  textSecondary: "#8A7AAE",
-  border: "rgba(139,92,246,0.12)",
+  textSecondary: "#8BACC8",
+  border: "rgba(75,156,211,0.12)",
 } as const;
 
 export function MarketingNav() {
@@ -16,7 +16,7 @@ export function MarketingNav() {
         left: 0,
         right: 0,
         zIndex: 100,
-        background: "rgba(26,16,53,0.92)",
+        background: "rgba(11,25,40,0.92)",
         backdropFilter: "blur(20px)",
         borderBottom: `1px solid ${C.border}`,
       }}

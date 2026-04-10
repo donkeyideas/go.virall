@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
-import { updateProfile, updatePassword, deleteAccount } from "@/lib/actions/settings";
+import { useState, useTransition, useRef } from "react";
+import { Loader2, Camera } from "lucide-react";
+import { updateProfile, updatePassword, deleteAccount, uploadAvatar } from "@/lib/actions/settings";
 import type { Profile } from "@/types";
 
 interface AccountTabProps {
@@ -22,6 +22,12 @@ export function AccountTab({ profile, userEmail }: AccountTabProps) {
   const [niche, setNiche] = useState(profile?.niche ?? "");
   const [location, setLocation] = useState(profile?.location ?? "");
 
+  // Avatar upload
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Password modal state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -35,6 +41,25 @@ export function AccountTab({ profile, userEmail }: AccountTabProps) {
   const [deletePending, startDeleteTransition] = useTransition();
 
   const initial = (profile?.full_name ?? userEmail ?? "U")[0].toUpperCase();
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError(null);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const result = await uploadAvatar(formData);
+    setUploading(false);
+
+    if (result.success && result.url) {
+      setAvatarUrl(result.url);
+    } else {
+      setUploadError(result.error || "Upload failed");
+    }
+  }
 
   function handleSave() {
     setError(null);
@@ -105,13 +130,44 @@ export function AccountTab({ profile, userEmail }: AccountTabProps) {
       )}
 
       <div className="flex items-start gap-6 mb-8">
-        {/* Avatar */}
+        {/* Avatar with upload */}
         <div className="flex flex-col items-center gap-2 shrink-0">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-rule bg-surface-raised">
-            <span className="font-serif text-2xl font-bold text-ink-muted">
-              {initial}
-            </span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={handleAvatarUpload}
+            className="hidden"
+          />
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-rule bg-surface-raised cursor-pointer overflow-hidden group"
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="font-serif text-2xl font-bold text-ink-muted">
+                {initial}
+              </span>
+            )}
+            {/* Hover overlay */}
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+              {uploading ? (
+                <Loader2 size={18} className="animate-spin text-white" />
+              ) : (
+                <Camera size={18} className="text-white" />
+              )}
+            </div>
           </div>
+          {uploadError && (
+            <span className="text-[10px] text-editorial-red max-w-[100px] text-center">
+              {uploadError}
+            </span>
+          )}
         </div>
 
         {/* Name & Handle */}

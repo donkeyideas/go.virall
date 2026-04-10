@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 
 // In production, replace with your deployed domain.
 // For local dev on a physical device, use your machine's network IP instead of localhost.
-const API_BASE = __DEV__ ? 'http://192.168.1.152:4000' : 'https://govirall.com';
+const API_BASE = __DEV__ ? 'http://192.168.1.152:3600' : 'https://govirall.com';
 
 /** Authenticated fetch wrapper for the Next.js API */
 export async function mobileApi<T = any>(

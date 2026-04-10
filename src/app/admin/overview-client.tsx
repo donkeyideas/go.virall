@@ -39,7 +39,10 @@ const PLAN_COLORS: Record<string, string> = {
   free: "#6B5D8E",
   pro: "#FFB84D",
   business: "#4ade80",
-  enterprise: "#8B5CF6",
+  enterprise: "#4B9CD3",
+  brand_starter: "#a78bfa",
+  brand_growth: "#f59e0b",
+  brand_enterprise: "#6366f1",
 };
 
 /* ------------------------------------------------------------------ */
@@ -136,8 +139,8 @@ function ChartTooltip({
   return (
     <div
       style={{
-        background: "#2A1B54",
-        border: "1px solid rgba(139,92,246,0.2)",
+        background: "#112240",
+        border: "1px solid rgba(75,156,211,0.2)",
         borderRadius: 8,
         padding: "8px 12px",
         boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
@@ -147,7 +150,7 @@ function ChartTooltip({
         {label}
       </p>
       {payload.map((p) => (
-        <p key={p.name} style={{ fontSize: 13, fontFamily: "monospace", color: "#F0ECF8" }}>
+        <p key={p.name} style={{ fontSize: 13, fontFamily: "monospace", color: "#E8F0FA" }}>
           <span style={{ color: p.color }}>●</span> {p.name}: {p.value}
         </p>
       ))}
@@ -175,6 +178,7 @@ export function OverviewClient({
     email: string | null;
     org_name: string | null;
     org_plan: string | null;
+    account_type: "creator" | "brand";
     created_at: string;
   }>;
   auditLog: AuditLog[];
@@ -193,12 +197,18 @@ export function OverviewClient({
     paidOrgs: number;
     freeOrgs: number;
     planDistribution: Record<string, number>;
+    creatorPlanDistribution: Record<string, number>;
+    brandPlanDistribution: Record<string, number>;
+    creatorPaidOrgs: number;
+    brandPaidOrgs: number;
   };
   metrics: {
     mrr: number;
     arr: number;
     arpu: number;
     churnRate: number;
+    creatorMrr: number;
+    brandMrr: number;
   };
   usage: {
     totalProfiles: number;
@@ -213,6 +223,10 @@ export function OverviewClient({
     orgs: number;
     profiles: number;
     analyses: number;
+    creatorUsers: number;
+    brandUsers: number;
+    creatorOrgs: number;
+    brandOrgs: number;
   }>;
 }) {
   /* Computed values */
@@ -237,6 +251,8 @@ export function OverviewClient({
     users: g.users,
     orgs: g.orgs,
     profiles: g.profiles,
+    creatorUsers: g.creatorUsers,
+    brandUsers: g.brandUsers,
   }));
 
   return (
@@ -272,7 +288,7 @@ export function OverviewClient({
           accent="text-editorial-gold"
         />
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
         <StatCard
           label="MRR"
           value={`$${metrics.mrr.toLocaleString()}`}
@@ -297,6 +313,35 @@ export function OverviewClient({
           icon={Zap}
           accent="text-ink"
         />
+      </div>
+
+      {/* Account Type Breakdown */}
+      <SectionHeader title="Account Breakdown" />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6 mb-8">
+        <div className="border border-rule bg-surface-card p-4 text-center">
+          <div className="font-mono text-2xl font-bold text-ink">{stats.creatorUsers}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">Creator Users</div>
+        </div>
+        <div className="border border-rule bg-surface-card p-4 text-center">
+          <div className="font-mono text-2xl font-bold text-editorial-blue">{stats.brandUsers}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">Brand Users</div>
+        </div>
+        <div className="border border-rule bg-surface-card p-4 text-center">
+          <div className="font-mono text-2xl font-bold text-ink">{stats.creatorOrgs}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">Creator Orgs</div>
+        </div>
+        <div className="border border-rule bg-surface-card p-4 text-center">
+          <div className="font-mono text-2xl font-bold text-editorial-blue">{stats.brandOrgs}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">Brand Orgs</div>
+        </div>
+        <div className="border border-rule bg-surface-card p-4 text-center">
+          <div className="font-mono text-2xl font-bold text-editorial-green">${metrics.creatorMrr.toLocaleString()}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">Creator MRR</div>
+        </div>
+        <div className="border border-rule bg-surface-card p-4 text-center">
+          <div className="font-mono text-2xl font-bold text-editorial-gold">${metrics.brandMrr.toLocaleString()}</div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">Brand MRR</div>
+        </div>
       </div>
 
       {/* ============================================================ */}
@@ -341,7 +386,7 @@ export function OverviewClient({
                   <Bar
                     dataKey="calls"
                     name="Calls"
-                    fill="#8B5CF6"
+                    fill="#4B9CD3"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -389,24 +434,10 @@ export function OverviewClient({
                     width={40}
                   />
                   <Tooltip content={<ChartTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="users"
-                    name="Users"
-                    stroke="#8B5CF6"
-                    fill="#8B5CF6"
-                    fillOpacity={0.15}
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="orgs"
-                    name="Orgs"
-                    stroke="#FFB84D"
-                    fill="#FFB84D"
-                    fillOpacity={0.15}
-                    strokeWidth={2}
-                  />
+                  <Area type="monotone" dataKey="users" name="Total Users" stroke="#4B9CD3" fill="#4B9CD3" fillOpacity={0.15} strokeWidth={2} />
+                  <Area type="monotone" dataKey="creatorUsers" name="Creator Users" stroke="#22c55e" fill="#22c55e" fillOpacity={0.08} strokeWidth={1.5} strokeDasharray="5 3" />
+                  <Area type="monotone" dataKey="brandUsers" name="Brand Users" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.08} strokeWidth={1.5} strokeDasharray="5 3" />
+                  <Area type="monotone" dataKey="orgs" name="Total Orgs" stroke="#FFB84D" fill="#FFB84D" fillOpacity={0.15} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -480,7 +511,7 @@ export function OverviewClient({
                       <div className="h-2 w-full rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                         <div
                           className="h-2 rounded-full transition-all"
-                          style={{ background: "#8B5CF6", width: `${Math.max(pct, 1)}%` }}
+                          style={{ background: "#4B9CD3", width: `${Math.max(pct, 1)}%` }}
                         />
                       </div>
                     </div>
@@ -496,7 +527,7 @@ export function OverviewClient({
           </div>
         </div>
 
-        {/* Plan Distribution */}
+        {/* Plan Distribution — Split by Account Type */}
         <div className="border border-rule bg-surface-card">
           <div className="border-b border-rule bg-surface-raised px-4 py-2.5 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
@@ -510,7 +541,7 @@ export function OverviewClient({
             </Link>
           </div>
           <div className="p-4">
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="text-center">
                 <div className="font-mono text-xl font-bold text-ink">
                   {billing.totalOrgs}
@@ -528,35 +559,44 @@ export function OverviewClient({
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-mono text-xl font-bold text-ink-muted">
-                  {billing.freeOrgs}
+                <div className="font-mono text-xl font-bold text-editorial-green">
+                  {billing.creatorPaidOrgs}
                 </div>
                 <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">
-                  Free
+                  Creator Paid
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="font-mono text-xl font-bold text-editorial-blue">
+                  {billing.brandPaidOrgs}
+                </div>
+                <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">
+                  Brand Paid
                 </div>
               </div>
             </div>
 
+            {/* Creator Plans */}
             <div className="border-t border-rule pt-4 space-y-3">
-              {Object.entries(billing.planDistribution).map(([plan, count]) => {
+              <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">Creator Plans</p>
+              {Object.entries(billing.creatorPlanDistribution).map(([plan, count]) => {
                 const pct =
                   totalPlanOrgs > 0 ? (count / totalPlanOrgs) * 100 : 0;
                 const color =
                   PLAN_COLORS[plan.toLowerCase()] ?? PLAN_COLORS.free;
                 return (
-                  <div key={plan}>
+                  <div key={`creator-${plan}`}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold text-ink capitalize">
                         {plan}
                       </span>
                       <span className="font-mono text-sm text-ink-muted">
-                        {count} org{count !== 1 ? "s" : ""} ·{" "}
-                        {pct.toFixed(0)}%
+                        {count} · {pct.toFixed(0)}%
                       </span>
                     </div>
-                    <div className="h-3 w-full rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
+                    <div className="h-2 w-full rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                       <div
-                        className="h-3 rounded-full transition-all"
+                        className="h-2 rounded-full transition-all"
                         style={{
                           width: `${Math.max(pct, 2)}%`,
                           backgroundColor: color,
@@ -566,10 +606,43 @@ export function OverviewClient({
                   </div>
                 );
               })}
-              {Object.keys(billing.planDistribution).length === 0 && (
-                <span className="text-sm text-ink-muted">
-                  No plan distribution data
-                </span>
+              {Object.keys(billing.creatorPlanDistribution).length === 0 && (
+                <span className="text-sm text-ink-muted">No creator plans</span>
+              )}
+            </div>
+
+            {/* Brand Plans */}
+            <div className="border-t border-rule pt-4 mt-4 space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-editorial-blue">Brand Plans</p>
+              {Object.entries(billing.brandPlanDistribution).map(([plan, count]) => {
+                const pct =
+                  totalPlanOrgs > 0 ? (count / totalPlanOrgs) * 100 : 0;
+                const color =
+                  PLAN_COLORS[plan.toLowerCase()] ?? "#4B9CD3";
+                return (
+                  <div key={`brand-${plan}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-ink capitalize">
+                        {plan}
+                      </span>
+                      <span className="font-mono text-sm text-ink-muted">
+                        {count} · {pct.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
+                      <div
+                        className="h-2 rounded-full transition-all"
+                        style={{
+                          width: `${Math.max(pct, 2)}%`,
+                          backgroundColor: color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              {Object.keys(billing.brandPlanDistribution).length === 0 && (
+                <span className="text-sm text-ink-muted">No brand plans</span>
               )}
             </div>
           </div>
@@ -649,12 +722,15 @@ export function OverviewClient({
           ) : (
             <div>
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_1fr_80px_90px] gap-4 px-4 py-2.5 border-b border-rule">
+              <div className="grid grid-cols-[1fr_1fr_60px_80px_90px] gap-4 px-4 py-2.5 border-b border-rule">
                 <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                   Name
                 </span>
                 <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                   Organization
+                </span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+                  Type
                 </span>
                 <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                   Plan
@@ -666,7 +742,7 @@ export function OverviewClient({
               {signups.map((s) => (
                 <div
                   key={s.id}
-                  className="grid grid-cols-[1fr_1fr_80px_90px] gap-4 px-4 py-3 border-b border-rule last:border-b-0"
+                  className="grid grid-cols-[1fr_1fr_60px_80px_90px] gap-4 px-4 py-3 border-b border-rule last:border-b-0"
                 >
                   <div className="truncate">
                     <span className="text-sm font-medium text-ink">
@@ -675,6 +751,13 @@ export function OverviewClient({
                   </div>
                   <span className="text-sm text-ink-muted truncate">
                     {s.org_name ?? "—"}
+                  </span>
+                  <span
+                    className={`text-[11px] font-bold uppercase tracking-widest ${
+                      s.account_type === "brand" ? "text-editorial-blue" : "text-ink-muted"
+                    }`}
+                  >
+                    {s.account_type}
                   </span>
                   <span
                     className="text-[11px] font-bold uppercase tracking-widest"

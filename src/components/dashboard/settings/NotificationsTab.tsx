@@ -55,7 +55,7 @@ const EMAIL_NOTIFICATIONS: NotificationItem[] = [
   {
     key: "weekly_report",
     label: "Weekly Performance Report",
-    description: "Comprehensive weekly email with analytics and AI insights",
+    description: "Comprehensive weekly email with analytics and insights",
   },
   {
     key: "collab_opportunities",
@@ -82,7 +82,7 @@ const INAPP_NOTIFICATIONS: NotificationItem[] = [
   },
   {
     key: "ai_analysis_complete",
-    label: "AI Analysis Complete",
+    label: "Analysis Complete",
     description: "When a requested deep analysis finishes processing",
   },
 ];

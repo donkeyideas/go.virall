@@ -195,8 +195,15 @@ export async function runRecommendations(profileId: string) {
 
     if (insertError) {
       console.error("[runRecommendations] DB insert failed:", insertError.message);
+      // Return data so user sees results, but flag the save failure
+      return {
+        success: true,
+        data: result.data,
+        warning: `Results generated but failed to save: ${insertError.message}. They will disappear on page refresh.`,
+      };
     }
 
+    revalidatePath("/dashboard/recommendations");
     revalidatePath("/dashboard", "layout");
     return { success: true, data: result.data };
   } catch (err) {

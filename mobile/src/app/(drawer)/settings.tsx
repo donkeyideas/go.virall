@@ -12,7 +12,7 @@ import { TabPills } from '../../components/ui/TabPills';
 import { Divider } from '../../components/ui/Divider';
 import { PlatformIcon } from '../../components/ui/PlatformIcon';
 import { type PlatformName } from '../../constants/platforms';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadowSm, neuInset } from '../../constants/theme';
 import {
   getUserPreferences, updateUserPreferences,
   getSocialProfiles, getBillingEvents,
@@ -235,7 +235,7 @@ export default function SettingsScreen() {
                'Custom enterprise features.'}
             </Text>
             <Pressable
-              style={[styles.upgradeBtn, { borderColor: colors.primary }]}
+              style={[styles.upgradeBtn, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
               onPress={() => Alert.alert('Upgrade', 'Manage your subscription from the web dashboard.')}
             >
               <Text style={[styles.upgradeBtnText, { color: colors.primary }]}>
@@ -311,7 +311,7 @@ export default function SettingsScreen() {
               <View style={styles.slugRow}>
                 <Text style={[styles.slugPrefix, { color: colors.textSecondary }]}>govirall.com/kit/</Text>
                 <RNTextInput
-                  style={[styles.slugInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+                  style={[styles.slugInput, { backgroundColor: colors.inputBg, color: colors.text }, neuInset(colors)]}
                   value={mediaSlug}
                   onChangeText={setMediaSlug}
                   placeholder="your-slug"
@@ -400,7 +400,7 @@ export default function SettingsScreen() {
           <Card style={styles.formCard}>
             <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>EMAIL ADDRESS</Text>
             <RNTextInput
-              style={[styles.textInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+              style={[styles.textInput, { backgroundColor: colors.inputBg, color: colors.text }, neuInset(colors)]}
               value={inviteEmail}
               onChangeText={setInviteEmail}
               placeholder="team@example.com"
@@ -499,7 +499,7 @@ export default function SettingsScreen() {
                       {provider.guide}
                     </Text>
                     <RNTextInput
-                      style={[styles.textInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+                      style={[styles.textInput, { backgroundColor: colors.inputBg, color: colors.text }, neuInset(colors)]}
                       value={newApiKey}
                       onChangeText={setNewApiKey}
                       placeholder={`Paste your ${provider.name} API key...`}
@@ -607,8 +607,9 @@ function FormField({
       <RNTextInput
         style={[
           styles.textInput,
-          { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border },
+          { backgroundColor: colors.inputBg, color: colors.text },
           multiline && { minHeight: 80, textAlignVertical: 'top' },
+          neuInset(colors),
         ]}
         value={value}
         onChangeText={onChangeText}
@@ -635,9 +636,9 @@ const styles = StyleSheet.create({
   // Forms
   formCard: { gap: Spacing.md },
   fieldLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
-  textInput: { borderRadius: BorderRadius.md, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
+  textInput: { borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
   saveBtn: { borderRadius: BorderRadius.md, paddingVertical: Spacing.md, alignItems: 'center', justifyContent: 'center', minHeight: 48 },
-  saveBtnText: { fontSize: FontSize.sm, fontWeight: '800', color: '#1A1035', letterSpacing: 1.5 },
+  saveBtnText: { fontSize: FontSize.sm, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1.5 },
 
   // Connected
   accountRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.sm },
@@ -651,7 +652,7 @@ const styles = StyleSheet.create({
   planCard: { gap: Spacing.sm },
   planName: { fontSize: FontSize.xl, fontWeight: '800' },
   planDesc: { fontSize: FontSize.sm, lineHeight: 20 },
-  upgradeBtn: { borderRadius: BorderRadius.md, borderWidth: 1.5, paddingVertical: Spacing.sm, alignItems: 'center', marginTop: Spacing.sm },
+  upgradeBtn: { borderRadius: BorderRadius.md, paddingVertical: Spacing.sm, alignItems: 'center', marginTop: Spacing.sm },
   upgradeBtnText: { fontSize: FontSize.sm, fontWeight: '700', letterSpacing: 1 },
   invoiceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.sm },
   invoiceInfo: { flex: 1 },
@@ -662,7 +663,7 @@ const styles = StyleSheet.create({
   // Media Kit
   slugRow: { flexDirection: 'row', alignItems: 'center' },
   slugPrefix: { fontSize: FontSize.sm },
-  slugInput: { flex: 1, borderRadius: BorderRadius.md, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
+  slugInput: { flex: 1, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
   sectionCard: {},
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionName: { fontSize: FontSize.md, fontWeight: '600', flex: 1, textTransform: 'capitalize' },

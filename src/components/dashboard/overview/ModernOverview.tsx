@@ -21,6 +21,7 @@ import {
   engBoost,
   bestFormat,
 } from "./overview-helpers";
+import { TrustScoreDetail } from "@/components/deals/TrustScoreDetail";
 
 // ============================================================
 // Modern Overview Component
@@ -33,7 +34,7 @@ export function ModernOverview(props: OverviewProps) {
     return (
       <div className="py-20 text-center">
         <h2 className="text-2xl font-bold text-ink">
-          Welcome to <span className="text-editorial-red">Go</span>Virall
+          Welcome to <span className="text-editorial-accent">Go</span>Virall
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
           Connect your first social media profile in the Profiles tab to unlock
@@ -52,8 +53,8 @@ export function ModernOverview(props: OverviewProps) {
           className={cn(
             "flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
             d.isAllProfiles
-              ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
-              : "border-modern-card-border bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
+              ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+              : "border-modern-card-border bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
           )}
         >
           All Profiles
@@ -65,8 +66,8 @@ export function ModernOverview(props: OverviewProps) {
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
               d.selectedProfileId === profile.id
-                ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
-                : "border-modern-card-border bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
+                ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                : "border-modern-card-border bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
             )}
           >
             <PlatformIcon platform={profile.platform} size={14} />
@@ -115,21 +116,21 @@ export function ModernOverview(props: OverviewProps) {
             change: null as number | null,
           },
           {
-            label: "Total Posts",
-            value: d.isAllProfiles
-              ? d.totalPosts > 0
-                ? formatCompact(d.totalPosts)
-                : "---"
-              : d.selectedProfile
-                ? formatCompact(d.selectedProfile.posts_count)
-                : "---",
+            label: "Trust Score",
+            value: props.trustScore?.overall_score != null
+              ? `${props.trustScore.overall_score}/100`
+              : "---",
             accent: false,
-            change: d.postsChange,
-            changeFormat: "compact" as const,
+            color: props.trustScore && props.trustScore.overall_score >= 90
+              ? "text-editorial-green"
+              : undefined,
+            change: null as number | null,
           },
           {
-            label: "Influencer Score",
-            value: d.kpiInfluencerScore > 0 ? d.kpiInfluencerScore : "---",
+            label: "Revenue (Month)",
+            value: props.revenueStats?.thisMonth != null && props.revenueStats.thisMonth > 0
+              ? `$${formatCompact(props.revenueStats.thisMonth)}`
+              : "---",
             accent: true,
             color: "text-editorial-green",
             change: null as number | null,
@@ -148,7 +149,7 @@ export function ModernOverview(props: OverviewProps) {
                 stat.color
                   ? stat.color
                   : stat.accent
-                    ? "text-editorial-red"
+                    ? "text-editorial-accent"
                     : "text-ink",
               )}
             >
@@ -189,8 +190,96 @@ export function ModernOverview(props: OverviewProps) {
 
       {/* ──── Three-Column Layout ──── */}
       <div className="grid gap-4 lg:grid-cols-[300px_1fr_280px]">
-        {/* ════ LEFT COLUMN: AI Intelligence Brief ════ */}
-        <div>
+        {/* ════ LEFT COLUMN ════ */}
+        <div className="flex flex-col gap-4">
+          {/* Trust Score — styled like Social Health */}
+          <a
+            href="/dashboard/trust-score"
+            className="block group rounded-[14px] border border-modern-card-border bg-surface-card p-5 hover:border-editorial-green/40 transition-colors"
+          >
+            <h3 className="text-sm font-extrabold text-ink">Trust Score</h3>
+            <p className="text-[9px] font-bold uppercase tracking-wider text-editorial-green mb-2">
+              Platform Reliability
+            </p>
+            <div className="flex flex-col items-center my-2">
+              <span
+                className="text-[56px] font-black leading-none"
+                style={{
+                  color: !props.trustScore
+                    ? "var(--color-ink-muted)"
+                    : props.trustScore.overall_score >= 90
+                      ? "#22C55E"
+                      : props.trustScore.overall_score >= 75
+                        ? "rgba(75,156,211,0.9)"
+                        : props.trustScore.overall_score >= 60
+                          ? "#F59E0B"
+                          : "#EF4444",
+                }}
+              >
+                {props.trustScore ? Math.round(props.trustScore.overall_score) : "—"}
+              </span>
+              <span className="mt-1 text-[10px] uppercase tracking-wider text-ink-muted">
+                {props.trustScore
+                  ? props.trustScore.overall_score >= 90
+                    ? "Excellent"
+                    : props.trustScore.overall_score >= 75
+                      ? "Good"
+                      : props.trustScore.overall_score >= 60
+                        ? "Fair"
+                        : "Needs Work"
+                  : "No score yet"}
+              </span>
+            </div>
+            {props.trustScore && (
+              <div className="mt-3 space-y-2.5">
+                {[
+                  { label: "Completion Rate", value: props.trustScore.completion_rate },
+                  { label: "Dispute Rate", value: props.trustScore.dispute_rate },
+                  { label: "Response Time", value: props.trustScore.response_time_score },
+                  { label: "Consistency", value: props.trustScore.consistency_score },
+                ].map((f) => {
+                  const val = Number(f.value) || 0;
+                  return (
+                    <div key={f.label}>
+                      <div className="mb-1 flex justify-between text-[11px]">
+                        <span className="text-ink-secondary">{f.label}</span>
+                        <span
+                          className={cn(
+                            "font-bold",
+                            val >= 90
+                              ? "text-editorial-green"
+                              : val >= 60
+                                ? "text-editorial-gold"
+                                : "text-editorial-red",
+                          )}
+                        >
+                          {Math.round(val)}%
+                        </span>
+                      </div>
+                      <div className="h-[6px] w-full overflow-hidden rounded-full bg-surface-raised">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            val >= 90
+                              ? "bg-editorial-green"
+                              : val >= 60
+                                ? "bg-editorial-gold"
+                                : "bg-editorial-red",
+                          )}
+                          style={{ width: `${Math.min(100, val)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="mt-3 text-[9px] font-semibold text-ink-muted group-hover:text-editorial-green transition-colors">
+              View Details &rarr;
+            </p>
+          </a>
+
+          {/* Social Intelligence Brief */}
           <div className="rounded-[14px] border border-modern-card-border bg-surface-card p-5">
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-ink">
               Social Intelligence Brief
@@ -217,7 +306,7 @@ export function ModernOverview(props: OverviewProps) {
               ) : (
                 <div className="py-6 text-center">
                   <p className="text-xs text-ink-muted">
-                    Run AI analyses in the AI Studio tab to see intelligence
+                    Run analyses in the Intelligence tab to see intelligence
                     briefs here.
                   </p>
                 </div>
@@ -289,7 +378,7 @@ export function ModernOverview(props: OverviewProps) {
                     <p
                       className={cn(
                         "text-[22px] font-extrabold",
-                        stat.accent ? "text-editorial-red" : "text-ink",
+                        stat.accent ? "text-editorial-accent" : "text-ink",
                       )}
                     >
                       {stat.value}
@@ -981,38 +1070,46 @@ export function ModernOverview(props: OverviewProps) {
             <div className="space-y-1">
               {[
                 {
-                  label: "Growth Tips",
-                  count: d.growthData
-                    ? ((d.growthData.tips ?? []) as unknown[]).length
-                    : 0,
-                  code: "GR",
-                  bg: "bg-editorial-red/10",
-                  fg: "text-editorial-red",
-                  href: "/dashboard/growth",
+                  label: "Business",
+                  count: d.deals.length,
+                  code: "BZ",
+                  bg: "bg-editorial-green/10",
+                  fg: "text-editorial-green",
+                  href: "/dashboard/business",
+                },
+                {
+                  label: "Deals",
+                  count: d.deals.filter(
+                    (dd) => dd.status === "active" || dd.status === "negotiation",
+                  ).length,
+                  code: "DL",
+                  bg: "bg-editorial-gold/10",
+                  fg: "text-editorial-gold",
+                  href: "/dashboard/deals",
                 },
                 {
                   label: "Revenue",
-                  count: d.summaryStats ? 1 : 0,
+                  count: props.revenueStats?.totalEarnings ? 1 : 0,
                   code: "RV",
                   bg: "bg-editorial-green/10",
                   fg: "text-editorial-green",
-                  href: "/dashboard/monetization",
+                  href: "/dashboard/revenue",
                 },
                 {
-                  label: "Audience Intel",
-                  count: d.audienceData ? 1 : 0,
-                  code: "AU",
+                  label: "Inbox",
+                  count: d.notifications.length,
+                  code: "IN",
                   bg: "bg-editorial-blue/10",
                   fg: "text-editorial-blue",
-                  href: "/dashboard/intelligence",
+                  href: "/dashboard/inbox",
                 },
                 {
-                  label: "Campaigns",
-                  count: d.campaigns.length,
-                  code: "CP",
-                  bg: "bg-editorial-gold/10",
-                  fg: "text-editorial-gold",
-                  href: "/dashboard/monetization",
+                  label: "Publish",
+                  count: 0,
+                  code: "PB",
+                  bg: "bg-editorial-red/10",
+                  fg: "text-editorial-red",
+                  href: "/dashboard/publish",
                 },
                 {
                   label: "AI Studio",
@@ -1021,14 +1118,6 @@ export function ModernOverview(props: OverviewProps) {
                   bg: "bg-editorial-blue/10",
                   fg: "text-editorial-blue",
                   href: "/dashboard/ai-studio",
-                },
-                {
-                  label: "Network",
-                  count: d.networkData ? 1 : 0,
-                  code: "NW",
-                  bg: "bg-editorial-red/10",
-                  fg: "text-editorial-red",
-                  href: "/dashboard/network",
                 },
               ].map((item) => (
                 <a
@@ -1258,37 +1347,47 @@ export function ModernOverview(props: OverviewProps) {
         </div>
       </div>
 
-      {/* ──── Earnings Projection Hub ──── */}
-      {d.summaryStats && (
+      {/* ──── Earnings / Revenue Hub ──── */}
+      {(props.revenueStats || d.summaryStats) && (
         <div className="mt-6">
           <h3 className="text-sm font-extrabold uppercase tracking-wider text-ink mb-3">
-            Earnings Projection Hub
+            {props.revenueStats ? "Revenue Overview" : "Earnings Projection Hub"}
           </h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               {
-                label: "Est. Monthly",
-                value: `$${(d.summaryStats.estMonthly ?? 0).toLocaleString()}`,
+                label: props.revenueStats ? "This Month" : "Est. Monthly",
+                value: props.revenueStats
+                  ? `$${(props.revenueStats.thisMonth ?? 0).toLocaleString()}`
+                  : `$${(d.summaryStats?.estMonthly ?? 0).toLocaleString()}`,
                 color: "text-editorial-green",
-                sub: "Realistic scenario",
+                sub: props.revenueStats?.thisMonthChange != null && props.revenueStats.thisMonthChange !== 0
+                  ? `${props.revenueStats.thisMonthChange > 0 ? "+" : ""}${props.revenueStats.thisMonthChange.toFixed(0)}% vs last month`
+                  : props.revenueStats ? undefined : "Realistic scenario",
               },
               {
-                label: "Active Deals",
-                value: d.summaryStats.activeDeals ?? 0,
+                label: props.revenueStats ? "Pipeline Value" : "Active Deals",
+                value: props.revenueStats
+                  ? `$${(props.revenueStats.pipelineValue ?? 0).toLocaleString()}`
+                  : (d.summaryStats?.activeDeals ?? 0),
                 color: "text-editorial-blue",
                 sub: undefined,
               },
               {
-                label: "YTD Revenue",
-                value: `$${(d.summaryStats.ytdRevenue ?? 0).toLocaleString()}`,
+                label: props.revenueStats ? "Total Earnings" : "YTD Revenue",
+                value: props.revenueStats
+                  ? `$${(props.revenueStats.totalEarnings ?? 0).toLocaleString()}`
+                  : `$${(d.summaryStats?.ytdRevenue ?? 0).toLocaleString()}`,
                 color: "text-editorial-green",
-                sub: d.summaryStats.ytdDealsCompleted != null
+                sub: !props.revenueStats && d.summaryStats?.ytdDealsCompleted != null
                   ? `${d.summaryStats.ytdDealsCompleted} deals completed`
                   : undefined,
               },
               {
-                label: "Profiles",
-                value: d.profiles.length,
+                label: props.revenueStats ? "Pending" : "Profiles",
+                value: props.revenueStats
+                  ? `$${(props.revenueStats.pendingPayments ?? 0).toLocaleString()}`
+                  : d.profiles.length,
                 color: "text-ink",
                 sub: undefined,
               },
@@ -1334,7 +1433,7 @@ export function ModernOverview(props: OverviewProps) {
         </svg>
         <span>
           <strong>Disclaimer:</strong> All metrics, earnings projections, and
-          growth estimates are AI-generated based on industry benchmarks. They
+          growth estimates are generated based on industry benchmarks. They
           should be used for strategic planning purposes only.
         </span>
       </div>

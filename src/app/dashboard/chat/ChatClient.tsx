@@ -322,7 +322,7 @@ export function ChatClient({
   const hasMessages = messages.length > 0 || activeConvId;
 
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-[500px] gap-3">
+    <div className="flex h-full min-h-[500px] gap-3">
       {/* Sidebar — Conversation History (separate card) */}
       {showSidebar && (
         <div className={cn("flex w-72 shrink-0 flex-col overflow-hidden", card)}>
@@ -385,7 +385,7 @@ export function ChatClient({
               {showSidebar ? "Hide" : "Show"} History
             </button>
             <div className={cn("h-4 w-px", ed ? "bg-rule" : "bg-modern-card-border")} />
-            <h2 className="text-sm font-bold text-ink">Virall AI</h2>
+            <h2 className="text-sm font-bold text-ink">Go Virall</h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] uppercase tracking-wider text-ink-secondary">
@@ -407,7 +407,7 @@ export function ChatClient({
               <div className="flex h-full flex-col items-center justify-center">
                 <div className="mb-6 text-center">
                   <h2 className="text-2xl font-bold text-ink">
-                    Virall AI
+                    Go Virall
                   </h2>
                   <p className="mt-1 text-sm text-ink-secondary">
                     Your personal social media strategist. Ask me anything about

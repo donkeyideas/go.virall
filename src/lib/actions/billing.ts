@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe, PLAN_PRICE_IDS, planNameFromPriceId, PLAN_PROFILE_LIMITS } from "@/lib/stripe";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3600";
 
@@ -72,9 +73,49 @@ export async function createSubscription(planKey: string): Promise<
   if ("error" in result) return { error: result.error! };
   const { user, org, admin } = result;
 
-  // Validate plan
-  const priceId = PLAN_PRICE_IDS[planKey];
-  if (!priceId || planKey === "free" || planKey === "enterprise") {
+  // Validate plan — check hardcoded map first, then DB pricing_plans table
+  let priceId = PLAN_PRICE_IDS[planKey] ?? null;
+  let resolvedPlanName = planKey;
+
+  if (!priceId) {
+    // planKey might be a pricing_plans ID (brand plans use DB-stored plans)
+    const { data: dbPlan } = await admin
+      .from("pricing_plans")
+      .select("id, stripe_price_id, name, price_monthly")
+      .eq("id", planKey)
+      .eq("is_active", true)
+      .single();
+
+    if (dbPlan) {
+      resolvedPlanName = dbPlan.name.toLowerCase();
+
+      if (dbPlan.stripe_price_id) {
+        priceId = dbPlan.stripe_price_id;
+      } else if (dbPlan.price_monthly > 0) {
+        // Auto-create Stripe price for this plan
+        const product = await stripe.products.create({
+          name: `Go Virall — ${dbPlan.name} (Brand)`,
+          metadata: { pricing_plan_id: dbPlan.id },
+        });
+        const stripePrice = await stripe.prices.create({
+          product: product.id,
+          unit_amount: dbPlan.price_monthly,
+          currency: "usd",
+          recurring: { interval: "month" },
+          metadata: { pricing_plan_id: dbPlan.id },
+        });
+        priceId = stripePrice.id;
+
+        // Store it back so we don't recreate next time
+        await admin
+          .from("pricing_plans")
+          .update({ stripe_price_id: stripePrice.id, updated_at: new Date().toISOString() })
+          .eq("id", dbPlan.id);
+      }
+    }
+  }
+
+  if (!priceId || planKey === "free" || resolvedPlanName === "free") {
     return { error: "Invalid plan selected." };
   }
 
@@ -104,7 +145,7 @@ export async function createSubscription(planKey: string): Promise<
           proration_behavior: "create_prorations",
         });
 
-        const newPlan = planNameFromPriceId(priceId);
+        const newPlan = planNameFromPriceId(priceId) || resolvedPlanName;
         await admin
           .from("organizations")
           .update({
@@ -201,7 +242,19 @@ export async function activateSubscription(subscriptionId: string): Promise<
   }
 
   const priceId = subscription.items.data[0]?.price.id;
-  const planKey = priceId ? planNameFromPriceId(priceId) : "free";
+  let planKey = priceId ? planNameFromPriceId(priceId) : "free";
+
+  // If hardcoded map didn't resolve (brand plans), check DB
+  if (planKey === "free" && priceId) {
+    const { data: dbPlan } = await admin
+      .from("pricing_plans")
+      .select("name")
+      .eq("stripe_price_id", priceId)
+      .single();
+    if (dbPlan) {
+      planKey = dbPlan.name.toLowerCase();
+    }
+  }
 
   await admin
     .from("organizations")
@@ -218,9 +271,33 @@ export async function activateSubscription(subscriptionId: string): Promise<
   return { success: true, plan: planKey };
 }
 
+// ─── Cancel Incomplete Subscription (user closed modal without paying) ──
+
+export async function cancelIncompleteSubscription(
+  subscriptionId: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    if (sub.status === "incomplete") {
+      await stripe.subscriptions.cancel(subscriptionId);
+    }
+    return { success: true };
+  } catch {
+    return { error: "Failed to clean up subscription." };
+  }
+}
+
 // ─── Portal Session (for managing existing subscription) ─────
 
 export async function createPortalSession() {
+  return _createPortalSession(`${APP_URL}/dashboard/settings?tab=billing`);
+}
+
+export async function createBrandPortalSession() {
+  return _createPortalSession(`${APP_URL}/brand/settings`);
+}
+
+async function _createPortalSession(returnUrl: string) {
   const result = await getAuthenticatedOrg();
   if ("error" in result) return { error: result.error! };
   const { org } = result;
@@ -231,8 +308,148 @@ export async function createPortalSession() {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: org.stripe_customer_id as string,
-    return_url: `${APP_URL}/dashboard/settings?tab=billing`,
+    return_url: returnUrl,
   });
 
   redirect(session.url);
+}
+
+// ─── Portal URL (returns URL instead of redirecting) ─────────
+
+export async function getBrandPortalUrl(): Promise<
+  { url: string } | { error: string }
+> {
+  const result = await getAuthenticatedOrg();
+  if ("error" in result) return { error: result.error! };
+  const { org } = result;
+
+  if (!org.stripe_customer_id) {
+    return { error: "No billing account found. You're on the Free plan." };
+  }
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: org.stripe_customer_id as string,
+    return_url: `${APP_URL}/brand/settings`,
+  });
+
+  return { url: session.url };
+}
+
+// ─── Cancel Subscription at Period End ───────────────────────
+
+export async function cancelSubscriptionAtPeriodEnd(): Promise<
+  { success: true } | { error: string }
+> {
+  const result = await getAuthenticatedOrg();
+  if ("error" in result) return { error: result.error! };
+  const { org } = result;
+
+  if (!org.stripe_subscription_id) {
+    return { error: "No active subscription found." };
+  }
+
+  try {
+    await stripe.subscriptions.update(org.stripe_subscription_id, {
+      cancel_at_period_end: true,
+    });
+
+    const admin = (await import("@/lib/supabase/admin")).createAdminClient();
+    await admin
+      .from("organizations")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", org.id);
+
+    revalidatePath("/brand/settings");
+    return { success: true };
+  } catch {
+    return { error: "Failed to cancel subscription. Please try again." };
+  }
+}
+
+// ─── Create SetupIntent (for updating payment method in-modal) ───
+
+export async function createSetupIntent(): Promise<
+  { clientSecret: string } | { error: string }
+> {
+  const result = await getAuthenticatedOrg();
+  if ("error" in result) return { error: result.error! };
+  const { org } = result;
+
+  if (!org.stripe_customer_id) {
+    return { error: "No billing account found." };
+  }
+
+  try {
+    const setupIntent = await stripe.setupIntents.create({
+      customer: org.stripe_customer_id as string,
+      usage: "off_session",
+      automatic_payment_methods: { enabled: true },
+    });
+
+    if (!setupIntent.client_secret) {
+      return { error: "Failed to create setup intent." };
+    }
+
+    return { clientSecret: setupIntent.client_secret };
+  } catch {
+    return { error: "Failed to initialize payment method update." };
+  }
+}
+
+// ─── Set Default Payment Method (after SetupIntent succeeds) ─
+
+export async function setDefaultPaymentMethod(
+  paymentMethodId: string,
+): Promise<{ success: true } | { error: string }> {
+  const result = await getAuthenticatedOrg();
+  if ("error" in result) return { error: result.error! };
+  const { org } = result;
+
+  if (!org.stripe_customer_id) {
+    return { error: "No billing account found." };
+  }
+
+  try {
+    // Set as default on customer
+    await stripe.customers.update(org.stripe_customer_id as string, {
+      invoice_settings: { default_payment_method: paymentMethodId },
+    });
+
+    // Also set as default on subscription if active
+    if (org.stripe_subscription_id) {
+      await stripe.subscriptions.update(org.stripe_subscription_id as string, {
+        default_payment_method: paymentMethodId,
+      });
+    }
+
+    revalidatePath("/brand/settings");
+    return { success: true };
+  } catch {
+    return { error: "Failed to update payment method." };
+  }
+}
+
+// ─── Resume Subscription (undo cancel) ──────────────────────
+
+export async function resumeSubscription(): Promise<
+  { success: true } | { error: string }
+> {
+  const result = await getAuthenticatedOrg();
+  if ("error" in result) return { error: result.error! };
+  const { org } = result;
+
+  if (!org.stripe_subscription_id) {
+    return { error: "No subscription found." };
+  }
+
+  try {
+    await stripe.subscriptions.update(org.stripe_subscription_id, {
+      cancel_at_period_end: false,
+    });
+
+    revalidatePath("/brand/settings");
+    return { success: true };
+  } catch {
+    return { error: "Failed to resume subscription." };
+  }
 }

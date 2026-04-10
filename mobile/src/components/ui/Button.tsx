@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, neuShadowSm } from '../../constants/theme';
 
 interface ButtonProps {
   title: string;
@@ -18,18 +18,16 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
   const bgColor = {
     primary: colors.primary,
     secondary: colors.accent,
-    outline: 'transparent',
+    outline: colors.surface,
     ghost: 'transparent',
   }[variant];
 
   const textColor = {
-    primary: '#0C0A14',
+    primary: '#FFFFFF',
     secondary: '#FFFFFF',
     outline: colors.primary,
     ghost: colors.textSecondary,
   }[variant];
-
-  const borderColor = variant === 'outline' ? colors.primary : 'transparent';
 
   return (
     <Pressable
@@ -39,9 +37,9 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
         styles.button,
         {
           backgroundColor: bgColor,
-          borderColor,
-          opacity: pressed ? 0.8 : disabled ? 0.5 : 1,
+          opacity: pressed ? 0.85 : disabled ? 0.5 : 1,
         },
+        variant !== 'ghost' ? neuShadowSm(colors) : undefined,
         style,
       ]}
     >
@@ -57,7 +55,6 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
 const styles = StyleSheet.create({
   button: {
     borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     alignItems: 'center',

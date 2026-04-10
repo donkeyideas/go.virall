@@ -35,7 +35,7 @@ interface ScrapedProfile {
  * Scrape a social profile from any supported platform.
  * Returns partial data — non-blocking, never throws.
  */
-async function scrapeProfile(
+export async function scrapeProfile(
   platform: string,
   handle: string,
 ): Promise<ScrapedProfile> {
@@ -271,6 +271,32 @@ export async function addSocialProfile(formData: FormData) {
     return { error: `@${cleanHandle} on ${platform} is already added.` };
   }
 
+  // Cross-org duplicate check (skip for superadmins)
+  const { data: userProfile } = await admin
+    .from("profiles")
+    .select("system_role")
+    .eq("id", user.id)
+    .single();
+  const isSuperadmin = userProfile?.system_role === "superadmin";
+
+  if (!isSuperadmin) {
+    const { data: verifiedElsewhere } = await admin
+      .from("social_profiles")
+      .select("id")
+      .eq("platform", platform)
+      .eq("handle", cleanHandle)
+      .eq("ownership_verified", true)
+      .neq("organization_id", orgId)
+      .limit(1);
+
+    if (verifiedElsewhere && verifiedElsewhere.length > 0) {
+      return {
+        error: `@${cleanHandle} on ${platform} has been verified by another account. If this is your profile, contact support.`,
+        verifiedElsewhere: true,
+      };
+    }
+  }
+
   // Try to scrape live data from the platform
   const scraped = await scrapeProfile(platform, cleanHandle);
 
@@ -439,7 +465,8 @@ export async function syncSocialProfile(profileId: string) {
   }
 
   revalidatePath("/dashboard");
-  return { success: true };
+  const postsCount = scraped.recentPosts?.length ?? 0;
+  return { success: true, postsCount };
 }
 
 // Keep old name as alias

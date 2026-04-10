@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { X, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, UserPlus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { inviteTeamMember, getTeamInvites, cancelTeamInvite } from "@/lib/actions/settings";
 import type { Profile, Organization } from "@/types";
 
 type Role = "owner" | "manager" | "viewer";
@@ -45,7 +46,6 @@ export function TeamTab({
   organization: Organization | null;
   userEmail: string | null;
 }) {
-  const initial = (profile?.full_name ?? userEmail ?? "U")[0].toUpperCase();
   const plan = organization?.plan ?? "free";
   const canInvite = plan === "business" || plan === "enterprise";
 
@@ -67,12 +67,44 @@ export function TeamTab({
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("manager");
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+  const [inviting, setInviting] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   // Editing role
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
 
-  function handleInvite() {
+  // Fetch existing invites from DB on mount
+  useEffect(() => {
+    async function loadInvites() {
+      const invites = await getTeamInvites();
+      if (invites && invites.length > 0) {
+        const dbMembers: TeamMember[] = invites.map((inv) => ({
+          id: inv.id,
+          name: inv.email.split("@")[0],
+          email: inv.email,
+          role: (inv.role as Role) ?? "viewer",
+          status: inv.status === "accepted" ? ("online" as const) : ("pending" as const),
+          lastActive:
+            inv.status === "accepted"
+              ? "Accepted"
+              : `Invited ${new Date(inv.created_at).toLocaleDateString()}`,
+        }));
+        setMembers((prev) => {
+          const owner = prev.find((m) => m.id === "owner");
+          // Merge: owner + DB invites (avoid duplicates)
+          const existingEmails = new Set(dbMembers.map((m) => m.email.toLowerCase()));
+          const kept = owner ? [owner] : [];
+          return [...kept, ...dbMembers.filter((m) => !existingEmails.has(owner?.email?.toLowerCase() ?? ""))];
+        });
+      }
+    }
+    loadInvites();
+  }, []);
+
+  async function handleInvite() {
     setInviteError(null);
+    setInviteSuccess(null);
 
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
       setInviteError("Please enter a valid email address.");
@@ -84,26 +116,58 @@ export function TeamTab({
       return;
     }
 
-    const newMember: TeamMember = {
-      id: crypto.randomUUID(),
-      name: inviteName.trim() || inviteEmail.split("@")[0],
-      email: inviteEmail.trim().toLowerCase(),
-      role: inviteRole,
-      status: "pending",
-      lastActive: "Invited just now",
-    };
+    setInviting(true);
+    try {
+      const result = await inviteTeamMember(inviteEmail.trim().toLowerCase(), inviteRole);
 
-    setMembers([...members, newMember]);
-    setInviteEmail("");
-    setInviteName("");
-    setInviteRole("manager");
-    setShowInviteForm(false);
+      if ("error" in result && result.error) {
+        setInviteError(result.error);
+        return;
+      }
+
+      // Add to local state
+      const newMember: TeamMember = {
+        id: result.inviteId ?? crypto.randomUUID(),
+        name: inviteName.trim() || inviteEmail.split("@")[0],
+        email: inviteEmail.trim().toLowerCase(),
+        role: inviteRole,
+        status: "pending",
+        lastActive: "Invited just now",
+      };
+
+      setMembers([...members, newMember]);
+      setInviteEmail("");
+      setInviteName("");
+      setInviteRole("manager");
+      setShowInviteForm(false);
+
+      if (result.emailSent) {
+        setInviteSuccess(`Invite sent to ${newMember.email}`);
+      } else {
+        setInviteSuccess(`Invite created for ${newMember.email} (email delivery pending — check Resend API key)`);
+      }
+
+      setTimeout(() => setInviteSuccess(null), 6000);
+    } finally {
+      setInviting(false);
+    }
   }
 
-  function handleRemove(id: string) {
+  async function handleRemove(id: string) {
     if (id === "owner") return;
     if (!confirm("Remove this team member?")) return;
-    setMembers(members.filter((m) => m.id !== id));
+
+    setRemoving(id);
+    try {
+      const result = await cancelTeamInvite(id);
+      if ("error" in result && result.error) {
+        setInviteError(result.error);
+        return;
+      }
+      setMembers(members.filter((m) => m.id !== id));
+    } finally {
+      setRemoving(null);
+    }
   }
 
   function handleRoleChange(id: string, role: Role) {
@@ -140,6 +204,13 @@ export function TeamTab({
               saved locally until you upgrade.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Success message */}
+      {inviteSuccess && (
+        <div className="border border-editorial-green/30 bg-editorial-green/5 px-4 py-3 mb-4 text-xs font-semibold text-editorial-green">
+          {inviteSuccess}
         </div>
       )}
 
@@ -198,9 +269,11 @@ export function TeamTab({
 
           <button
             onClick={handleInvite}
-            className="inline-flex items-center gap-1.5 bg-ink px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-surface-cream hover:bg-ink/80 transition-colors"
+            disabled={inviting}
+            className="inline-flex items-center gap-1.5 bg-ink px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-surface-cream hover:bg-ink/80 transition-colors disabled:opacity-50"
           >
-            <UserPlus size={11} /> Send Invite
+            {inviting ? <Loader2 size={11} className="animate-spin" /> : <UserPlus size={11} />}
+            {inviting ? "Sending..." : "Send Invite"}
           </button>
         </div>
       )}
@@ -282,9 +355,10 @@ export function TeamTab({
               {member.id !== "owner" && (
                 <button
                   onClick={() => handleRemove(member.id)}
-                  className="text-[10px] font-semibold uppercase tracking-widest text-editorial-red hover:text-editorial-red/70 transition-colors"
+                  disabled={removing === member.id}
+                  className="text-[10px] font-semibold uppercase tracking-widest text-editorial-red hover:text-editorial-red/70 transition-colors disabled:opacity-50"
                 >
-                  Remove
+                  {removing === member.id ? "Removing..." : "Remove"}
                 </button>
               )}
             </div>

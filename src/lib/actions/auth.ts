@@ -77,19 +77,21 @@ export async function signUp(formData: FormData) {
   }
 
   // 3. Create profile linked to org with owner role
+  // Use upsert in case a DB trigger already created a skeleton profile row
   const profileLocation = [city, state].filter(Boolean).join(", ") || null;
   const { error: profileError } = await admin
     .from("profiles")
-    .insert({
+    .upsert({
       id: authData.user.id,
       organization_id: org.id,
       full_name: fullName || null,
       niche: niche || null,
       location: profileLocation,
       role: "owner",
-    });
+    }, { onConflict: "id" });
 
   if (profileError) {
+    console.error("[signUp] profile upsert failed:", JSON.stringify(profileError, null, 2));
     return { error: "Failed to create user profile." };
   }
 
@@ -110,14 +112,31 @@ export async function signIn(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
     return { error: "Invalid email or password." };
   }
 
+  // Determine redirect based on account_type
+  let destination = "/dashboard";
+  if (authData.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_type")
+      .eq("id", authData.user.id)
+      .single();
+
+    if (profile?.account_type === "brand") {
+      destination = "/brand";
+    }
+  }
+
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(destination);
 }
 
 export async function signOut() {

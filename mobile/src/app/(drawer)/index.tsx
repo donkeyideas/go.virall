@@ -16,7 +16,7 @@ import { PlatformIcon } from '../../components/ui/PlatformIcon';
 import { RunAllModal } from '../../components/ui/RunAllModal';
 import { Pill } from '../../components/ui/Pill';
 import { PlatformLabels, PlatformColors } from '../../constants/platforms';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadow, neuShadowSm } from '../../constants/theme';
 import { formatNumber } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { trackEvent } from '../../lib/track';
@@ -224,7 +224,7 @@ export default function DashboardScreen() {
       .sort((a, b) => b.pct - a.pct);
   })();
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <View style={[styles.loader, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -245,7 +245,7 @@ export default function DashboardScreen() {
           <Text style={[styles.name, { color: colors.text }]}>{profile?.full_name || 'Creator'}</Text>
         </View>
         <View style={styles.headerRight}>
-          <Pressable onPress={toggleTheme} style={[styles.themeToggle, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}>
+          <Pressable onPress={toggleTheme} style={[styles.themeToggle, { backgroundColor: colors.surface }, neuShadowSm(colors)]}>
             <Ionicons name={mode === 'dark' ? 'sunny' : 'moon'} size={18} color={colors.primary} />
           </Pressable>
           {profiles.length > 0 && (
@@ -286,9 +286,9 @@ export default function DashboardScreen() {
 
       {/* Profile Performance Card */}
       {selectedProfile && (
-        <View style={[styles.profileCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+        <View style={[styles.profileCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
           <LinearGradient
-            colors={mode === 'dark' ? ['rgba(139,92,246,0.15)', 'rgba(42,27,84,0)'] : ['rgba(124,58,237,0.08)', 'rgba(255,255,255,0)']}
+            colors={mode === 'dark' ? ['rgba(56,189,248,0.12)', 'rgba(26,45,71,0)'] : ['rgba(45,138,212,0.08)', 'rgba(221,229,237,0)']}
             style={styles.profileGradient}
           />
           <View style={styles.perfHeader}>
@@ -376,7 +376,7 @@ export default function DashboardScreen() {
       {(qualityScore > 0 || smoScore > 0) && (
         <View style={styles.scoresRow}>
           {qualityScore > 0 && (
-            <View style={[styles.scoreCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+            <View style={[styles.scoreCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
               <Text style={[styles.scoreCardTitle, { color: colors.textSecondary }]}>Social Health</Text>
               <ScoreRing score={Math.round(qualityScore)} label="Health" size={80} strokeWidth={7} />
               {qualityFactors.length > 0 && (
@@ -396,7 +396,7 @@ export default function DashboardScreen() {
             </View>
           )}
           {smoScore > 0 && (
-            <View style={[styles.scoreCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+            <View style={[styles.scoreCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
               <Text style={[styles.scoreCardTitle, { color: colors.textSecondary }]}>SMO Score</Text>
               <View style={styles.smoCenter}>
                 <Text style={[styles.smoValue, { color: colors.primary }]}>{Math.round(smoScore)}</Text>
@@ -547,7 +547,7 @@ export default function DashboardScreen() {
               { label: 'TOP SOURCE', value: summaryStats.topRevenueSource || '---', color: colors.success },
               { label: 'PROFILES', value: String(profiles.length), color: colors.textSecondary },
             ].map((stat) => (
-              <View key={stat.label} style={[styles.earningsStat, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <View key={stat.label} style={[styles.earningsStat, { backgroundColor: colors.cardBg }, neuShadowSm(colors)]}>
                 <Text style={[styles.earningsLabel, { color: colors.textMuted }]}>{stat.label}</Text>
                 <Text style={[styles.earningsValue, { color: stat.color }]}>{stat.value}</Text>
               </View>
@@ -558,7 +558,7 @@ export default function DashboardScreen() {
 
       {/* Empty state */}
       {profiles.length === 0 && !loading && (
-        <View style={[styles.emptyCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+        <View style={[styles.emptyCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
           <Text style={[styles.emptyIcon, { color: colors.primary }]}>--</Text>
           <Text style={[styles.emptyTitle, { color: colors.text }]}>No Profiles Connected</Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerLeft: {},
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  themeToggle: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  themeToggle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   greeting: { fontSize: FontSize.sm, fontWeight: '500' },
   name: { fontSize: FontSize.xxl, fontWeight: '800', letterSpacing: -0.5 },
   runAllBtn: {
@@ -599,8 +599,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: BorderRadius.md,
   },
-  runAllIcon: { fontSize: 10, color: '#1A1035' },
-  runAllText: { fontSize: FontSize.sm, fontWeight: '700', color: '#1A1035', letterSpacing: 0.5, textTransform: 'uppercase' },
+  runAllIcon: { fontSize: 10, color: '#FFFFFF' },
+  runAllText: { fontSize: FontSize.sm, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.5, textTransform: 'uppercase' },
 
   // KPIs
   kpiGrid: { gap: Spacing.sm },
@@ -609,7 +609,6 @@ const styles = StyleSheet.create({
   // Profile Card
   profileCard: {
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     padding: Spacing.lg,
     overflow: 'hidden',
   },
@@ -635,7 +634,6 @@ const styles = StyleSheet.create({
   scoreCard: {
     flex: 1,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     padding: Spacing.md,
     alignItems: 'center',
   },
@@ -688,12 +686,12 @@ const styles = StyleSheet.create({
 
   // Earnings
   earningsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  earningsStat: { width: '47%', borderRadius: BorderRadius.md, borderWidth: 1, padding: Spacing.md },
+  earningsStat: { width: '47%', borderRadius: BorderRadius.md, padding: Spacing.md },
   earningsLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, marginBottom: Spacing.xs },
   earningsValue: { fontSize: FontSize.xl, fontWeight: '800' },
 
   // Empty
-  emptyCard: { borderRadius: BorderRadius.lg, borderWidth: 1, padding: Spacing.xxxl, alignItems: 'center' },
+  emptyCard: { borderRadius: BorderRadius.lg, padding: Spacing.xxxl, alignItems: 'center' },
   emptyIcon: { fontSize: 48, marginBottom: Spacing.md },
   emptyTitle: { fontSize: FontSize.lg, fontWeight: '700', marginBottom: Spacing.sm },
   emptyText: { fontSize: FontSize.md, textAlign: 'center', lineHeight: 22 },

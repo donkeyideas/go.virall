@@ -4,19 +4,21 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://govirall.com";
 
 export const metadata: Metadata = {
   title: {
-    default: "Go Virall — Social Intelligence Platform for Creators",
+    default:
+      "Go Virall — Best Analytics for Content Creators | Social Intelligence Platform",
     template: "%s | Go Virall",
   },
   description:
-    "Go Virall is the social intelligence platform that helps influencers and content creators grow faster with deep analytics, smart content strategy, audience intelligence, and revenue tracking across Instagram, TikTok, YouTube, X, and LinkedIn.",
+    "Go Virall is the best analytics platform for content creators. Multi-platform social analytics, content optimization software, Instagram analytics for influencers, TikTok performance tracking, audience demographics tools, and AI-powered content strategy — all in one social intelligence platform. Free plan available.",
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Go Virall — Social Intelligence Platform for Creators",
+    title:
+      "Go Virall — Best Analytics for Content Creators | Multi-Platform Social Analytics",
     description:
-      "Smart social media analytics, content strategy, viral score prediction, and growth tools for influencers and creators across Instagram, TikTok, YouTube, X, and LinkedIn.",
+      "The social intelligence platform built for creators. Multi-platform analytics, content optimization, viral score prediction, audience demographics, and AI content strategy across Instagram, TikTok, YouTube, X, and LinkedIn. Start free.",
     url: SITE_URL,
     siteName: "Go Virall",
     locale: "en_US",
@@ -26,15 +28,16 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Go Virall — Social Intelligence Platform showing analytics dashboard, smart strategist chat, and content strategy tools",
+        alt: "Go Virall — Best analytics for content creators with multi-platform social analytics dashboard",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Go Virall — Social Intelligence Platform for Creators",
+    title:
+      "Go Virall — Best Analytics for Content Creators",
     description:
-      "Smart analytics and content strategy for influencers. Grow faster on Instagram, TikTok, YouTube, X, and LinkedIn.",
+      "Multi-platform social analytics, content optimization, and AI-powered strategy for creators. Free plan available.",
     images: ["/og-image.png"],
     creator: "@govirall",
   },
@@ -50,20 +53,24 @@ export const metadata: Metadata = {
     },
   },
   keywords: [
+    "best analytics for content creators",
+    "content optimization software",
+    "multi-platform social analytics",
+    "social intelligence platform",
+    "Instagram analytics for influencers",
+    "creator economy fintech",
+    "TikTok performance tracking",
+    "audience demographics tool",
+    "audience analytics tools",
+    "creator business intelligence",
+    "content strategy software",
+    "influencer marketing analytics",
     "social media analytics",
     "creator tools",
     "influencer analytics",
-    "smart content strategy",
-    "social media growth",
-    "Instagram analytics",
-    "TikTok analytics",
-    "YouTube analytics",
     "viral content predictor",
-    "audience intelligence",
     "creator monetization",
-    "social media management",
     "Go Virall",
-    "social intelligence platform",
   ],
 };
 

@@ -118,7 +118,7 @@ function OrgExpandedRow({
 }) {
   return (
     <tr>
-      <td colSpan={9} className="border-b border-rule bg-surface-raised px-6 py-4">
+      <td colSpan={10} className="border-b border-rule bg-surface-raised px-6 py-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-4 gap-2">
             <Loader2 size={18} className="animate-spin text-ink-muted" />
@@ -220,10 +220,17 @@ function OrgExpandedRow({
                       disabled={isPending}
                       className="border border-rule bg-transparent px-2 py-1 text-xs font-mono text-ink focus:outline-none focus:border-ink disabled:opacity-50"
                     >
-                      <option value="free">free</option>
-                      <option value="pro">pro</option>
-                      <option value="business">business</option>
-                      <option value="enterprise">enterprise</option>
+                      <optgroup label="Creator Plans">
+                        <option value="free">free</option>
+                        <option value="pro">pro</option>
+                        <option value="business">business</option>
+                        <option value="enterprise">enterprise</option>
+                      </optgroup>
+                      <optgroup label="Brand Plans">
+                        <option value="brand_starter">brand_starter</option>
+                        <option value="brand_growth">brand_growth</option>
+                        <option value="brand_enterprise">brand_enterprise</option>
+                      </optgroup>
                     </select>
                     {isPending && (
                       <Loader2 size={20} className="animate-spin text-ink-muted" />
@@ -263,8 +270,23 @@ function OrgExpandedRow({
   );
 }
 
+function AccountTypeBadge({ type }: { type: "creator" | "brand" }) {
+  return (
+    <span
+      className={`text-[11px] font-bold uppercase tracking-widest ${
+        type === "brand" ? "text-editorial-blue" : "text-ink-muted"
+      }`}
+    >
+      {type}
+    </span>
+  );
+}
+
+type AccountFilter = "all" | "creator" | "brand";
+
 export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
   const [search, setSearch] = useState("");
+  const [accountFilter, setAccountFilter] = useState<AccountFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, OrgDetailsData>>({});
   const [loadingDetails, setLoadingDetails] = useState<string | null>(null);
@@ -272,16 +294,20 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return orgs;
+    let result = orgs;
+    if (accountFilter !== "all") {
+      result = result.filter((o) => o.account_type === accountFilter);
+    }
+    if (!search.trim()) return result;
     const q = search.toLowerCase();
-    return orgs.filter(
+    return result.filter(
       (o) =>
         o.name.toLowerCase().includes(q) ||
         o.slug?.toLowerCase().includes(q) ||
         o.plan.toLowerCase().includes(q) ||
         o.subscription_status.toLowerCase().includes(q),
     );
-  }, [orgs, search]);
+  }, [orgs, search, accountFilter]);
 
   async function handleToggleExpand(orgId: string) {
     if (expandedId === orgId) {
@@ -366,6 +392,28 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
         </div>
       </div>
 
+      {/* Account Type Filter */}
+      <div className="flex items-center gap-1 mb-4">
+        {(["all", "creator", "brand"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setAccountFilter(tab)}
+            className={`px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest border transition-colors ${
+              accountFilter === tab
+                ? "border-ink bg-surface-raised text-ink"
+                : "border-rule text-ink-muted hover:text-ink hover:border-ink"
+            }`}
+          >
+            {tab === "all" ? "All" : tab === "creator" ? "Creators" : "Brands"}
+            <span className="ml-1.5 font-mono text-[10px]">
+              {tab === "all"
+                ? orgs.length
+                : orgs.filter((o) => o.account_type === tab).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Search */}
       <div className="relative mb-4">
         <Search
@@ -404,6 +452,9 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
                 Plan
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+                Type
+              </th>
+              <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Status
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted text-right">
@@ -424,7 +475,7 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
             {filtered.length === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   className="px-4 py-8 text-center text-sm text-ink-muted"
                 >
                   {search
@@ -456,6 +507,9 @@ export function OrgsClient({ orgs }: { orgs: OrgRow[] }) {
                       </td>
                       <td className="px-4 py-2.5 whitespace-nowrap">
                         <PlanBadge plan={org.plan} />
+                      </td>
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <AccountTypeBadge type={org.account_type} />
                       </td>
                       <td className="px-4 py-2.5 whitespace-nowrap">
                         <StatusBadge status={org.subscription_status} />

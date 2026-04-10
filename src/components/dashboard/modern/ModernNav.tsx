@@ -4,58 +4,61 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
-  MessageSquare,
-  DollarSign,
-  Calendar,
-  TrendingUp,
-  LayoutGrid,
-  Users,
+  Inbox,
+  PenTool,
   BarChart3,
-  Layers,
-  Hash,
-  Search as SearchIcon,
-  Share2,
+  Briefcase,
   Crosshair,
   Settings,
   Sun,
   Moon,
   LogOut,
   Bell,
-  Plus,
   User,
   CreditCard,
+  Brain,
+  Gauge,
+  Lightbulb,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/lib/contexts/view-mode";
 import { signOut } from "@/lib/actions/auth";
 import { useEffect, useState } from "react";
+import { NotificationModal } from "@/components/dashboard/NotificationModal";
 
-const navItems = [
+const CREATOR_ONLY_PATHS = new Set(["/dashboard/smo-score", "/dashboard/recommendations", "/dashboard/goals"]);
+
+const ALL_NAV_ITEMS = [
   { label: "Overview", href: "/dashboard", icon: Home },
   { label: "Profiles", href: "/dashboard/profiles", icon: User },
-  { label: "Chat", href: "/dashboard/chat", icon: MessageSquare },
+  { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
+  { label: "Content", href: "/dashboard/content", icon: PenTool },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "AI Studio", href: "/dashboard/ai-studio", icon: Layers },
-  { label: "Strategy", href: "/dashboard/strategy", icon: LayoutGrid },
-  { label: "Intelligence", href: "/dashboard/intelligence", icon: TrendingUp },
-  { label: "Monetization", href: "/dashboard/monetization", icon: DollarSign },
-  { label: "SMO Score", href: "/dashboard/smo-score", icon: Share2 },
-  { label: "Recommendations", href: "/dashboard/recommendations", icon: Hash },
+  { label: "Intelligence", href: "/dashboard/intelligence", icon: Brain },
+  { label: "SMO Score", href: "/dashboard/smo-score", icon: Gauge },
+  { label: "Trust Score", href: "/dashboard/trust-score", icon: Shield },
+  { label: "Recommendations", href: "/dashboard/recommendations", icon: Lightbulb },
+  { label: "Business", href: "/dashboard/business", icon: Briefcase },
   { label: "Goals", href: "/dashboard/goals", icon: Crosshair },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 interface ModernNavProps {
   userName: string | null;
+  avatarUrl?: string | null;
   showLogout: boolean;
   unreadCount?: number;
+  notifications?: Array<{ id: string; title: string; body: string | null; type: string; is_read: boolean; created_at: string }>;
+  accountType?: "creator" | "brand";
 }
 
-export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavProps) {
+export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, notifications = [], accountType = "creator" }: ModernNavProps) {
   const pathname = usePathname();
   const { viewMode, setViewMode } = useViewMode();
   const [dark, setDark] = useState(true);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -84,7 +87,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
       className="fixed top-0 left-0 right-0 z-50"
       style={{
         background: "var(--color-surface-inset)",
-        borderBottom: "1px solid rgba(139,92,246,0.12)",
+        borderBottom: "1px solid rgba(var(--accent-rgb),0.12)",
         fontFamily:
           "-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif",
       }}
@@ -94,7 +97,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
         className="flex items-center justify-between px-6"
         style={{
           height: 56,
-          borderBottom: "1px solid rgba(139,92,246,0.06)",
+          borderBottom: "1px solid rgba(var(--accent-rgb),0.06)",
         }}
       >
         {/* Logo */}
@@ -103,7 +106,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
             fontWeight: 800,
             fontSize: 22,
             letterSpacing: -0.5,
-            color: "var(--color-editorial-red)",
+            color: "var(--color-editorial-accent, var(--color-editorial-red))",
             flexShrink: 0,
           }}
         >
@@ -120,7 +123,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
             className="hidden sm:block"
             style={{
               background: "var(--color-surface-card)",
-              border: "1px solid rgba(139,92,246,0.12)",
+              border: "1px solid rgba(var(--accent-rgb),0.12)",
               borderRadius: 8,
               padding: "7px 14px",
               fontSize: 12,
@@ -139,7 +142,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
             style={{
               background: "var(--color-surface-card)",
               color: "var(--color-ink-secondary)",
-              border: "1px solid rgba(139,92,246,0.12)",
+              border: "1px solid rgba(var(--accent-rgb),0.12)",
               borderRadius: 8,
               padding: "6px 14px",
               fontSize: 11,
@@ -175,7 +178,9 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
           </button>
 
           {/* Notifications */}
-          <div
+          <button
+            type="button"
+            onClick={() => { setNotifOpen(true); setAvatarOpen(false); }}
             style={{
               width: 32,
               height: 32,
@@ -187,6 +192,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
               position: "relative",
               cursor: "pointer",
               color: "var(--color-ink-secondary)",
+              border: "none",
             }}
           >
             <Bell size={16} />
@@ -212,7 +218,15 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
                 {unreadCount > 9 ? "9+" : unreadCount}
               </div>
             )}
-          </div>
+          </button>
+
+          <NotificationModal
+            open={notifOpen}
+            onClose={() => setNotifOpen(false)}
+            notifications={notifications}
+            unreadCount={unreadCount}
+            basePath="/dashboard"
+          />
 
           {/* Avatar */}
           <div style={{ position: "relative" }}>
@@ -222,18 +236,24 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
                 width: 28,
                 height: 28,
                 borderRadius: "50%",
-                background:
-                  "linear-gradient(135deg, var(--color-editorial-red), var(--color-editorial-blue))",
+                background: avatarUrl
+                  ? "transparent"
+                  : "linear-gradient(135deg, var(--color-editorial-red), var(--color-editorial-blue))",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 9,
                 fontWeight: 800,
-                color: "#1A1035",
+                color: "#0B1928",
                 cursor: "pointer",
+                overflow: "hidden",
               }}
             >
-              {initials}
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                initials
+              )}
             </div>
 
             {/* Dropdown */}
@@ -250,7 +270,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
                     top: 40,
                     right: 0,
                     background: "var(--color-surface-card)",
-                    border: "1px solid rgba(139,92,246,0.12)",
+                    border: "1px solid rgba(var(--accent-rgb),0.12)",
                     borderRadius: 10,
                     minWidth: 180,
                     padding: 8,
@@ -275,7 +295,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
                     Settings
                   </Link>
                   <Link
-                    href="/dashboard/monetization"
+                    href="/dashboard/settings?tab=billing"
                     onClick={() => setAvatarOpen(false)}
                     className="flex items-center gap-2 rounded-md px-3 py-2 text-xs text-ink-secondary hover:bg-editorial-blue/8 hover:text-ink"
                   >
@@ -285,7 +305,7 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
                   <div
                     style={{
                       height: 1,
-                      background: "rgba(139,92,246,0.08)",
+                      background: "rgba(var(--accent-rgb),0.08)",
                       margin: "4px 0",
                     }}
                   />
@@ -314,13 +334,14 @@ export function ModernNav({ userName, showLogout, unreadCount = 0 }: ModernNavPr
         style={{
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           height: 44,
           padding: "0 24px",
           overflowX: "auto",
           gap: 0,
         }}
       >
-        {navItems.map((item) => {
+        {(accountType === "brand" ? ALL_NAV_ITEMS.filter(i => !CREATOR_ONLY_PATHS.has(i.href)) : ALL_NAV_ITEMS).map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"

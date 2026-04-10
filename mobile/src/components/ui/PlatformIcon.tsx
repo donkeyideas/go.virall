@@ -99,7 +99,7 @@ const ICON_MAP: Record<string, React.FC<{ size: number; color: string }>> = {
 export function PlatformIcon({ platform, size = 20, color, showBackground = false }: PlatformIconProps) {
   const key = platform?.toLowerCase() || '';
   const IconComponent = ICON_MAP[key];
-  const brandColor = color || PlatformColors[key] || '#8A7AAE';
+  const brandColor = color || PlatformColors[key] || '#7B8EA8';
 
   if (!IconComponent) {
     return (

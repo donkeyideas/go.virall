@@ -728,7 +728,7 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
       <div className="space-y-4">
         <div className="border border-rule bg-surface-raised px-4 py-2.5">
           <p className="text-[10px] text-ink-secondary leading-relaxed">
-            <span className="font-bold text-editorial-gold">Advisory:</span> All earnings projections are estimates based on industry benchmarks and AI analysis. Actual income depends on content quality, consistency, audience demographics, and market conditions.
+            <span className="font-bold text-editorial-gold">Advisory:</span> All earnings projections are estimates based on industry benchmarks and platform analysis. Actual income depends on content quality, consistency, audience demographics, and market conditions.
           </p>
         </div>
         <div className="border border-rule bg-surface-card px-6 py-12 text-center">
@@ -746,7 +746,7 @@ function EarningsForecastResult({ data }: { data: Record<string, unknown> }) {
       {/* ── Advisory Banner ── */}
       <div className="border border-rule bg-surface-raised px-4 py-2.5">
         <p className="text-[10px] text-ink-secondary leading-relaxed">
-          <span className="font-bold text-editorial-gold">Advisory:</span> All earnings projections are estimates based on industry benchmarks and AI analysis. Actual income depends on content quality, consistency, audience demographics, and market conditions.
+          <span className="font-bold text-editorial-gold">Advisory:</span> All earnings projections are estimates based on industry benchmarks and platform analysis. Actual income depends on content quality, consistency, audience demographics, and market conditions.
         </p>
       </div>
 
@@ -1455,8 +1455,8 @@ function AudienceResult({ data, platform }: { data: Record<string, unknown>; pla
     <div className="space-y-4">
       {/* ── AI Estimation Disclaimer ── */}
       <div className="border border-rule bg-surface-raised px-4 py-2.5 text-[10px] text-ink-muted">
-        <span className="font-bold uppercase tracking-wider text-ink-secondary">AI-Estimated </span>
-        Demographics, interests, and activity data are estimated by AI based on this creator&apos;s niche, content, and platform norms — not sourced from platform analytics.
+        <span className="font-bold uppercase tracking-wider text-ink-secondary">Estimated </span>
+        Demographics, interests, and activity data are estimated based on this creator&apos;s niche, content, and platform norms — not sourced from platform analytics.
       </div>
 
       {/* ── Section 1: Audience Quality Score ── */}
@@ -1794,12 +1794,12 @@ function AudienceResult({ data, platform }: { data: Record<string, unknown>; pla
                       <stop offset="95%" stopColor="#4ade80" stopOpacity={0.03} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.08)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--accent-rgb),0.08)" />
                   <XAxis
                     dataKey="date"
                     tick={{ fontSize: 9, fill: "#6B5D8E" }}
                     tickLine={false}
-                    axisLine={{ stroke: "rgba(139,92,246,0.15)" }}
+                    axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
@@ -1810,13 +1810,13 @@ function AudienceResult({ data, platform }: { data: Record<string, unknown>; pla
                   />
                   <RechartsTooltip
                     contentStyle={{
-                      backgroundColor: "#2A1B54",
+                      backgroundColor: "#112240",
                       border: "none",
                       borderRadius: "6px",
                       fontSize: "11px",
-                      color: "#F0ECF8",
+                      color: "#E8F0FA",
                     }}
-                    labelStyle={{ color: "#F0ECF8", fontWeight: "bold", marginBottom: "4px" }}
+                    labelStyle={{ color: "#E8F0FA", fontWeight: "bold", marginBottom: "4px" }}
                     itemStyle={{ padding: 0 }}
                   />
                   <Area

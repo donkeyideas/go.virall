@@ -35,23 +35,40 @@ function formatCostUsd(usd: number): string {
   return `$${usd.toFixed(4)}`;
 }
 
+const ANALYSIS_TYPE_LABELS: Record<string, string> = {
+  content_strategy: "Content Strategy",
+  earnings_forecast: "Earnings Forecast",
+  audience_growth: "Audience Growth",
+  competitor_analysis: "Competitor Analysis",
+  engagement_patterns: "Engagement Patterns",
+  platform_trends: "Platform Trends",
+  campaign_ideas: "Campaign Ideas",
+  hashtag_analysis: "Hashtag Analysis",
+  growth_recommendations: "Growth Recommendations",
+  audience_demographics: "Audience Demographics",
+};
+
+function analysisLabel(key: string): string {
+  return ANALYSIS_TYPE_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 /* ---------------------------------------------------------- */
 /* Chart styling constants                                     */
 /* ---------------------------------------------------------- */
 
 const tooltipStyle = {
-  backgroundColor: "#2A1B54",
-  border: "1px solid rgba(139,92,246,0.15)",
+  backgroundColor: "#112240",
+  border: "1px solid rgba(75,156,211,0.15)",
   borderRadius: 8,
   fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
   fontSize: 11,
-  color: "#F0ECF8",
+  color: "#E8F0FA",
 };
 
 const axisTick = { fontSize: 11, fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif", fill: "#6B5D8E" };
 
 const PIE_COLORS = [
-  "#8B5CF6",
+  "#4B9CD3",
   "#FFB84D",
   "#4ade80",
   "#5b9cf5",
@@ -112,7 +129,7 @@ export function SearchAIClient({
   const typeBreakdown = useMemo(
     () =>
       Object.entries(overview.byType)
-        .map(([type, count]) => ({ type, count }))
+        .map(([type, count]) => ({ type: analysisLabel(type), count }))
         .sort((a, b) => b.count - a.count),
     [overview.byType]
   );
@@ -377,7 +394,7 @@ export function SearchAIClient({
               className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-rule last:border-b-0 items-center"
             >
               <span className="text-sm font-medium text-ink">
-                {row.analysis_type}
+                {analysisLabel(row.analysis_type)}
               </span>
               <span className="font-mono text-sm text-ink-secondary">
                 {row.ai_provider ?? "--"}

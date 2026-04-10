@@ -1,42 +1,117 @@
+import { Platform, type ViewStyle, type TextStyle } from 'react-native';
+
+/* ─── Color Palette ─── */
 export const Colors = {
   dark: {
-    background: '#1A1035',
-    surface: '#2A1B54',
-    surfaceLight: '#33225E',
-    primary: '#FFB84D',
-    accent: '#8B5CF6',
-    text: '#F0ECF8',
-    textSecondary: '#8A7AAE',
-    textMuted: '#6B5D8E',
-    border: 'rgba(139,92,246,0.08)',
-    cardBg: 'rgba(42,27,84,0.85)',
-    success: '#4ADE80',
-    error: '#EF4444',
-    warning: '#F59E0B',
-    tabBar: 'rgba(26,16,53,0.95)',
-    inputBg: 'rgba(51,34,94,0.8)',
+    background: '#0c1829',
+    surface: '#10203a',
+    surfaceLight: '#1a2d47',
+    primary: '#38bdf8',
+    accent: '#7dd3fc',
+    text: '#e2e8f0',
+    textSecondary: '#8bacc8',
+    textMuted: '#4a6a8a',
+    border: '#162a42',
+    cardBg: '#10203a',
+    success: '#22c55e',
+    error: '#f43f5e',
+    warning: '#f59e0b',
+    tabBar: '#0c1829',
+    inputBg: '#0a1522',
+    // Neumorphic shadow pair
+    shadowDark: '#060e1a',
+    shadowLight: '#1c3a5c',
+    // Gradient stops for neumorphic cards
+    gradientLight: '#142c4a',
+    gradientDark: '#0b1825',
   },
   light: {
-    background: '#F5F3FF',
-    surface: '#FFFFFF',
-    surfaceLight: '#EDE9FE',
-    primary: '#E59420',
-    accent: '#7C3AED',
-    text: '#1E1245',
-    textSecondary: '#5B4D8A',
-    textMuted: '#9B8FBF',
-    border: 'rgba(124,58,237,0.08)',
-    cardBg: 'rgba(255,255,255,0.9)',
-    success: '#22C55E',
-    error: '#EF4444',
-    warning: '#D97706',
-    tabBar: 'rgba(245,243,255,0.95)',
-    inputBg: 'rgba(237,233,254,0.8)',
+    background: '#dfe6ee',
+    surface: '#dfe6ee',
+    surfaceLight: '#cdd6e0',
+    primary: '#2d8ad4',
+    accent: '#4ba3e8',
+    text: '#1a2535',
+    textSecondary: '#4a5c72',
+    textMuted: '#7b8ea5',
+    border: '#c4d0dc',
+    cardBg: '#dfe6ee',
+    success: '#16a34a',
+    error: '#e11d48',
+    warning: '#d97706',
+    tabBar: '#dfe6ee',
+    inputBg: '#d2dbe6',
+    shadowDark: '#b4c0cc',
+    shadowLight: '#ffffff',
+    gradientLight: '#eaf0f6',
+    gradientDark: '#d2dae4',
   },
 } as const;
 
 export type ThemeMode = 'dark' | 'light';
 export type ThemeColors = { [K in keyof typeof Colors.dark]: string };
+
+/* ─── Neumorphic Shadow Helpers ─── */
+
+/** Raised neumorphic effect for cards / containers */
+export function neuShadow(colors: ThemeColors): ViewStyle {
+  return {
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderBottomWidth: 1.5,
+    borderRightWidth: 1.5,
+    borderTopColor: colors.shadowLight,
+    borderLeftColor: colors.shadowLight,
+    borderBottomColor: colors.shadowDark,
+    borderRightColor: colors.shadowDark,
+    ...(Platform.OS === 'ios'
+      ? {
+          shadowColor: colors.shadowDark,
+          shadowOffset: { width: 4, height: 4 },
+          shadowOpacity: 0.6,
+          shadowRadius: 8,
+        }
+      : { elevation: 6 }),
+  } as ViewStyle;
+}
+
+/** Subtle raised effect for buttons / pills / small elements */
+export function neuShadowSm(colors: ThemeColors): ViewStyle {
+  return {
+    borderTopWidth: 0.5,
+    borderLeftWidth: 0.5,
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderTopColor: colors.shadowLight,
+    borderLeftColor: colors.shadowLight,
+    borderBottomColor: colors.shadowDark,
+    borderRightColor: colors.shadowDark,
+    ...(Platform.OS === 'ios'
+      ? {
+          shadowColor: colors.shadowDark,
+          shadowOffset: { width: 2, height: 2 },
+          shadowOpacity: 0.45,
+          shadowRadius: 5,
+        }
+      : { elevation: 3 }),
+  } as ViewStyle;
+}
+
+/** Inset / pressed effect for inputs (TextStyle-safe) */
+export function neuInset(colors: ThemeColors): TextStyle {
+  return {
+    borderTopWidth: 1.5,
+    borderLeftWidth: 1.5,
+    borderBottomWidth: 0.5,
+    borderRightWidth: 0.5,
+    borderTopColor: colors.shadowDark,
+    borderLeftColor: colors.shadowDark,
+    borderBottomColor: colors.shadowLight,
+    borderRightColor: colors.shadowLight,
+  } as TextStyle;
+}
+
+/* ─── Design Tokens ─── */
 
 export const Spacing = {
   xs: 4,

@@ -236,7 +236,7 @@ export function ContentGenerator({ profiles, cachedContent }: ContentGeneratorPr
                   Generating Content
                 </h3>
                 <p className="text-[11px] text-ink-muted">
-                  AI is crafting your{" "}
+                  Crafting your{" "}
                   {CONTENT_TABS.find((t) => t.key === activeTab)?.label.toLowerCase()}
                   ...
                 </p>

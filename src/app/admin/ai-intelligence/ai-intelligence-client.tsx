@@ -46,18 +46,18 @@ function formatShortDate(dateStr: string): string {
 /* ---------------------------------------------------------- */
 
 const tooltipStyle = {
-  backgroundColor: "#2A1B54",
-  border: "1px solid rgba(139,92,246,0.15)",
+  backgroundColor: "#112240",
+  border: "1px solid rgba(75,156,211,0.15)",
   borderRadius: 8,
   fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
   fontSize: 11,
-  color: "#F0ECF8",
+  color: "#E8F0FA",
 };
 
 const axisTick = { fontSize: 11, fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif", fill: "#6B5D8E" };
 
 const PIE_COLORS = [
-  "#8B5CF6",
+  "#4B9CD3",
   "#FFB84D",
   "#4ade80",
   "#5b9cf5",
@@ -450,7 +450,7 @@ export function AIIntelligenceClient({
                       allowDecimals={false}
                     />
                     <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="calls" fill="#8B5CF6" maxBarSize={48} />
+                    <Bar dataKey="calls" fill="#4B9CD3" maxBarSize={48} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -669,12 +669,12 @@ export function AIIntelligenceClient({
                       >
                         <stop
                           offset="5%"
-                          stopColor="#8B5CF6"
+                          stopColor="#4B9CD3"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#8B5CF6"
+                          stopColor="#4B9CD3"
                           stopOpacity={0.02}
                         />
                       </linearGradient>
@@ -705,7 +705,7 @@ export function AIIntelligenceClient({
                     <Area
                       type="monotone"
                       dataKey="cost"
-                      stroke="#8B5CF6"
+                      stroke="#4B9CD3"
                       strokeWidth={2}
                       fill="url(#costGradient)"
                     />

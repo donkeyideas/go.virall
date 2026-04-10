@@ -16,7 +16,7 @@ import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { mobileApi } from '../../lib/api';
 import { trackEvent } from '../../lib/track';
-import { Spacing, FontSize, BorderRadius } from '../../constants/theme';
+import { Spacing, FontSize, BorderRadius, neuShadow, neuShadowSm } from '../../constants/theme';
 import { SimpleMarkdown } from '../../components/ui/SimpleMarkdown';
 
 interface Message {
@@ -179,7 +179,7 @@ export default function ChatScreen() {
 
   const renderMessage = useCallback(({ item }: { item: Message }) => {
     const isUser = item.role === 'user';
-    const textColor = isUser ? '#1A1035' : colors.text;
+    const textColor = isUser ? '#FFFFFF' : colors.text;
     return (
       <View style={[styles.msgRow, isUser ? styles.msgRowUser : styles.msgRowAssistant]}>
         {/* Assistant avatar */}
@@ -193,7 +193,7 @@ export default function ChatScreen() {
             styles.msgBubble,
             isUser
               ? { backgroundColor: colors.primary }
-              : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+              : [{ backgroundColor: colors.surface }, neuShadow(colors)],
           ]}
         >
           {isUser ? (
@@ -231,7 +231,7 @@ export default function ChatScreen() {
               <Pressable
                 onPress={() => loadMessages(item.id)}
                 onLongPress={() => deleteConversation(item.id)}
-                style={[styles.convItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.convItem, { backgroundColor: colors.surface }, neuShadow(colors)]}
               >
                 <Text style={[styles.convTitle, { color: colors.text }]} numberOfLines={1}>
                   {item.title || 'Untitled'}
@@ -279,7 +279,7 @@ export default function ChatScreen() {
               <Pressable
                 key={action.label}
                 onPress={() => sendMessage(action.prompt)}
-                style={[styles.welcomeChip, { borderColor: colors.primary + '50' }]}
+                style={[styles.welcomeChip, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
               >
                 <Text style={[styles.welcomeChipText, { color: colors.primary }]}>
                   {action.label}
@@ -303,7 +303,7 @@ export default function ChatScreen() {
                 <View style={[styles.avatar, { backgroundColor: colors.primary + '25' }]}>
                   <Text style={[styles.avatarIcon, { color: colors.primary }]}>V</Text>
                 </View>
-                <View style={[styles.loadingBubble, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={[styles.loadingBubble, { backgroundColor: colors.surface }, neuShadow(colors)]}>
                   <ActivityIndicator size="small" color={colors.primary} />
                   <Text style={[styles.loadingText, { color: colors.textMuted }]}>Thinking...</Text>
                 </View>
@@ -315,7 +315,7 @@ export default function ChatScreen() {
 
       {/* ── Input Bar ── */}
       <View style={[styles.inputBar, { backgroundColor: colors.background }]}>
-        <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.inputWrapper, { backgroundColor: colors.surface }, neuShadow(colors)]}>
           <TextInput
             value={input}
             onChangeText={setInput}
@@ -336,7 +336,7 @@ export default function ChatScreen() {
               { backgroundColor: input.trim() ? colors.primary : colors.surfaceLight },
             ]}
           >
-            <Text style={[styles.sendArrow, { color: input.trim() ? '#1A1035' : colors.textMuted }]}>
+            <Text style={[styles.sendArrow, { color: input.trim() ? '#FFFFFF' : colors.textMuted }]}>
               {'>'}
             </Text>
           </Pressable>
@@ -409,7 +409,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   welcomeChip: {
-    borderWidth: 1,
     borderRadius: 20,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
@@ -471,7 +470,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
@@ -486,7 +484,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   quickChip: {
-    borderWidth: 1,
     borderRadius: 20,
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
@@ -506,7 +503,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: 28,
-    borderWidth: 1,
     paddingLeft: Spacing.lg,
     paddingRight: 4,
     paddingVertical: 4,
@@ -544,7 +540,6 @@ const styles = StyleSheet.create({
   convItem: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
   },
   convTitle: {
     fontSize: FontSize.md,

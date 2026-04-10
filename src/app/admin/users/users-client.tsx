@@ -97,7 +97,7 @@ function UserExpandedRow({
 }) {
   return (
     <tr>
-      <td colSpan={8} className="border-b border-rule bg-surface-raised px-6 py-4">
+      <td colSpan={10} className="border-b border-rule bg-surface-raised px-6 py-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {/* User Info */}
           <div>
@@ -200,16 +200,35 @@ function UserExpandedRow({
   );
 }
 
+function AccountTypeBadge({ type }: { type: "creator" | "brand" }) {
+  return (
+    <span
+      className={`text-[11px] font-bold uppercase tracking-widest ${
+        type === "brand" ? "text-editorial-blue" : "text-ink-muted"
+      }`}
+    >
+      {type}
+    </span>
+  );
+}
+
+type AccountFilter = "all" | "creator" | "brand";
+
 export function UsersClient({ users }: { users: UserRow[] }) {
   const [search, setSearch] = useState("");
+  const [accountFilter, setAccountFilter] = useState<AccountFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return users;
+    let result = users;
+    if (accountFilter !== "all") {
+      result = result.filter((u) => u.account_type === accountFilter);
+    }
+    if (!search.trim()) return result;
     const q = search.toLowerCase();
-    return users.filter(
+    return result.filter(
       (u) =>
         u.full_name?.toLowerCase().includes(q) ||
         u.email?.toLowerCase().includes(q) ||
@@ -217,7 +236,7 @@ export function UsersClient({ users }: { users: UserRow[] }) {
         u.role.toLowerCase().includes(q) ||
         u.system_role.toLowerCase().includes(q),
     );
-  }, [users, search]);
+  }, [users, search, accountFilter]);
 
   function handleRoleChange(userId: string, role: string) {
     setActionError(null);
@@ -272,6 +291,28 @@ export function UsersClient({ users }: { users: UserRow[] }) {
         </div>
       </div>
 
+      {/* Account Type Filter */}
+      <div className="flex items-center gap-1 mb-4">
+        {(["all", "creator", "brand"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setAccountFilter(tab)}
+            className={`px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest border transition-colors ${
+              accountFilter === tab
+                ? "border-ink bg-surface-raised text-ink"
+                : "border-rule text-ink-muted hover:text-ink hover:border-ink"
+            }`}
+          >
+            {tab === "all" ? "All" : tab === "creator" ? "Creators" : "Brands"}
+            <span className="ml-1.5 font-mono text-[10px]">
+              {tab === "all"
+                ? users.length
+                : users.filter((u) => u.account_type === tab).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Search */}
       <div className="relative mb-4">
         <Search
@@ -313,6 +354,9 @@ export function UsersClient({ users }: { users: UserRow[] }) {
                 Plan
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+                Type
+              </th>
+              <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Role
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
@@ -330,7 +374,7 @@ export function UsersClient({ users }: { users: UserRow[] }) {
             {filtered.length === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   className="px-4 py-8 text-center text-sm text-ink-muted"
                 >
                   {search ? "No users match your search." : "No users found."}
@@ -365,6 +409,9 @@ export function UsersClient({ users }: { users: UserRow[] }) {
                       </td>
                       <td className="px-4 py-2.5 whitespace-nowrap">
                         <PlanBadge plan={user.org_plan} />
+                      </td>
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <AccountTypeBadge type={user.account_type} />
                       </td>
                       <td className="px-4 py-2.5 font-mono text-sm text-ink-secondary whitespace-nowrap">
                         {user.role}

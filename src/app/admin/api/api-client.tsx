@@ -37,12 +37,12 @@ import {
 } from "@/lib/actions/admin";
 
 const tooltipStyle = {
-  backgroundColor: "#2A1B54",
-  border: "1px solid rgba(139,92,246,0.15)",
+  backgroundColor: "#112240",
+  border: "1px solid rgba(75,156,211,0.15)",
   borderRadius: 8,
   fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
   fontSize: 11,
-  color: "#F0ECF8",
+  color: "#E8F0FA",
 };
 const axisTick = { fontSize: 11, fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif", fill: "#6B5D8E" };
 
@@ -473,7 +473,7 @@ export function APIClient({
                     <Bar
                       dataKey="calls"
                       name="API Calls"
-                      fill="#8B5CF6"
+                      fill="#4B9CD3"
                       radius={0}
                     />
                   </BarChart>

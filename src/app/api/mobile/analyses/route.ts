@@ -31,11 +31,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Get the social profile
+  // Verify profile belongs to the user's organization
+  const { data: userProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!userProfile?.organization_id) {
+    return NextResponse.json(
+      { error: "Organization not found" },
+      { status: 404 },
+    );
+  }
+
+  // Get the social profile — scoped to user's org
   const { data: socialProfile } = await supabaseAdmin
     .from("social_profiles")
     .select("*")
     .eq("id", profileId)
+    .eq("organization_id", userProfile.organization_id)
     .single();
 
   if (!socialProfile) {

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import type { Notification } from "@/types";
 
 export async function getNotifications(
@@ -24,4 +25,26 @@ export async function getUnreadCount(): Promise<number> {
     .eq("is_read", false);
 
   return count ?? 0;
+}
+
+export async function markNotificationRead(id: string) {
+  const supabase = await createClient();
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("id", id);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/brand");
+}
+
+export async function markAllNotificationsRead() {
+  const supabase = await createClient();
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("is_read", false);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/brand");
 }

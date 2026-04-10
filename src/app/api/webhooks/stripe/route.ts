@@ -68,6 +68,16 @@ export async function POST(req: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", org.id);
+
+      // Log billing event
+      await admin.from("billing_events").insert({
+        organization_id: org.id,
+        event_type: "invoice.paid",
+        stripe_event_id: event.id,
+        amount_cents: invoice.amount_paid ?? 0,
+        currency: invoice.currency ?? "usd",
+        metadata: { plan: planKey, subscription_id: subscription.id },
+      });
       break;
     }
 
@@ -79,6 +89,13 @@ export async function POST(req: NextRequest) {
         typeof subId === "string" ? subId : subId?.id ?? null;
 
       if (subscriptionId) {
+        // Find org for billing event
+        const { data: failedOrg } = await admin
+          .from("organizations")
+          .select("id")
+          .eq("stripe_subscription_id", subscriptionId)
+          .single();
+
         await admin
           .from("organizations")
           .update({
@@ -86,6 +103,17 @@ export async function POST(req: NextRequest) {
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscriptionId);
+
+        // Log billing event
+        if (failedOrg) {
+          await admin.from("billing_events").insert({
+            organization_id: failedOrg.id,
+            event_type: "invoice.payment_failed",
+            stripe_event_id: event.id,
+            amount_cents: invoice.amount_due ?? 0,
+            currency: invoice.currency ?? "usd",
+          });
+        }
       }
       break;
     }
@@ -95,6 +123,14 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription;
       const orgId = subscription.metadata?.organization_id;
       if (!orgId) break;
+
+      // Get previous plan before update
+      const { data: prevOrg } = await admin
+        .from("organizations")
+        .select("plan")
+        .eq("id", orgId)
+        .single();
+      const previousPlan = prevOrg?.plan ?? "free";
 
       const priceId = subscription.items.data[0]?.price.id;
       const isActive = ["active", "trialing"].includes(subscription.status);
@@ -112,6 +148,17 @@ export async function POST(req: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", orgId);
+
+      // Log billing event if plan changed
+      if (previousPlan !== planKey) {
+        const eventType = planKey === "free" ? "downgrade" : previousPlan === "free" ? "upgrade" : "plan_change";
+        await admin.from("billing_events").insert({
+          organization_id: orgId,
+          event_type: eventType,
+          stripe_event_id: event.id,
+          metadata: { from_plan: previousPlan, to_plan: planKey },
+        });
+      }
       break;
     }
 
@@ -120,6 +167,13 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription;
       const orgId = subscription.metadata?.organization_id;
       if (!orgId) break;
+
+      // Get plan before cancellation
+      const { data: cancelOrg } = await admin
+        .from("organizations")
+        .select("plan")
+        .eq("id", orgId)
+        .single();
 
       await admin
         .from("organizations")
@@ -132,6 +186,14 @@ export async function POST(req: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", orgId);
+
+      // Log billing event
+      await admin.from("billing_events").insert({
+        organization_id: orgId,
+        event_type: "cancellation",
+        stripe_event_id: event.id,
+        metadata: { from_plan: cancelOrg?.plan ?? "unknown" },
+      });
       break;
     }
   }

@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getSocialProfiles } from "@/lib/dal/profiles";
 import { getAnalysisStatus, getLatestAnalysis } from "@/lib/dal/analyses";
 import { getCachedPosts } from "@/lib/cache/posts-cache";
@@ -5,6 +7,9 @@ import { OverviewClient } from "@/components/dashboard/overview/OverviewClient";
 import type { RecentPost } from "@/types";
 
 export default async function ProfilesPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
   const profiles = await getSocialProfiles();
 
   // Build recent posts map from DB column + in-memory cache fallback

@@ -26,6 +26,8 @@
   --color-rule-light: #eeeeee;
   --color-rule-dark: #1a1a1a;
 
+  --accent-rgb: 0,0,0;
+
   --color-background: var(--color-surface-cream);
   --color-foreground: var(--color-ink);
 }
@@ -51,6 +53,8 @@
   --color-rule-light: #1e1e22;
   --color-rule-dark: #f0ede8;
 
+  --accent-rgb: 255,255,255;
+
   --color-background: var(--color-surface-cream);
   --color-foreground: var(--color-ink);
 }
@@ -62,35 +66,37 @@
 
 /* --- MODERN LIGHT THEME --- */
 .modern-view {
-  --color-surface-cream: #f5f3ff;
+  --color-surface-cream: #F0F6FB;
   --color-surface-card: #ffffff;
-  --color-surface-raised: #ede9fe;
-  --color-surface-inset: #f0ecff;
+  --color-surface-raised: #E1EDF6;
+  --color-surface-inset: #E8F0F8;
 
-  --color-ink: #1e1245;
-  --color-ink-secondary: #5b4d8a;
-  --color-ink-muted: #9b8fbf;
-  --color-ink-faint: #d4cee8;
+  --color-ink: #0D2137;
+  --color-ink-secondary: #3D6A8A;
+  --color-ink-muted: #7A9CB8;
+  --color-ink-faint: #C2D6E5;
 
   --color-editorial-red: #e59420;
   --color-editorial-green: #22c55e;
   --color-editorial-gold: #d97706;
-  --color-editorial-blue: #7c3aed;
+  --color-editorial-blue: #3A8AC2;
 
-  --color-rule: rgba(124, 58, 237, 0.08);
-  --color-rule-light: rgba(124, 58, 237, 0.04);
-  --color-rule-dark: rgba(124, 58, 237, 0.18);
+  --color-rule: rgba(58, 138, 194, 0.10);
+  --color-rule-light: rgba(58, 138, 194, 0.05);
+  --color-rule-dark: rgba(58, 138, 194, 0.18);
 
   --color-background: var(--color-surface-cream);
   --color-foreground: var(--color-ink);
 
   --modern-primary: #e59420;
   --modern-primary-hover: #d4850d;
-  --modern-purple: #7c3aed;
+  --modern-purple: #3A8AC2;
   --modern-success: #22c55e;
   --modern-warning: #d97706;
   --modern-error: #ef4444;
-  --modern-card-border: rgba(124, 58, 237, 0.08);
+  --modern-card-border: rgba(58, 138, 194, 0.10);
+
+  --accent-rgb: 58,138,194;
 
   --font-serif: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-sans: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
@@ -99,23 +105,23 @@
 
 /* --- ADMIN DARK THEME --- */
 .admin-dark {
-  --color-surface-cream: #1a1035;
-  --color-surface-card: #2a1b54;
-  --color-surface-raised: #33225e;
-  --color-surface-inset: #221548;
+  --color-surface-cream: #0B1928;
+  --color-surface-card: #112240;
+  --color-surface-raised: #1A2F50;
+  --color-surface-inset: #0D1E35;
 
-  --color-ink: #f0ecf8;
-  --color-ink-secondary: #8a7aae;
-  --color-ink-muted: #6b5d8e;
-  --color-ink-faint: #3d2b6e;
+  --color-ink: #E8F0FA;
+  --color-ink-secondary: #8BACC8;
+  --color-ink-muted: #5A7D9A;
+  --color-ink-faint: #2D4A63;
 
   --color-editorial-red: #ffb84d;
   --color-editorial-green: #4ade80;
   --color-editorial-gold: #f59e0b;
-  --color-editorial-blue: #8b5cf6;
+  --color-editorial-blue: #4B9CD3;
 
-  --color-rule: rgba(139, 92, 246, 0.12);
-  --color-rule-light: rgba(139, 92, 246, 0.06);
+  --color-rule: rgba(75, 156, 211, 0.12);
+  --color-rule-light: rgba(75, 156, 211, 0.06);
   --color-rule-dark: rgba(255, 184, 77, 0.15);
 
   --color-background: var(--color-surface-cream);
@@ -128,24 +134,24 @@
 
 /* --- ADMIN LIGHT THEME --- */
 .admin-light {
-  --color-surface-cream: #f5f3f0;
+  --color-surface-cream: #F0F6FB;
   --color-surface-card: #ffffff;
-  --color-surface-raised: #f0ede8;
-  --color-surface-inset: #e8e4de;
+  --color-surface-raised: #E1EDF6;
+  --color-surface-inset: #E8F0F8;
 
-  --color-ink: #1a1035;
-  --color-ink-secondary: #5b4d8a;
-  --color-ink-muted: #8a7aae;
-  --color-ink-faint: #c4bdd6;
+  --color-ink: #0D2137;
+  --color-ink-secondary: #3D6A8A;
+  --color-ink-muted: #7A9CB8;
+  --color-ink-faint: #C2D6E5;
 
   --color-editorial-red: #d97706;
   --color-editorial-green: #16a34a;
   --color-editorial-gold: #b45309;
-  --color-editorial-blue: #7c3aed;
+  --color-editorial-blue: #3A8AC2;
 
-  --color-rule: rgba(124, 58, 237, 0.1);
-  --color-rule-light: rgba(124, 58, 237, 0.05);
-  --color-rule-dark: rgba(124, 58, 237, 0.2);
+  --color-rule: rgba(58, 138, 194, 0.1);
+  --color-rule-light: rgba(58, 138, 194, 0.05);
+  --color-rule-dark: rgba(58, 138, 194, 0.2);
 
   --color-background: var(--color-surface-cream);
   --color-foreground: var(--color-ink);
@@ -193,37 +199,40 @@
   font-family: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
 }
 
-/* --- MODERN DARK THEME --- */
+/* --- MODERN DARK THEME (Carolina Blue) --- */
 .dark.modern-view {
-  --color-surface-cream: #1a1035;
-  --color-surface-card: #2a1b54;
-  --color-surface-raised: #33225e;
-  --color-surface-inset: #221548;
+  --color-surface-cream: #0B1928;
+  --color-surface-card: #112240;
+  --color-surface-raised: #1A2F50;
+  --color-surface-inset: #0D1E35;
 
-  --color-ink: #f0ecf8;
-  --color-ink-secondary: #8a7aae;
-  --color-ink-muted: #6b5d8e;
-  --color-ink-faint: #3d2b6e;
+  --color-ink: #E8F0FA;
+  --color-ink-secondary: #8BACC8;
+  --color-ink-muted: #5A7D9A;
+  --color-ink-faint: #2D4A63;
 
-  --color-editorial-red: #ffb84d;
-  --color-editorial-green: #4ade80;
-  --color-editorial-gold: #f59e0b;
-  --color-editorial-blue: #8b5cf6;
+  --color-editorial-red: #56A8D8;
+  --color-editorial-green: #4ADE80;
+  --color-editorial-gold: #ffb84d;
+  --color-editorial-blue: #4B9CD3;
+  --color-editorial-accent: #ffb84d;
 
-  --color-rule: rgba(139, 92, 246, 0.08);
-  --color-rule-light: rgba(139, 92, 246, 0.04);
-  --color-rule-dark: rgba(255, 184, 77, 0.15);
+  --color-rule: rgba(75, 156, 211, 0.10);
+  --color-rule-light: rgba(75, 156, 211, 0.05);
+  --color-rule-dark: rgba(86, 168, 216, 0.18);
 
   --color-background: var(--color-surface-cream);
   --color-foreground: var(--color-ink);
 
-  --modern-primary: #ffb84d;
-  --modern-primary-hover: #ffd280;
-  --modern-purple: #8b5cf6;
-  --modern-success: #4ade80;
+  --modern-primary: #56A8D8;
+  --modern-primary-hover: #7CBCE0;
+  --modern-purple: #4B9CD3;
+  --modern-success: #4ADE80;
   --modern-warning: #f59e0b;
   --modern-error: #ef4444;
-  --modern-card-border: rgba(139, 92, 246, 0.08);
+  --modern-card-border: rgba(75, 156, 211, 0.12);
+
+  --accent-rgb: 75,156,211;
 
   --font-serif: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-sans: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
@@ -249,6 +258,7 @@
   --color-editorial-green: var(--color-editorial-green);
   --color-editorial-gold: var(--color-editorial-gold);
   --color-editorial-blue: var(--color-editorial-blue);
+  --color-editorial-accent: var(--color-editorial-accent, var(--color-editorial-red));
 
   --color-rule: var(--color-rule);
   --color-rule-light: var(--color-rule-light);
@@ -362,6 +372,56 @@ dialog {
   border-radius: 9999px !important;
 }
 
+/* --- EDITORIAL MODE: sharp newspaper-style corners --- */
+/* Override ALL inline border-radius in editorial mode, then restore circles/pills. */
+html:not(.modern-view) .dashboard-main [style*="border-radius"] {
+  border-radius: 2px !important;
+}
+/* Preserve intentional circles and pills */
+html:not(.modern-view) .dashboard-main [style*="border-radius: 50"],
+html:not(.modern-view) .dashboard-main [style*="border-radius: 9999"] {
+  border-radius: 9999px !important;
+}
+
+/* Flatten heavy shadows in editorial mode */
+html:not(.modern-view) .dashboard-main [style*="box-shadow"] {
+  box-shadow: none !important;
+}
+
+/* Also sharpen Tailwind-class-based rounding in editorial */
+html:not(.modern-view) .dashboard-main .rounded-lg,
+html:not(.modern-view) .dashboard-main .rounded-xl,
+html:not(.modern-view) .dashboard-main .rounded-2xl,
+html:not(.modern-view) .dashboard-main .rounded-3xl,
+html:not(.modern-view) .dashboard-main .rounded-md {
+  border-radius: 2px !important;
+}
+
+/* --- EDITORIAL MODE: font overrides --- */
+/* Override inline system fonts to use editorial typefaces. */
+html:not(.modern-view) .dashboard-main [style*="font-family"] {
+  font-family: var(--font-sans) !important;
+}
+/* Headings get serif font */
+html:not(.modern-view) .dashboard-main h1,
+html:not(.modern-view) .dashboard-main h2,
+html:not(.modern-view) .dashboard-main h3,
+html:not(.modern-view) .dashboard-main h4 {
+  font-family: var(--font-serif) !important;
+}
+/* Large data values get serif (matches Overview style) */
+html:not(.modern-view) .dashboard-main [style*="font-size: 2"],
+html:not(.modern-view) .dashboard-main [style*="font-size: 3"],
+html:not(.modern-view) .dashboard-main [style*="font-size: 4"],
+html:not(.modern-view) .dashboard-main [style*="font-size: 5"] {
+  font-family: var(--font-serif) !important;
+}
+/* Uppercase labels get sans with editorial spacing */
+html:not(.modern-view) .dashboard-main [style*="text-transform: uppercase"] {
+  font-family: var(--font-sans) !important;
+  letter-spacing: 0.08em !important;
+}
+
 /* --- EDITORIAL TYPOGRAPHY --- */
 .editorial-headline {
   font-family: var(--font-serif);
@@ -426,8 +486,11 @@ dialog {
   background: var(--color-ink-muted);
 }
 
-/* --- TRANSITIONS --- */
-* {
+/* --- TRANSITIONS --- only on interactive/themed elements, NOT * (LCP killer) */
+button, a, input, select, textarea,
+.lp-card-hover, .lp-connect-hover,
+[class*="bg-surface"], [class*="border-"],
+.modern-view *, .admin-dark *, .admin-light * {
   transition-property: background-color, border-color, color;
   transition-duration: 150ms;
   transition-timing-function: ease;
@@ -449,6 +512,9 @@ dialog {
 /* ================================================================
    LANDING PAGE — Phone showcase positioning & animation
    ================================================================ */
+
+/* LCP optimisation: contain layout paint for phone showcase so it doesn't block hero render */
+#hero { contain: layout style; }
 
 /* Phone showcase: 3-phone layout with tilt & hover */
 .lp-phones-container {
@@ -478,7 +544,7 @@ dialog {
 .lp-card-hover:hover { transform: translateY(-4px); }
 
 /* Connect button hover */
-.lp-connect-hover:hover { background: #FFB84D !important; color: #1A1035 !important; border-color: #FFB84D !important; }
+.lp-connect-hover:hover { background: #FFB84D !important; color: #0B1928 !important; border-color: #FFB84D !important; }
 
 /* FAQ summary arrow hide default */
 details summary::-webkit-details-marker { display: none; }
@@ -488,7 +554,7 @@ details summary::-webkit-details-marker { display: none; }
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #8A7AAE;
+  background: #8BACC8;
   display: inline-block;
   animation: lp-typing 1.4s ease-in-out infinite;
 }

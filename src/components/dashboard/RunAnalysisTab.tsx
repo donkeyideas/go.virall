@@ -227,7 +227,7 @@ function ProcessingAnimation({
             Analyzing {title}
           </h3>
           <p className="text-[11px] text-ink-muted">
-            AI is processing your profile data
+            Processing your profile data
           </p>
         </div>
       </div>

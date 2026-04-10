@@ -21,9 +21,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
 } from "recharts";
 
@@ -32,16 +29,16 @@ import {
 /* ------------------------------------------------------------------ */
 
 const tooltipStyle = {
-  backgroundColor: "#2A1B54",
-  border: "1px solid rgba(139,92,246,0.15)",
+  backgroundColor: "#112240",
+  border: "1px solid rgba(75,156,211,0.15)",
   borderRadius: 8,
   fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
   fontSize: 11,
-  color: "#F0ECF8",
+  color: "#E8F0FA",
 };
 const axisTick = { fontSize: 11, fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif", fill: "#6B5D8E" };
 const PIE_COLORS = [
-  "#8B5CF6",
+  "#4B9CD3",
   "#FFB84D",
   "#4ade80",
   "#5b9cf5",
@@ -55,6 +52,10 @@ const AREA_COLORS = {
   users: "#5b9cf5",
   orgs: "#4ade80",
   profiles: "#FFB84D",
+  creatorUsers: "#22c55e",
+  brandUsers: "#4B9CD3",
+  creatorOrgs: "#86efac",
+  brandOrgs: "#93c5fd",
 };
 
 /* ------------------------------------------------------------------ */
@@ -65,8 +66,49 @@ const PLAN_COLORS: Record<string, string> = {
   free: "text-ink-muted",
   pro: "text-editorial-gold",
   business: "text-editorial-green",
-  enterprise: "text-editorial-red",
+  enterprise: "text-editorial-blue",
+  brand_starter: "text-editorial-gold",
+  brand_growth: "text-editorial-green",
+  brand_enterprise: "text-editorial-blue",
 };
+
+/* Human-readable labels for event_type codes */
+const FEATURE_LABELS: Record<string, string> = {
+  page_view: "Page View",
+  chat_message: "Chat Message",
+  analysis_run: "Analysis Run",
+  profile_sync: "Profile Sync",
+  profile_sync_all: "Sync All Profiles",
+  content_generated: "Content Generated",
+  competitor_added: "Competitor Added",
+  competitor_analysis: "Competitor Analysis",
+  deal_created: "Deal Created",
+  deal_updated: "Deal Updated",
+  campaign_created: "Campaign Created",
+  settings_updated: "Settings Updated",
+  billing_checkout: "Billing Checkout",
+  export_data: "Data Export",
+  media_kit_view: "Media Kit View",
+  hashtag_search: "Hashtag Search",
+  strategy_generated: "Strategy Generated",
+  login: "Login",
+  signup: "Signup",
+};
+
+function featureLabel(key: string): string {
+  return FEATURE_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function AccountBadge({ type }: { type: "creator" | "brand" }) {
+  return (
+    <span className={cn(
+      "text-[10px] font-bold uppercase tracking-wider",
+      type === "brand" ? "text-editorial-blue" : "text-ink-muted",
+    )}>
+      {type}
+    </span>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
@@ -104,6 +146,14 @@ export function AnalyticsClient({
     paidOrgs: number;
     freeOrgs: number;
     churnRate: number;
+    creatorMrr: number;
+    brandMrr: number;
+    creatorUsers: number;
+    brandUsers: number;
+    creatorOrgs: number;
+    brandOrgs: number;
+    creatorPaidOrgs: number;
+    brandPaidOrgs: number;
   };
   growth: Array<{
     month: string;
@@ -111,6 +161,10 @@ export function AnalyticsClient({
     orgs: number;
     profiles: number;
     analyses: number;
+    creatorUsers: number;
+    brandUsers: number;
+    creatorOrgs: number;
+    brandOrgs: number;
   }>;
   usage: {
     totalProfiles: number;
@@ -134,6 +188,10 @@ export function AnalyticsClient({
     paidOrgs: number;
     freeOrgs: number;
     planDistribution: Record<string, number>;
+    creatorPlanDistribution: Record<string, number>;
+    brandPlanDistribution: Record<string, number>;
+    creatorPaidOrgs: number;
+    brandPaidOrgs: number;
   };
   cohorts: CohortRow[];
   funnel: FunnelStep[];
@@ -146,10 +204,6 @@ export function AnalyticsClient({
   platformDist: PlatformDistribution[];
 }) {
   /* ---- Derived data ---- */
-  const pieData = Object.entries(billing.planDistribution).map(
-    ([name, value]) => ({ name, value }),
-  );
-
   const paidRatio =
     billing.totalOrgs > 0
       ? ((billing.paidOrgs / billing.totalOrgs) * 100).toFixed(1)
@@ -159,6 +213,8 @@ export function AnalyticsClient({
   const heroKPIs = [
     { label: "MRR", value: `$${metrics.mrr.toLocaleString()}` },
     { label: "ARR", value: `$${metrics.arr.toLocaleString()}` },
+    { label: "Creator MRR", value: `$${metrics.creatorMrr.toLocaleString()}`, accent: "text-editorial-green" },
+    { label: "Brand MRR", value: `$${metrics.brandMrr.toLocaleString()}`, accent: "text-editorial-gold" },
     { label: "Total Customers", value: metrics.totalOrgs.toLocaleString() },
     {
       label: "Paid Customers",
@@ -173,15 +229,6 @@ export function AnalyticsClient({
         metrics.churnRate > 0.1
           ? "text-editorial-red"
           : "text-editorial-green",
-    },
-    { label: "API Cost (30d)", value: `$${apiUsage.totalCost.toFixed(2)}` },
-    {
-      label: "API Success Rate",
-      value: `${(apiUsage.successRate * 100).toFixed(1)}%`,
-      accent:
-        apiUsage.successRate >= 0.95
-          ? "text-editorial-green"
-          : "text-editorial-red",
     },
   ];
 
@@ -239,6 +286,30 @@ export function AnalyticsClient({
         ))}
       </div>
 
+      {/* Account Type Breakdown */}
+      <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-3">
+        Account Type Breakdown
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6 mb-8">
+        {[
+          { label: "Creator Users", value: metrics.creatorUsers, accent: "text-editorial-green" },
+          { label: "Brand Users", value: metrics.brandUsers, accent: "text-editorial-blue" },
+          { label: "Creator Orgs", value: metrics.creatorOrgs, accent: "text-editorial-green" },
+          { label: "Brand Orgs", value: metrics.brandOrgs, accent: "text-editorial-blue" },
+          { label: "Creator Paid", value: metrics.creatorPaidOrgs, accent: "text-editorial-green" },
+          { label: "Brand Paid", value: metrics.brandPaidOrgs, accent: "text-editorial-blue" },
+        ].map((m) => (
+          <div key={m.label} className="border border-rule bg-surface-card p-3 text-center">
+            <div className={`font-mono text-lg font-bold ${m.accent}`}>
+              {m.value.toLocaleString()}
+            </div>
+            <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mt-1">
+              {m.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* ============================================================ */}
       {/* 2. Growth Chart (AreaChart)                                   */}
       {/* ============================================================ */}
@@ -261,52 +332,27 @@ export function AnalyticsClient({
               >
                 <defs>
                   <linearGradient id="gradUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={AREA_COLORS.users}
-                      stopOpacity={0.25}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={AREA_COLORS.users}
-                      stopOpacity={0}
-                    />
+                    <stop offset="5%" stopColor={AREA_COLORS.users} stopOpacity={0.25} />
+                    <stop offset="95%" stopColor={AREA_COLORS.users} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gradOrgs" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={AREA_COLORS.orgs}
-                      stopOpacity={0.25}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={AREA_COLORS.orgs}
-                      stopOpacity={0}
-                    />
+                    <stop offset="5%" stopColor={AREA_COLORS.orgs} stopOpacity={0.25} />
+                    <stop offset="95%" stopColor={AREA_COLORS.orgs} stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient
-                    id="gradProfiles"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={AREA_COLORS.profiles}
-                      stopOpacity={0.25}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={AREA_COLORS.profiles}
-                      stopOpacity={0}
-                    />
+                  <linearGradient id="gradProfiles" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={AREA_COLORS.profiles} stopOpacity={0.25} />
+                    <stop offset="95%" stopColor={AREA_COLORS.profiles} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradCreatorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={AREA_COLORS.creatorUsers} stopOpacity={0.2} />
+                    <stop offset="95%" stopColor={AREA_COLORS.creatorUsers} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradBrandUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={AREA_COLORS.brandUsers} stopOpacity={0.2} />
+                    <stop offset="95%" stopColor={AREA_COLORS.brandUsers} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--color-rule, #ddd)"
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-rule, #ddd)" />
                 <XAxis dataKey="month" tick={axisTick} />
                 <YAxis tick={axisTick} />
                 <Tooltip contentStyle={tooltipStyle} />
@@ -316,30 +362,11 @@ export function AnalyticsClient({
                     fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
                   }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="users"
-                  stroke={AREA_COLORS.users}
-                  strokeWidth={2}
-                  fill="url(#gradUsers)"
-                  name="Users"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="orgs"
-                  stroke={AREA_COLORS.orgs}
-                  strokeWidth={2}
-                  fill="url(#gradOrgs)"
-                  name="Orgs"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="profiles"
-                  stroke={AREA_COLORS.profiles}
-                  strokeWidth={2}
-                  fill="url(#gradProfiles)"
-                  name="Profiles"
-                />
+                <Area type="monotone" dataKey="users" stroke={AREA_COLORS.users} strokeWidth={2} fill="url(#gradUsers)" name="Total Users" />
+                <Area type="monotone" dataKey="creatorUsers" stroke={AREA_COLORS.creatorUsers} strokeWidth={1.5} fill="url(#gradCreatorUsers)" name="Creator Users" strokeDasharray="5 3" />
+                <Area type="monotone" dataKey="brandUsers" stroke={AREA_COLORS.brandUsers} strokeWidth={1.5} fill="url(#gradBrandUsers)" name="Brand Users" strokeDasharray="5 3" />
+                <Area type="monotone" dataKey="orgs" stroke={AREA_COLORS.orgs} strokeWidth={2} fill="url(#gradOrgs)" name="Total Orgs" />
+                <Area type="monotone" dataKey="profiles" stroke={AREA_COLORS.profiles} strokeWidth={2} fill="url(#gradProfiles)" name="Profiles" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -353,49 +380,68 @@ export function AnalyticsClient({
         Revenue &amp; Plan Mix
       </p>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {/* Left: Pie Chart */}
-        <div className="border border-rule bg-surface-card">
-          <div className="border-b border-rule bg-surface-raised px-4 py-2.5">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
-              Plan Distribution
-            </span>
+        {/* Left: Creator Plans + Brand Plans */}
+        <div className="space-y-4">
+          {/* Creator Plans */}
+          <div className="border border-rule bg-surface-card">
+            <div className="border-b border-rule bg-surface-raised px-4 py-2.5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-editorial-green">
+                Creator Plans
+              </span>
+            </div>
+            <div className="p-4 space-y-3">
+              {Object.entries(billing.creatorPlanDistribution).map(([plan, count]) => {
+                const total = billing.totalOrgs || 1;
+                const pct = ((count / total) * 100).toFixed(1);
+                return (
+                  <div key={plan}>
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span className={`text-xs font-bold uppercase tracking-widest ${PLAN_COLORS[plan] ?? "text-ink"}`}>
+                        {plan}
+                      </span>
+                      <span className="font-mono text-sm text-ink-muted">{count} · {pct}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-surface-raised">
+                      <div className="h-2 rounded-full bg-editorial-green" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {Object.keys(billing.creatorPlanDistribution).length === 0 && (
+                <span className="text-sm text-ink-muted">No creator plans</span>
+              )}
+            </div>
           </div>
-          <div className="p-4 flex justify-center min-w-0">
-            {pieData.length === 0 ? (
-              <div className="text-center text-sm text-ink-muted py-8">
-                No plan data
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                    nameKey="name"
-                    label={false}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {pieData.map((_entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={PIE_COLORS[index % PIE_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend
-                    wrapperStyle={{
-                      fontSize: 11,
-                      fontFamily: "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+
+          {/* Brand Plans */}
+          <div className="border border-rule bg-surface-card">
+            <div className="border-b border-rule bg-surface-raised px-4 py-2.5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-editorial-blue">
+                Brand Plans
+              </span>
+            </div>
+            <div className="p-4 space-y-3">
+              {Object.entries(billing.brandPlanDistribution).map(([plan, count]) => {
+                const total = billing.totalOrgs || 1;
+                const pct = ((count / total) * 100).toFixed(1);
+                return (
+                  <div key={plan}>
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span className={`text-xs font-bold uppercase tracking-widest ${PLAN_COLORS[plan] ?? "text-editorial-blue"}`}>
+                        {plan}
+                      </span>
+                      <span className="font-mono text-sm text-ink-muted">{count} · {pct}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-surface-raised">
+                      <div className="h-2 rounded-full" style={{ background: "#4B9CD3", width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {Object.keys(billing.brandPlanDistribution).length === 0 && (
+                <span className="text-sm text-ink-muted">No brand plans</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -430,7 +476,10 @@ export function AnalyticsClient({
             </div>
             <div className="flex items-center gap-3 mt-2">
               <span className="text-sm font-mono text-editorial-green">
-                {billing.paidOrgs} paid
+                {billing.creatorPaidOrgs} creator
+              </span>
+              <span className="text-sm font-mono text-editorial-blue">
+                {billing.brandPaidOrgs} brand
               </span>
               <span className="text-sm font-mono text-ink-muted">
                 {billing.freeOrgs} free
@@ -438,12 +487,22 @@ export function AnalyticsClient({
             </div>
           </div>
 
-          <div className="border border-rule bg-surface-card p-4">
-            <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-1">
-              Monthly Recurring Revenue
+          <div className="grid grid-cols-2 gap-3">
+            <div className="border border-rule bg-surface-card p-4">
+              <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-1">
+                Creator MRR
+              </div>
+              <div className="font-mono text-xl font-bold text-editorial-green">
+                ${metrics.creatorMrr.toLocaleString()}
+              </div>
             </div>
-            <div className="font-mono text-2xl font-bold text-ink">
-              ${metrics.mrr.toLocaleString()}
+            <div className="border border-rule bg-surface-card p-4">
+              <div className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-1">
+                Brand MRR
+              </div>
+              <div className="font-mono text-xl font-bold text-editorial-gold">
+                ${metrics.brandMrr.toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
@@ -480,7 +539,7 @@ export function AnalyticsClient({
       {/* ============================================================ */}
       {/* 5. Monthly Growth Table                                      */}
       {/* ============================================================ */}
-      <div className="border border-rule mb-8">
+      <div className="border border-rule mb-8 overflow-x-auto">
         <div className="border-b border-rule bg-surface-raised px-4 py-2.5">
           <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
             Monthly Growth Table
@@ -488,12 +547,15 @@ export function AnalyticsClient({
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-5 gap-4 px-4 py-2.5 border-b border-rule">
-          {["Month", "Users", "Orgs", "Profiles", "Analyses"].map(
-            (heading) => (
+        <div className="grid grid-cols-[0.8fr_0.6fr_0.6fr_0.6fr_0.6fr_0.6fr_0.6fr_0.5fr] gap-3 px-4 py-2.5 border-b border-rule min-w-[900px]">
+          {["Month", "Users", "Creator", "Brand", "Orgs", "Creator", "Brand", "Analyses"].map(
+            (heading, i) => (
               <span
-                key={heading}
-                className="text-[11px] font-bold uppercase tracking-widest text-ink-muted"
+                key={`${heading}-${i}`}
+                className={cn(
+                  "text-[11px] font-bold uppercase tracking-widest",
+                  (i === 2 || i === 5) ? "text-editorial-green" : (i === 3 || i === 6) ? "text-editorial-blue" : "text-ink-muted",
+                )}
               >
                 {heading}
               </span>
@@ -509,23 +571,16 @@ export function AnalyticsClient({
           growth.map((row) => (
             <div
               key={row.month}
-              className="grid grid-cols-5 gap-4 px-4 py-3 border-b border-rule last:border-b-0"
+              className="grid grid-cols-[0.8fr_0.6fr_0.6fr_0.6fr_0.6fr_0.6fr_0.6fr_0.5fr] gap-3 px-4 py-3 border-b border-rule last:border-b-0 min-w-[900px]"
             >
-              <span className="font-mono text-sm text-ink-secondary">
-                {row.month}
-              </span>
-              <span className="font-mono text-sm text-ink font-bold">
-                {row.users.toLocaleString()}
-              </span>
-              <span className="font-mono text-sm text-ink font-bold">
-                {row.orgs.toLocaleString()}
-              </span>
-              <span className="font-mono text-sm text-ink font-bold">
-                {row.profiles.toLocaleString()}
-              </span>
-              <span className="font-mono text-sm text-ink font-bold">
-                {row.analyses.toLocaleString()}
-              </span>
+              <span className="font-mono text-sm text-ink-secondary">{row.month}</span>
+              <span className="font-mono text-sm text-ink font-bold">{row.users.toLocaleString()}</span>
+              <span className="font-mono text-sm text-editorial-green">{row.creatorUsers.toLocaleString()}</span>
+              <span className="font-mono text-sm text-editorial-blue">{row.brandUsers.toLocaleString()}</span>
+              <span className="font-mono text-sm text-ink font-bold">{row.orgs.toLocaleString()}</span>
+              <span className="font-mono text-sm text-editorial-green">{row.creatorOrgs.toLocaleString()}</span>
+              <span className="font-mono text-sm text-editorial-blue">{row.brandOrgs.toLocaleString()}</span>
+              <span className="font-mono text-sm text-ink font-bold">{row.analyses.toLocaleString()}</span>
             </div>
           ))
         )}
@@ -550,9 +605,18 @@ export function AnalyticsClient({
                   <div key={step.label}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-sans text-sm font-semibold text-ink">{step.label}</span>
-                      <span className="font-mono text-sm text-ink-secondary">
-                        {step.count.toLocaleString()} ({step.pct}%)
-                      </span>
+                      <div className="flex items-center gap-3">
+                        {(step.creatorCount > 0 || step.brandCount > 0) && (
+                          <span className="text-[10px] text-ink-muted">
+                            <span className="text-editorial-green">{step.creatorCount} creator</span>
+                            {" · "}
+                            <span className="text-editorial-blue">{step.brandCount} brand</span>
+                          </span>
+                        )}
+                        <span className="font-mono text-sm text-ink-secondary">
+                          {step.count.toLocaleString()} ({step.pct}%)
+                        </span>
+                      </div>
                     </div>
                     <div className="h-3 w-full overflow-hidden rounded-full" style={{ background: 'var(--color-surface-raised)' }}>
                       <div
@@ -635,7 +699,7 @@ export function AnalyticsClient({
             ) : (
               featureAdoption.slice(0, 15).map((f) => (
                 <div key={f.feature} className="grid grid-cols-3 gap-4 px-4 py-3 border-b border-rule last:border-b-0">
-                  <span className="font-mono text-sm text-ink">{f.feature}</span>
+                  <span className="font-sans text-sm text-ink font-medium">{featureLabel(f.feature)}</span>
                   <span className="font-mono text-sm text-ink font-bold">{f.users.toLocaleString()}</span>
                   <span className="font-mono text-sm text-ink-secondary">{f.totalEvents.toLocaleString()}</span>
                 </div>
@@ -655,8 +719,8 @@ export function AnalyticsClient({
             Top Engaged Users (30 Days)
           </p>
           <div className="border border-rule mb-8 overflow-x-auto">
-            <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-rule min-w-[700px]">
-              {["User", "Email", "Plan", "Score", "Events", "Last Active"].map((h) => (
+            <div className="grid grid-cols-7 gap-4 px-4 py-2.5 border-b border-rule min-w-[800px]">
+              {["User", "Email", "Type", "Plan", "Score", "Events", "Last Active"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
             </div>
@@ -664,9 +728,10 @@ export function AnalyticsClient({
               <div className="p-4 text-center text-sm text-ink-muted">No engagement data yet</div>
             ) : (
               engagementScores.slice(0, 20).map((u) => (
-                <div key={u.userId} className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[700px]">
-                  <span className="font-sans text-sm text-ink truncate">{u.name || "—"}</span>
-                  <span className="font-mono text-xs text-ink-secondary truncate">{u.email}</span>
+                <div key={u.userId} className="grid grid-cols-7 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[800px]">
+                  <span className="font-sans text-sm text-ink truncate">{u.name || "Unknown"}</span>
+                  <span className="font-mono text-xs text-ink-secondary truncate">{u.email || "—"}</span>
+                  <span><AccountBadge type={u.accountType} /></span>
                   <span className={cn("font-sans text-sm font-semibold capitalize", PLAN_COLORS[u.plan] ?? "text-ink")}>{u.plan}</span>
                   <span className={cn("font-mono text-sm font-bold", u.score >= 70 ? "text-editorial-green" : u.score >= 40 ? "text-editorial-gold" : "text-ink-muted")}>{u.score}</span>
                   <span className="font-mono text-sm text-ink">{u.eventCount.toLocaleString()}</span>
@@ -678,11 +743,11 @@ export function AnalyticsClient({
 
           {/* Churn Risk */}
           <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-3">
-            Churn Risk (Paid Users)
+            Churn Risk (Paid &amp; Cancelled Users)
           </p>
           <div className="border border-rule mb-8 overflow-x-auto">
-            <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-rule min-w-[700px]">
-              {["User", "Plan", "Risk", "Days Inactive", "Prev Month", "This Month"].map((h) => (
+            <div className="grid grid-cols-7 gap-4 px-4 py-2.5 border-b border-rule min-w-[800px]">
+              {["User", "Type", "Plan", "Risk", "Days Inactive", "Prev Month", "This Month"].map((h) => (
                 <span key={h} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{h}</span>
               ))}
             </div>
@@ -690,8 +755,9 @@ export function AnalyticsClient({
               <div className="p-4 text-center text-sm text-ink-muted">No churn risks detected</div>
             ) : (
               churnRisk.map((u) => (
-                <div key={u.userId} className="grid grid-cols-6 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[700px]">
-                  <span className="font-sans text-sm text-ink truncate">{u.name || u.email}</span>
+                <div key={u.userId} className="grid grid-cols-7 gap-4 px-4 py-3 border-b border-rule last:border-b-0 min-w-[800px]">
+                  <span className="font-sans text-sm text-ink truncate">{u.name || u.email || "Unknown"}</span>
+                  <span><AccountBadge type={u.accountType} /></span>
                   <span className={cn("font-sans text-sm font-semibold capitalize", PLAN_COLORS[u.plan] ?? "text-ink")}>{u.plan}</span>
                   <span className={cn(
                     "font-sans text-xs font-bold uppercase tracking-wider",
@@ -727,6 +793,12 @@ export function AnalyticsClient({
                 <div className="text-xs text-ink-secondary">
                   {pd.avgEngagement}% avg eng.
                 </div>
+                {(pd.creatorCount > 0 || pd.brandCount > 0) && (
+                  <div className="mt-1 flex items-center justify-center gap-2 text-[10px]">
+                    <span className="text-editorial-green">{pd.creatorCount} creator</span>
+                    <span className="text-editorial-blue">{pd.brandCount} brand</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -776,7 +848,7 @@ export function AnalyticsClient({
                   <span className="font-mono text-sm text-ink-secondary">{b.followerBracket}</span>
                   <span className="font-mono text-sm font-bold text-editorial-red">{b.avgEngagement}%</span>
                   <span className={cn("font-mono text-sm font-bold", b.avgGrowth >= 0 ? "text-editorial-green" : "text-editorial-red")}>{b.avgGrowth >= 0 ? "+" : ""}{b.avgGrowth}%</span>
-                  <span className="font-mono text-sm text-ink">{b.avgPostsPerWeek}</span>
+                  <span className="font-mono text-sm text-ink">{b.avgPostsPerWeek.toLocaleString()}</span>
                   <span className="font-mono text-sm text-ink-muted">{b.sampleSize}</span>
                 </div>
               ))

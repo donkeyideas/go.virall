@@ -76,20 +76,63 @@ export async function getBillingInvoices(): Promise<BillingInvoice[]> {
     const invoices = await stripe.invoices.list({
       customer: org.stripe_customer_id,
       limit: 12,
+      expand: ["data.charge"],
     });
 
-    return invoices.data.map((inv) => ({
-      id: inv.id,
-      date: new Date((inv.created ?? 0) * 1000).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      description: inv.lines.data[0]?.description ?? "Subscription",
-      amount: (inv.amount_paid ?? 0) / 100,
-      status: inv.status ?? "unknown",
-      invoice_url: inv.hosted_invoice_url ?? null,
-    }));
+    return invoices.data
+      .filter((inv) => inv.status === "paid" || inv.status === "uncollectible")
+      .map((inv) => {
+        const charge = (inv as unknown as { charge?: Stripe.Charge | null }).charge ?? null;
+        const pm = charge?.payment_method_details;
+        return {
+          id: inv.id,
+          number: inv.number ?? null,
+          date: new Date((inv.created ?? 0) * 1000).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          due_date: inv.due_date
+            ? new Date(inv.due_date * 1000).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : null,
+          description: inv.lines.data[0]?.description ?? "Subscription",
+          amount: (inv.amount_paid ?? 0) / 100,
+          subtotal: (inv.subtotal ?? 0) / 100,
+          tax: ((inv as unknown as { tax?: number }).tax ?? 0) / 100,
+          status: inv.status ?? "unknown",
+          invoice_url: inv.hosted_invoice_url ?? null,
+          invoice_pdf: inv.invoice_pdf ?? null,
+          payment_method_brand: pm?.card?.brand ?? null,
+          payment_method_last4: pm?.card?.last4 ?? null,
+          customer_name: inv.customer_name ?? null,
+          customer_email: inv.customer_email ?? null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          line_items: inv.lines.data.map((line: any) => ({
+            description: line.description ?? "Subscription",
+            quantity: line.quantity ?? 1,
+            unit_amount: (line.price?.unit_amount ?? 0) / 100,
+            amount: (line.amount ?? 0) / 100,
+          })),
+          period_start: inv.lines.data[0]?.period?.start
+            ? new Date(inv.lines.data[0].period.start * 1000).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : null,
+          period_end: inv.lines.data[0]?.period?.end
+            ? new Date(inv.lines.data[0].period.end * 1000).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : null,
+        };
+      });
   } catch {
     return [];
   }

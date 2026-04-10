@@ -91,6 +91,8 @@ export interface FunnelStep {
   label: string;
   count: number;
   pct: number;
+  creatorCount: number;
+  brandCount: number;
 }
 
 export async function getConversionFunnel(): Promise<FunnelStep[]> {
@@ -101,46 +103,69 @@ export async function getConversionFunnel(): Promise<FunnelStep[]> {
     { count: profileConnected },
     { count: firstAnalysis },
     { count: paidOrgs },
+    { count: creatorUsers },
+    { count: brandUsers },
   ] = await Promise.all([
     admin.from("profiles").select("id", { count: "exact", head: true }),
-    admin
-      .from("social_profiles")
-      .select("organization_id", { count: "exact", head: true }),
-    admin
-      .from("social_analyses")
-      .select("id", { count: "exact", head: true }),
-    admin
-      .from("organizations")
-      .select("id", { count: "exact", head: true })
-      .neq("plan", "free"),
+    admin.from("social_profiles").select("organization_id", { count: "exact", head: true }),
+    admin.from("social_analyses").select("id", { count: "exact", head: true }),
+    admin.from("organizations").select("id", { count: "exact", head: true }).neq("plan", "free"),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("account_type", "creator"),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("account_type", "brand"),
   ]);
 
   // Return visits: users with > 1 event on different days
-  const { data: returnData } = await admin.rpc("count_return_visitors").single();
-  const returnVisitors = (returnData as unknown as number) ?? 0;
+  let returnVisitors = 0;
+  try {
+    const { data: returnData } = await admin.rpc("count_return_visitors").single();
+    returnVisitors = (returnData as unknown as number) ?? 0;
+  } catch {
+    // RPC may not exist yet — fallback to 0
+  }
+
+  // Get org account type map for paid org split
+  const orgProfiles = await admin.from("profiles").select("organization_id, account_type").not("organization_id", "is", null);
+  const orgTypeMap = new Map<string, "creator" | "brand">();
+  for (const row of orgProfiles.data ?? []) {
+    if (row.organization_id && !orgTypeMap.has(row.organization_id)) {
+      orgTypeMap.set(row.organization_id, (row.account_type as "creator" | "brand") ?? "creator");
+    }
+  }
+  const { data: paidOrgsList } = await admin.from("organizations").select("id").neq("plan", "free");
+  let creatorPaid = 0, brandPaid = 0;
+  for (const o of paidOrgsList ?? []) {
+    if (orgTypeMap.get(o.id) === "brand") brandPaid++; else creatorPaid++;
+  }
 
   const total = totalUsers ?? 0;
+  const cUsers = creatorUsers ?? 0;
+  const bUsers = brandUsers ?? 0;
+
   const steps: FunnelStep[] = [
-    { label: "Signed Up", count: total, pct: 100 },
+    { label: "Signed Up", count: total, pct: 100, creatorCount: cUsers, brandCount: bUsers },
     {
       label: "Profile Connected",
       count: profileConnected ?? 0,
       pct: total > 0 ? Math.round(((profileConnected ?? 0) / total) * 100) : 0,
+      creatorCount: 0, brandCount: 0, // can't split connected profiles easily
     },
     {
       label: "First Analysis Run",
       count: firstAnalysis ?? 0,
       pct: total > 0 ? Math.round(((firstAnalysis ?? 0) / total) * 100) : 0,
+      creatorCount: 0, brandCount: 0,
     },
     {
       label: "Return Visit",
       count: returnVisitors,
       pct: total > 0 ? Math.round((returnVisitors / total) * 100) : 0,
+      creatorCount: 0, brandCount: 0,
     },
     {
       label: "Paid Conversion",
       count: paidOrgs ?? 0,
       pct: total > 0 ? Math.round(((paidOrgs ?? 0) / total) * 100) : 0,
+      creatorCount: creatorPaid, brandCount: brandPaid,
     },
   ];
 
@@ -199,30 +224,23 @@ export async function getRevenueWaterfall(): Promise<RevenueWaterfall> {
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
-  // New subscriptions in last 30 days
-  const { data: newOrgs } = await admin
-    .from("organizations")
-    .select("plan")
-    .gte("created_at", thirtyDaysAgo)
-    .neq("plan", "free");
+  // Fetch DB-based pricing + new orgs + billing events in parallel
+  const [{ data: plans }, { data: newOrgs }, { data: billingEvents }] = await Promise.all([
+    admin.from("pricing_plans").select("id, name, price_monthly, account_type"),
+    admin.from("organizations").select("plan").gte("created_at", thirtyDaysAgo).neq("plan", "free"),
+    admin.from("billing_events").select("event_type, metadata").gte("created_at", thirtyDaysAgo),
+  ]);
 
-  const planPrices: Record<string, number> = {
-    free: 0,
-    pro: 29,
-    business: 79,
-    enterprise: 199,
-  };
+  // Build price lookup: lowercase plan name → dollars
+  const planPrices = new Map<string, number>();
+  for (const p of plans ?? []) {
+    if (p.name) planPrices.set(p.name.toLowerCase(), (p.price_monthly ?? 0) / 100);
+  }
 
   const newMRR = (newOrgs ?? []).reduce(
-    (sum, o) => sum + (planPrices[o.plan] ?? 0),
+    (sum, o) => sum + (planPrices.get(o.plan) ?? 0),
     0,
   );
-
-  // Billing events for upgrades, downgrades, cancellations
-  const { data: billingEvents } = await admin
-    .from("billing_events")
-    .select("event_type, metadata")
-    .gte("created_at", thirtyDaysAgo);
 
   let expansionMRR = 0;
   let contractionMRR = 0;
@@ -230,8 +248,8 @@ export async function getRevenueWaterfall(): Promise<RevenueWaterfall> {
 
   for (const event of billingEvents ?? []) {
     const meta = (event.metadata ?? {}) as Record<string, string>;
-    const from = planPrices[meta.from_plan] ?? 0;
-    const to = planPrices[meta.to_plan] ?? 0;
+    const from = planPrices.get(meta.from_plan) ?? 0;
+    const to = planPrices.get(meta.to_plan) ?? 0;
 
     if (event.event_type === "upgrade") {
       expansionMRR += to - from;
@@ -266,6 +284,7 @@ export interface UserEngagement {
   email: string;
   name: string;
   plan: string;
+  accountType: "creator" | "brand";
   score: number;
   lastActive: string | null;
   eventCount: number;
@@ -329,36 +348,39 @@ export async function getUserEngagementScores(
   const userIds = top.map((s) => s.userId);
   const { data: profiles } = await admin
     .from("profiles")
-    .select("id, email, full_name")
+    .select("id, full_name, organization_id, account_type")
     .in("id", userIds);
 
-  const { data: members } = await admin
-    .from("organization_members")
-    .select("user_id, organization_id")
-    .in("user_id", userIds);
+  // Get emails from auth (profiles table doesn't store emails)
+  let emailMap = new Map<string, string>();
+  try {
+    const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    emailMap = new Map((authUsers?.users ?? []).map((u) => [u.id, u.email ?? ""]));
+  } catch { /* auth admin may not be available */ }
 
-  const orgIds = [...new Set((members ?? []).map((m) => m.organization_id))];
-  const { data: orgs } = await admin
-    .from("organizations")
-    .select("id, plan")
-    .in("id", orgIds);
+  const orgIds = [...new Set((profiles ?? []).map((p) => p.organization_id).filter(Boolean))];
+  const { data: orgs } = orgIds.length
+    ? await admin.from("organizations").select("id, plan").in("id", orgIds as string[])
+    : { data: [] };
 
   const orgPlan: Record<string, string> = {};
   for (const o of orgs ?? []) orgPlan[o.id] = o.plan;
 
-  const memberOrg: Record<string, string> = {};
-  for (const m of members ?? []) memberOrg[m.user_id] = m.organization_id;
-
-  const profileMap: Record<string, { email: string; name: string }> = {};
+  const profileMap: Record<string, { name: string; orgId: string | null; accountType: "creator" | "brand" }> = {};
   for (const p of profiles ?? []) {
-    profileMap[p.id] = { email: p.email ?? "", name: p.full_name ?? "" };
+    profileMap[p.id] = {
+      name: p.full_name ?? "",
+      orgId: p.organization_id,
+      accountType: (p.account_type as "creator" | "brand") ?? "creator",
+    };
   }
 
   return top.map((s) => ({
     userId: s.userId,
-    email: profileMap[s.userId]?.email ?? "",
+    email: emailMap.get(s.userId) ?? "",
     name: profileMap[s.userId]?.name ?? "",
-    plan: orgPlan[memberOrg[s.userId]] ?? "free",
+    plan: profileMap[s.userId]?.orgId ? (orgPlan[profileMap[s.userId].orgId!] ?? "free") : "free",
+    accountType: profileMap[s.userId]?.accountType ?? "creator",
     score: s.score,
     lastActive: s.lastActive,
     eventCount: s.count,
@@ -373,6 +395,7 @@ export interface ChurnRisk {
   email: string;
   name: string;
   plan: string;
+  accountType: "creator" | "brand";
   daysSinceLastActive: number;
   previousMonthEvents: number;
   currentMonthEvents: number;
@@ -386,28 +409,42 @@ export async function getChurnRiskUsers(limit = 30): Promise<ChurnRisk[]> {
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000).toISOString();
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 86400000).toISOString();
 
-  // Get paid organizations
-  const { data: paidOrgs } = await admin
+  // Get paid + recently cancelled organizations (both are churn-relevant)
+  const { data: relevantOrgs } = await admin
     .from("organizations")
-    .select("id, plan")
-    .neq("plan", "free");
+    .select("id, plan, subscription_status")
+    .or("plan.neq.free,subscription_status.eq.canceled");
 
-  if (!paidOrgs?.length) return [];
+  if (!relevantOrgs?.length) return [];
 
-  const orgIds = paidOrgs.map((o) => o.id);
+  const orgIds = relevantOrgs.map((o) => o.id);
   const orgPlan: Record<string, string> = {};
-  for (const o of paidOrgs) orgPlan[o.id] = o.plan;
+  for (const o of relevantOrgs) orgPlan[o.id] = o.plan;
 
-  const { data: members } = await admin
-    .from("organization_members")
-    .select("user_id, organization_id")
+  // Get user profiles directly (org membership is via profiles.organization_id)
+  const { data: profiles } = await admin
+    .from("profiles")
+    .select("id, full_name, organization_id, account_type")
     .in("organization_id", orgIds);
 
-  if (!members?.length) return [];
+  if (!profiles?.length) return [];
 
-  const userIds = members.map((m) => m.user_id);
-  const memberOrg: Record<string, string> = {};
-  for (const m of members) memberOrg[m.user_id] = m.organization_id;
+  const userIds = profiles.map((p) => p.id);
+  const profileMap: Record<string, { name: string; orgId: string; accountType: "creator" | "brand" }> = {};
+  for (const p of profiles) {
+    profileMap[p.id] = {
+      name: p.full_name ?? "",
+      orgId: p.organization_id,
+      accountType: (p.account_type as "creator" | "brand") ?? "creator",
+    };
+  }
+
+  // Get emails from auth
+  let emailMap = new Map<string, string>();
+  try {
+    const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    emailMap = new Map((authUsers?.users ?? []).map((u) => [u.id, u.email ?? ""]));
+  } catch { /* auth admin may not be available */ }
 
   // Events in last 60 days
   const { data: events } = await admin
@@ -435,17 +472,6 @@ export async function getChurnRiskUsers(limit = 30): Promise<ChurnRisk[]> {
     }
   }
 
-  // Profiles
-  const { data: profiles } = await admin
-    .from("profiles")
-    .select("id, email, full_name")
-    .in("id", userIds);
-
-  const profileMap: Record<string, { email: string; name: string }> = {};
-  for (const p of profiles ?? []) {
-    profileMap[p.id] = { email: p.email ?? "", name: p.full_name ?? "" };
-  }
-
   const risks: ChurnRisk[] = [];
   for (const [uid, act] of Object.entries(userActivity)) {
     const daysSince = Math.round(
@@ -453,18 +479,22 @@ export async function getChurnRiskUsers(limit = 30): Promise<ChurnRisk[]> {
     );
     const declining = act.curr < act.prev;
     const inactive = daysSince >= 7;
+    const orgId = profileMap[uid]?.orgId;
+    const isCancelled = orgId ? (relevantOrgs.find((o) => o.id === orgId)?.subscription_status === "canceled") : false;
 
     let riskLevel: "high" | "medium" | "low" = "low";
-    if (daysSince >= 14 || (inactive && declining && act.curr === 0))
+    if (isCancelled) riskLevel = "high";
+    else if (daysSince >= 14 || (inactive && declining && act.curr === 0))
       riskLevel = "high";
     else if (inactive || declining) riskLevel = "medium";
 
     if (riskLevel !== "low") {
       risks.push({
         userId: uid,
-        email: profileMap[uid]?.email ?? "",
+        email: emailMap.get(uid) ?? "",
         name: profileMap[uid]?.name ?? "",
-        plan: orgPlan[memberOrg[uid]] ?? "free",
+        plan: orgPlan[profileMap[uid]?.orgId] ?? "free",
+        accountType: profileMap[uid]?.accountType ?? "creator",
         daysSinceLastActive: daysSince,
         previousMonthEvents: act.prev,
         currentMonthEvents: act.curr,
@@ -664,6 +694,8 @@ export async function getTrendingContentPatterns(): Promise<ContentPattern[]> {
 export interface PlatformDistribution {
   platform: string;
   profileCount: number;
+  creatorCount: number;
+  brandCount: number;
   totalFollowers: number;
   avgEngagement: number;
 }
@@ -675,19 +707,34 @@ export async function getPlatformDistribution(): Promise<
 
   const { data: profiles } = await admin
     .from("social_profiles")
-    .select("platform, followers_count, engagement_rate");
+    .select("platform, followers_count, engagement_rate, organization_id");
 
   if (!profiles?.length) return [];
 
+  // Build org → account type map
+  const orgIds = [...new Set(profiles.map((p) => p.organization_id).filter(Boolean))];
+  const { data: orgProfiles } = orgIds.length
+    ? await admin.from("profiles").select("organization_id, account_type").in("organization_id", orgIds as string[])
+    : { data: [] };
+  const orgTypeMap = new Map<string, "creator" | "brand">();
+  for (const op of orgProfiles ?? []) {
+    if (op.organization_id && !orgTypeMap.has(op.organization_id)) {
+      orgTypeMap.set(op.organization_id, (op.account_type as "creator" | "brand") ?? "creator");
+    }
+  }
+
   const grouped: Record<
     string,
-    { count: number; followers: number; engRates: number[] }
+    { count: number; creatorCount: number; brandCount: number; followers: number; engRates: number[] }
   > = {};
 
   for (const p of profiles) {
     if (!grouped[p.platform])
-      grouped[p.platform] = { count: 0, followers: 0, engRates: [] };
+      grouped[p.platform] = { count: 0, creatorCount: 0, brandCount: 0, followers: 0, engRates: [] };
     grouped[p.platform].count++;
+    const acctType = p.organization_id ? (orgTypeMap.get(p.organization_id) ?? "creator") : "creator";
+    if (acctType === "brand") grouped[p.platform].brandCount++;
+    else grouped[p.platform].creatorCount++;
     grouped[p.platform].followers += p.followers_count ?? 0;
     if (p.engagement_rate != null)
       grouped[p.platform].engRates.push(p.engagement_rate);
@@ -697,6 +744,8 @@ export async function getPlatformDistribution(): Promise<
     .map(([platform, stats]) => ({
       platform,
       profileCount: stats.count,
+      creatorCount: stats.creatorCount,
+      brandCount: stats.brandCount,
       totalFollowers: stats.followers,
       avgEngagement:
         stats.engRates.length > 0

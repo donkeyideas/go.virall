@@ -160,6 +160,10 @@ export function AnalyticsClient({
                 })
               : posts
             }
+            profiles={selectedProfileId
+              ? profiles.filter((p) => p.id === selectedProfileId)
+              : profiles
+            }
           />
         )}
         {activeTab === "growth" && (
@@ -198,10 +202,71 @@ export function AnalyticsClient({
    PERFORMANCE TAB
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
+function PerformanceTab({ posts, profiles }: { posts: PostPerformance[]; profiles: SocialProfile[] }) {
   const { viewMode } = useViewMode();
   const ed = viewMode === "editorial";
   if (posts.length === 0) {
+    // Show profile-level metrics as fallback when individual posts aren't available
+    if (profiles.length > 0) {
+      const totalFollowers = profiles.reduce((s, p) => s + (p.followers_count || 0), 0);
+      const totalPosts = profiles.reduce((s, p) => s + (p.posts_count || 0), 0);
+      const avgEng = profiles.filter((p) => p.engagement_rate != null).length > 0
+        ? profiles.reduce((s, p) => s + (Number(p.engagement_rate) || 0), 0) / profiles.filter((p) => p.engagement_rate != null).length
+        : 0;
+      return (
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Card className="text-center">
+              <KpiLabel>Total Followers</KpiLabel>
+              <KpiValue>{totalFollowers.toLocaleString()}</KpiValue>
+            </Card>
+            <Card className="text-center">
+              <KpiLabel>Total Posts</KpiLabel>
+              <KpiValue>{totalPosts.toLocaleString()}</KpiValue>
+            </Card>
+            <Card className="text-center">
+              <KpiLabel>Avg Engagement</KpiLabel>
+              <KpiValue className="text-editorial-red">{avgEng.toFixed(2)}%</KpiValue>
+            </Card>
+          </div>
+          {/* Per-profile breakdown */}
+          <Card>
+            <SectionTitle>Profile Overview</SectionTitle>
+            <div className="mt-3 space-y-3">
+              {profiles.map((p) => {
+                const pct = totalFollowers > 0 ? (p.followers_count / totalFollowers) * 100 : 0;
+                return (
+                  <div key={p.id}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium capitalize text-ink">{p.platform} &middot; @{p.handle}</span>
+                      <span className="font-mono font-bold text-ink">{p.followers_count.toLocaleString()} followers</span>
+                    </div>
+                    <ProgressBar pct={pct} />
+                    <div className="mt-1 flex gap-4 text-[10px] text-ink-muted">
+                      <span>{p.posts_count.toLocaleString()} posts</span>
+                      {p.engagement_rate != null && (
+                        <span>{Number(p.engagement_rate).toFixed(2)}% engagement</span>
+                      )}
+                      {p.last_synced_at && (
+                        <span>Synced {new Date(p.last_synced_at).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+          <Card className="text-center">
+            <p className="text-xs text-ink-secondary">
+              Post-level performance data will appear after your next profile sync.
+            </p>
+            <a href="/dashboard/profiles" className={cn("mt-3 inline-block border border-editorial-red/30 bg-editorial-red/5 px-4 py-2 text-[11px] font-semibold text-editorial-red transition-colors hover:bg-editorial-red/10", !ed && "rounded-full")}>
+              Go to Profiles to sync
+            </a>
+          </Card>
+        </div>
+      );
+    }
     return (
       <EmptyState
         title="No Post Data Yet"
@@ -269,8 +334,8 @@ function PerformanceTab({ posts }: { posts: PostPerformance[] }) {
                   <stop offset="95%" stopColor="#c0392b" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.08)" />
-              <XAxis dataKey="name" tick={{ fontSize: 9, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={{ stroke: "rgba(139,92,246,0.15)" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--accent-rgb),0.08)" />
+              <XAxis dataKey="name" tick={{ fontSize: 9, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }} />
               <YAxis tick={{ fontSize: 9, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={false} width={35} />
               <RechartsTooltip
                 contentStyle={{ backgroundColor: "var(--color-surface-card, #1a1a2e)", border: "1px solid var(--color-modern-card-border, #333)", borderRadius: "8px", fontSize: "11px" }}
@@ -430,7 +495,7 @@ function GrowthTab({
         <div className="mt-4">
           <ResponsiveContainer width="100%" height={Math.max(160, platformGrowth.length * 52)}>
             <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-              <XAxis type="number" tick={{ fontSize: 9, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={{ stroke: "rgba(139,92,246,0.15)" }} />
+              <XAxis type="number" tick={{ fontSize: 9, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "var(--color-ink, #fff)" }} width={120} tickLine={false} axisLine={false} />
               <RechartsTooltip
                 contentStyle={{ backgroundColor: "var(--color-surface-card, #1a1a2e)", border: "1px solid var(--color-modern-card-border, #333)", borderRadius: "8px", fontSize: "11px" }}
@@ -541,7 +606,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
         title="No Revenue Data Yet"
         message="Run an Earnings Forecast from the Monetization page to see revenue projections, income sources, and recommended rates here."
         action="Run Earnings Forecast"
-        href="/dashboard/monetization"
+        href="/dashboard/business?tab=monetization"
       />
     );
   }
@@ -588,7 +653,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
                   }))}
                   margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.08)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--accent-rgb),0.08)" />
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 9, fill: "var(--color-ink-muted, #999)" }} tickLine={false} axisLine={false} width={50} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
                   <RechartsTooltip
@@ -665,7 +730,7 @@ function RevenueTab({ data }: { data?: Record<string, unknown> }) {
           title="Analysis Data Incomplete"
           message="The earnings forecast didn't return detailed data. Try re-running from the Monetization page."
           action="Re-run Forecast"
-          href="/dashboard/monetization"
+          href="/dashboard/business?tab=monetization"
         />
       )}
     </div>
@@ -725,7 +790,7 @@ function CompetitiveTab({
 
       {/* SWOT Grid */}
       {swotSections.length > 0 && (
-        <div className={cn("grid gap-3", swotSections.length > 2 ? "sm:grid-cols-2" : `sm:grid-cols-${swotSections.length}`)}>
+        <div className={cn("grid gap-3", swotSections.length > 2 ? "sm:grid-cols-2" : swotSections.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1")}>
           {swotSections.map((section) => (
             <Card key={section.key} className={cn(section.borderColor, section.bgColor, "bg-opacity-5")}>
               <div className="flex items-center gap-2">

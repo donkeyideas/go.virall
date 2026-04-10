@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X } from "lucide-react";
+import { X, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addSocialProfile } from "@/lib/actions/profiles";
 import { PLATFORM_CONFIG, type SocialPlatform } from "@/types";
@@ -35,6 +35,7 @@ export function AddProfileModal({
   const [handle, setHandle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
+  const [verifiedElsewhere, setVerifiedElsewhere] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   if (!open) return null;
@@ -45,6 +46,7 @@ export function AddProfileModal({
 
     setError(null);
     setPlanLimitReached(false);
+    setVerifiedElsewhere(false);
     const formData = new FormData();
     formData.set("platform", selectedPlatform);
     formData.set("handle", handle.trim());
@@ -55,6 +57,9 @@ export function AddProfileModal({
         setError(result.error);
         if ("planLimitReached" in result && result.planLimitReached) {
           setPlanLimitReached(true);
+        }
+        if ("verifiedElsewhere" in result && result.verifiedElsewhere) {
+          setVerifiedElsewhere(true);
         }
       } else {
         setHandle("");
@@ -215,9 +220,14 @@ export function AddProfileModal({
               </button>
             </div>
 
-            {error && (
+            {error && verifiedElsewhere ? (
+              <div className="mt-3 p-3 bg-editorial-gold/5 border border-editorial-gold/20 flex items-start gap-2">
+                <ShieldAlert size={14} className="text-editorial-gold shrink-0 mt-0.5" />
+                <p className="text-xs text-ink-secondary">{error}</p>
+              </div>
+            ) : error ? (
               <p className="mt-2 text-xs text-editorial-red">{error}</p>
-            )}
+            ) : null}
           </form>
         )}
 

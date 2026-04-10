@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const C = {
-  bg: "#1A1035",
+  bg: "#0B1928",
   primary: "#FFB84D",
-  textSecondary: "#8A7AAE",
+  textSecondary: "#8BACC8",
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

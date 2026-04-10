@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCachedPosts } from "@/lib/cache/posts-cache";
 import type { SocialProfile, SocialMetrics, SocialCompetitor, RecentPost } from "@/types";
 
 // --- Performance Analytics ---
@@ -38,8 +39,10 @@ export async function getPostsPerformance(
 
   const posts: PostPerformance[] = [];
   for (const profile of profiles) {
-    if (!profile.recent_posts) continue;
-    for (const post of profile.recent_posts) {
+    // Use DB column first, fall back to in-memory cache
+    const recentPosts = profile.recent_posts ?? getCachedPosts(profile.id);
+    if (!recentPosts || recentPosts.length === 0) continue;
+    for (const post of recentPosts) {
       const engagement =
         profile.followers_count > 0
           ? ((post.likesCount + post.commentsCount) / profile.followers_count) * 100

@@ -732,6 +732,79 @@ TAGS: [3-5 comma-separated relevant tags]`;
 }
 
 // ============================================================
+// Pricing Plan CRUD
+// ============================================================
+
+export async function createPricingPlan(data: {
+  id: string;
+  name: string;
+  account_type: "creator" | "brand";
+  price_monthly: number;
+  max_social_profiles?: number;
+  description?: string;
+  stripe_price_id?: string;
+  sort_order?: number;
+  features?: Record<string, unknown>;
+}) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin.from("pricing_plans").insert({
+    id: data.id,
+    name: data.name,
+    account_type: data.account_type,
+    price_monthly: data.price_monthly,
+    max_social_profiles: data.max_social_profiles ?? 0,
+    description: data.description ?? null,
+    stripe_price_id: data.stripe_price_id ?? null,
+    sort_order: data.sort_order ?? 0,
+    features: data.features ?? {},
+  });
+
+  if (error) return { error: error.message };
+  revalidatePath("/admin/subscriptions");
+  return { success: true };
+}
+
+export async function updatePricingPlan(
+  id: string,
+  data: {
+    name?: string;
+    price_monthly?: number;
+    max_social_profiles?: number;
+    description?: string;
+    stripe_price_id?: string;
+    is_active?: boolean;
+    sort_order?: number;
+    features?: Record<string, unknown>;
+  },
+) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("pricing_plans")
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/admin/subscriptions");
+  revalidatePath("/brand/settings");
+  revalidatePath("/dashboard/settings");
+  return { success: true };
+}
+
+export async function deletePricingPlan(id: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin.from("pricing_plans").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/admin/subscriptions");
+  return { success: true };
+}
+
+// ============================================================
 // Contact Management
 // ============================================================
 
@@ -846,6 +919,27 @@ export async function updateContactStatus(id: string, status: string) {
     .from("contact_submissions")
     .update({ status })
     .eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/contacts");
+  return { success: true };
+}
+
+export async function replyToContact(id: string, reply: string) {
+  await requireAdmin();
+  if (!reply.trim()) return { error: "Reply cannot be empty." };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("contact_submissions")
+    .update({
+      admin_reply: reply.trim(),
+      admin_reply_at: new Date().toISOString(),
+      status: "replied",
+      brand_read: false,
+    })
+    .eq("id", id);
+
   if (error) return { error: error.message };
 
   revalidatePath("/admin/contacts");

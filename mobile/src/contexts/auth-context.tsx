@@ -14,6 +14,9 @@ interface Profile {
   role: string;
   system_role: string;
   timezone: string;
+  account_type: 'creator' | 'brand' | null;
+  company_name: string | null;
+  industry: string | null;
 }
 
 interface Organization {
@@ -57,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function fetchProfile(userId: string) {
     const { data: prof } = await supabase
       .from('profiles')
-      .select('id, organization_id, full_name, avatar_url, role, system_role, timezone')
+      .select('id, organization_id, full_name, avatar_url, role, system_role, timezone, account_type, company_name, industry')
       .eq('id', userId)
       .single();
 
@@ -88,7 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        fetchProfile(s.user.id);
+        setLoading(true);
+        fetchProfile(s.user.id).finally(() => setLoading(false));
       } else {
         setProfile(null);
         setOrganization(null);

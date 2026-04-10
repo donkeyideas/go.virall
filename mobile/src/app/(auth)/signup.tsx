@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { TextInput } from '../../components/ui/TextInput';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadowSm, neuShadow } from '../../constants/theme';
 
 const NICHES = [
   'Beauty & Fashion', 'Fitness & Health', 'Food & Cooking', 'Gaming',
@@ -85,7 +85,7 @@ export default function SignUpScreen() {
       <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
       <Pressable
         onPress={() => setOpen(!isOpen)}
-        style={[styles.dropdownBtn, { backgroundColor: colors.inputBg, borderColor: colors.border }]}
+        style={[styles.dropdownBtn, { backgroundColor: colors.inputBg }, neuShadowSm(colors)]}
       >
         <Text style={[styles.dropdownText, { color: value ? colors.text : colors.textMuted }]}>
           {value || `Select ${label.toLowerCase()}`}
@@ -93,7 +93,7 @@ export default function SignUpScreen() {
         <Text style={[styles.dropdownArrow, { color: colors.textMuted }]}>{isOpen ? '\u25B2' : '\u25BC'}</Text>
       </Pressable>
       {isOpen && (
-        <View style={[styles.dropdownList, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.dropdownList, { backgroundColor: colors.surface }, neuShadow(colors)]}>
           {options.map((opt) => (
             <Pressable
               key={opt}
@@ -131,7 +131,7 @@ export default function SignUpScreen() {
           <Pressable
             onPress={() => handleOAuth('google')}
             disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border, opacity: oauthLoading === 'apple' ? 0.5 : 1 }]}
+            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'apple' ? 0.5 : 1 }, neuShadowSm(colors)]}
           >
             {oauthLoading === 'google' ? (
               <ActivityIndicator size="small" color={colors.text} />
@@ -145,7 +145,7 @@ export default function SignUpScreen() {
           <Pressable
             onPress={() => handleOAuth('apple')}
             disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border, opacity: oauthLoading === 'google' ? 0.5 : 1 }]}
+            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'google' ? 0.5 : 1 }, neuShadowSm(colors)]}
           >
             {oauthLoading === 'apple' ? (
               <ActivityIndicator size="small" color={colors.text} />
@@ -237,9 +237,9 @@ export default function SignUpScreen() {
           <Pressable
             onPress={handleSignUp}
             disabled={loading}
-            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
+            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }, neuShadowSm(colors)]}
           >
-            <Text style={[styles.primaryBtnText, { color: '#1A1035' }]}>
+            <Text style={[styles.primaryBtnText, { color: '#FFFFFF' }]}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Text>
           </Pressable>
@@ -291,7 +291,6 @@ const styles = StyleSheet.create({
   socialBtn: {
     flex: 1,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     minHeight: 48,
@@ -336,7 +335,6 @@ const styles = StyleSheet.create({
   },
   dropdownBtn: {
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     minHeight: 48,
@@ -354,7 +352,6 @@ const styles = StyleSheet.create({
   },
   dropdownList: {
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     marginTop: Spacing.xs,
     overflow: 'hidden',
   },

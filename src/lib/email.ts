@@ -40,7 +40,7 @@ async function getResendClient(): Promise<Resend> {
 }
 
 // Reset cached client (call after key rotation)
-export function resetEmailClient() {
+export async function resetEmailClient() {
   _resend = null;
 }
 

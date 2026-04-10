@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Modal, StyleSheet, Pressable, Animated } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../../contexts/theme-context';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadow } from '../../constants/theme';
 import { mobileApi } from '../../lib/api';
 
 const ANALYSIS_TYPES = [
@@ -118,7 +118,7 @@ export function RunAllModal({ visible, onClose, onComplete, profileId }: RunAllM
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.modal, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.modal, { backgroundColor: colors.surface }, neuShadow(colors)]}>
           {/* Header */}
           <View style={styles.modalHeader}>
             <View style={styles.headerLeft}>
@@ -188,7 +188,7 @@ export function RunAllModal({ visible, onClose, onComplete, profileId }: RunAllM
             </Text>
             {!isRunning && (
               <Pressable onPress={onClose} style={[styles.closeBtn, { backgroundColor: colors.primary }]}>
-                <Text style={[styles.closeBtnText, { color: '#1A1035' }]}>Done</Text>
+                <Text style={[styles.closeBtnText, { color: '#FFFFFF' }]}>Done</Text>
               </Pressable>
             )}
           </View>
@@ -210,7 +210,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     borderRadius: BorderRadius.xl,
-    borderWidth: 1,
     overflow: 'hidden',
   },
   modalHeader: {

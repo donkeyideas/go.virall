@@ -22,8 +22,11 @@ import type {
   Notification,
   SocialMetrics,
   RecentPost,
+  TrustScore,
 } from "@/types";
+import type { RevenueStats } from "@/lib/dal/revenue";
 import { PLATFORM_CONFIG } from "@/types";
+import { TrustScoreDetail } from "@/components/deals/TrustScoreDetail";
 
 // ============================================================
 // Types
@@ -37,6 +40,8 @@ interface OverviewProps {
   campaigns: Campaign[];
   notifications: Notification[];
   metricsMap: Record<string, SocialMetrics[]>;
+  trustScore: TrustScore | null;
+  revenueStats: RevenueStats | null;
 }
 
 interface BriefItem {
@@ -385,6 +390,8 @@ export function SocialIntelligenceOverview({
   campaigns,
   notifications,
   metricsMap,
+  trustScore,
+  revenueStats,
 }: OverviewProps) {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(
     profiles[0]?.id ?? null,
@@ -732,7 +739,7 @@ export function SocialIntelligenceOverview({
     }
     const followers = formatCompact(profileForData.followers_count);
     const likes = profileAvgLikes;
-    return `With ${followers} followers${likes ? ` and ${formatCompact(likes)} avg likes/post` : ""}, @${profileForData.handle} has growth potential. Run AI analyses in the AI Studio tab for detailed strategic insights.`;
+    return `With ${followers} followers${likes ? ` and ${formatCompact(likes)} avg likes/post` : ""}, @${profileForData.handle} has growth potential. Run analyses in the Intelligence tab for detailed strategic insights.`;
   })();
 
   // ──── Competitors for sidebar ────
@@ -791,7 +798,7 @@ export function SocialIntelligenceOverview({
     return (
       <div className="py-20 text-center">
         <h2 className="font-serif text-2xl font-bold text-ink">
-          Welcome to <span className="text-editorial-red">Go</span>Virall
+          Welcome to <span className="text-editorial-accent">Go</span>Virall
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
           Connect your first social media profile in the Profiles tab to unlock
@@ -866,18 +873,16 @@ export function SocialIntelligenceOverview({
                 : "---",
           },
           {
-            label: "Total Posts",
-            value: isAllProfiles
-              ? totalPosts > 0
-                ? formatCompact(totalPosts)
-                : "---"
-              : selectedProfile
-                ? formatCompact(selectedProfile.posts_count)
-                : "---",
+            label: "Trust Score",
+            value: trustScore?.overall_score != null
+              ? `${trustScore.overall_score}/100`
+              : "---",
           },
           {
-            label: "Influencer Score",
-            value: kpiInfluencerScore > 0 ? kpiInfluencerScore : "---",
+            label: "Revenue (Month)",
+            value: revenueStats?.thisMonth != null && revenueStats.thisMonth > 0
+              ? `$${formatCompact(revenueStats.thisMonth)}`
+              : "---",
           },
         ].map((stat) => (
           <div
@@ -937,12 +942,103 @@ export function SocialIntelligenceOverview({
               ) : (
                 <div className="py-6 text-center">
                   <p className="text-xs text-ink-muted">
-                    Run AI analyses in the AI Studio tab to see intelligence
+                    Run analyses in the Intelligence tab to see intelligence
                     briefs here.
                   </p>
                 </div>
               )}
             </div>
+
+            {/* Trust Score Summary */}
+            {trustScore && (
+              <div className="mt-5 border-t border-rule pt-4">
+                <a href="/dashboard/trust-score" className="block group">
+                  <p className="editorial-label">Trust Score</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div
+                      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-[3px]"
+                      style={{
+                        borderColor:
+                          trustScore.overall_score >= 90
+                            ? "#22C55E"
+                            : trustScore.overall_score >= 75
+                              ? "rgba(75,156,211,0.9)"
+                              : trustScore.overall_score >= 60
+                                ? "#F59E0B"
+                                : "#EF4444",
+                      }}
+                    >
+                      <span
+                        className="font-serif text-lg font-bold"
+                        style={{
+                          color:
+                            trustScore.overall_score >= 90
+                              ? "#22C55E"
+                              : trustScore.overall_score >= 75
+                                ? "rgba(75,156,211,0.9)"
+                                : trustScore.overall_score >= 60
+                                  ? "#F59E0B"
+                                  : "#EF4444",
+                        }}
+                      >
+                        {Math.round(trustScore.overall_score)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-serif text-sm font-bold text-ink">
+                        {trustScore.overall_score >= 90
+                          ? "Excellent"
+                          : trustScore.overall_score >= 75
+                            ? "Good"
+                            : trustScore.overall_score >= 60
+                              ? "Fair"
+                              : "Needs Work"}
+                      </p>
+                      <p className="text-[10px] text-ink-muted">
+                        {trustScore.total_deals_closed} deal
+                        {trustScore.total_deals_closed !== 1 ? "s" : ""} closed
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {[
+                      { label: "Completion", value: trustScore.completion_rate },
+                      { label: "Disputes", value: trustScore.dispute_rate },
+                      { label: "Response", value: trustScore.response_time_score },
+                      { label: "Consistency", value: trustScore.consistency_score },
+                    ].map((f) => (
+                      <div key={f.label} className="flex items-center gap-2">
+                        <span className="w-16 text-[9px] text-ink-muted">
+                          {f.label}
+                        </span>
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-rule">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(100, Number(f.value) || 0)}%`,
+                              backgroundColor:
+                                Number(f.value) >= 90
+                                  ? "#22C55E"
+                                  : Number(f.value) >= 75
+                                    ? "rgba(75,156,211,0.9)"
+                                    : Number(f.value) >= 60
+                                      ? "#F59E0B"
+                                      : "#EF4444",
+                            }}
+                          />
+                        </div>
+                        <span className="w-5 text-right text-[9px] font-bold text-ink-muted">
+                          {Math.round(Number(f.value) || 0)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[9px] font-semibold text-ink-muted group-hover:text-editorial-red transition-colors">
+                    View Details &rarr;
+                  </p>
+                </a>
+              </div>
+            )}
           </div>
 
           {/* ════ CENTER COLUMN: Main Content ════ */}
@@ -1006,6 +1102,75 @@ export function SocialIntelligenceOverview({
                 </div>
               </div>
             )}
+
+            {/* ──── Business Dashboard ──── */}
+            <div className="border border-rule bg-surface-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-serif text-sm font-bold text-ink">
+                    Business Dashboard
+                  </h3>
+                  <p className="editorial-overline">Revenue &amp; Deals</p>
+                </div>
+                <a
+                  href="/dashboard/business"
+                  className="text-[10px] font-semibold text-editorial-red hover:underline"
+                >
+                  View Full Dashboard &rarr;
+                </a>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="border border-rule bg-surface-raised px-3 py-2">
+                  <p className="editorial-overline">Pipeline Value</p>
+                  <p className="mt-1 font-serif text-lg font-bold text-ink">
+                    {revenueStats?.pipelineValue != null
+                      ? `$${formatCompact(revenueStats.pipelineValue)}`
+                      : "---"}
+                  </p>
+                </div>
+                <div className="border border-rule bg-surface-raised px-3 py-2">
+                  <p className="editorial-overline">Active Deals</p>
+                  <p className="mt-1 font-serif text-lg font-bold text-ink">
+                    {deals.filter(
+                      (d) =>
+                        d.status === "active" ||
+                        d.status === "negotiation" ||
+                        d.status === "inquiry",
+                    ).length}
+                  </p>
+                </div>
+                <div className="border border-rule bg-surface-raised px-3 py-2">
+                  <p className="editorial-overline">This Month</p>
+                  <p className="mt-1 font-serif text-lg font-bold text-editorial-green">
+                    {revenueStats?.thisMonth != null
+                      ? `$${formatCompact(revenueStats.thisMonth)}`
+                      : "---"}
+                  </p>
+                  {revenueStats?.thisMonthChange != null &&
+                    revenueStats.thisMonthChange !== 0 && (
+                      <p
+                        className={cn(
+                          "text-[9px] font-semibold",
+                          revenueStats.thisMonthChange > 0
+                            ? "text-editorial-green"
+                            : "text-editorial-red",
+                        )}
+                      >
+                        {revenueStats.thisMonthChange > 0 ? "+" : ""}
+                        {revenueStats.thisMonthChange.toFixed(0)}% vs last month
+                      </p>
+                    )}
+                </div>
+                <div className="border border-rule bg-surface-raised px-3 py-2">
+                  <p className="editorial-overline">Pending</p>
+                  <p className="mt-1 font-serif text-lg font-bold text-ink">
+                    {revenueStats?.pendingPayments != null
+                      ? `$${formatCompact(revenueStats.pendingPayments)}`
+                      : "---"}
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* ──── Follower Activity Heatmap ──── */}
             {heatmap && heatmap.data && heatmap.data.length > 0 && (
@@ -1263,25 +1428,25 @@ export function SocialIntelligenceOverview({
                       >
                         <stop
                           offset="5%"
-                          stopColor="#8B5CF6"
+                          stopColor="#4B9CD3"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#8B5CF6"
+                          stopColor="#4B9CD3"
                           stopOpacity={0.03}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="rgba(139,92,246,0.08)"
+                      stroke="rgba(var(--accent-rgb),0.08)"
                     />
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 9, fill: "#6B5D8E" }}
                       tickLine={false}
-                      axisLine={{ stroke: "rgba(139,92,246,0.15)" }}
+                      axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
@@ -1293,11 +1458,11 @@ export function SocialIntelligenceOverview({
                     />
                     <RechartsTooltip
                       contentStyle={{
-                        backgroundColor: "#2A1B54",
+                        backgroundColor: "#112240",
                         border: "none",
                         borderRadius: "6px",
                         fontSize: "11px",
-                        color: "#F0ECF8",
+                        color: "#E8F0FA",
                       }}
                       formatter={(value) => [
                         `${value}%`,
@@ -1307,7 +1472,7 @@ export function SocialIntelligenceOverview({
                     <Area
                       type="monotone"
                       dataKey="rate"
-                      stroke="#8B5CF6"
+                      stroke="#4B9CD3"
                       strokeWidth={2}
                       fill="url(#engGradient)"
                     />
@@ -1350,13 +1515,13 @@ export function SocialIntelligenceOverview({
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="rgba(139,92,246,0.08)"
+                      stroke="rgba(var(--accent-rgb),0.08)"
                     />
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 9, fill: "#6B5D8E" }}
                       tickLine={false}
-                      axisLine={{ stroke: "rgba(139,92,246,0.15)" }}
+                      axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
@@ -1368,11 +1533,11 @@ export function SocialIntelligenceOverview({
                     />
                     <RechartsTooltip
                       contentStyle={{
-                        backgroundColor: "#2A1B54",
+                        backgroundColor: "#112240",
                         border: "none",
                         borderRadius: "6px",
                         fontSize: "11px",
-                        color: "#F0ECF8",
+                        color: "#E8F0FA",
                       }}
                       formatter={(value) => [
                         formatCompact(Number(value)),
@@ -1632,36 +1797,36 @@ export function SocialIntelligenceOverview({
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   {
-                    label: "Growth Tips",
-                    count: growthData
-                      ? ((growthData.tips ?? []) as unknown[]).length
-                      : 0,
-                    href: "/dashboard/growth",
+                    label: "Business",
+                    count: deals.length,
+                    href: "/dashboard/business",
+                  },
+                  {
+                    label: "Deals",
+                    count: deals.filter(
+                      (d) => d.status === "active" || d.status === "negotiation",
+                    ).length,
+                    href: "/dashboard/deals",
                   },
                   {
                     label: "Revenue",
-                    count: summaryStats ? 1 : 0,
-                    href: "/dashboard/monetization",
+                    count: revenueStats?.totalEarnings ? 1 : 0,
+                    href: "/dashboard/revenue",
                   },
                   {
-                    label: "Audience Intel",
-                    count: audienceData ? 1 : 0,
-                    href: "/dashboard/intelligence",
+                    label: "Inbox",
+                    count: notifications.length,
+                    href: "/dashboard/inbox",
                   },
                   {
-                    label: "Campaigns",
-                    count: campaigns.length,
-                    href: "/dashboard/monetization",
+                    label: "Publish",
+                    count: 0,
+                    href: "/dashboard/publish",
                   },
                   {
                     label: "AI Studio",
                     count: 0,
                     href: "/dashboard/ai-studio",
-                  },
-                  {
-                    label: "Network",
-                    count: networkData ? 1 : 0,
-                    href: "/dashboard/network",
                   },
                 ].map((item) => (
                   <a
@@ -1849,6 +2014,11 @@ export function SocialIntelligenceOverview({
               </div>
             )}
 
+            {/* Your Trust Score */}
+            {trustScore && (
+              <TrustScoreDetail trustScore={trustScore} />
+            )}
+
             {/* Recent Activity */}
             {notifications.length > 0 && (
               <div className="border border-rule bg-surface-card p-4">
@@ -1878,42 +2048,76 @@ export function SocialIntelligenceOverview({
       </div>
 
       {/* ──── Earnings Projection Hub (Bottom) ──── */}
-      {summaryStats && (
+      {(revenueStats || summaryStats) && (
         <div className="mt-8 border-t-4 border-double border-rule-dark pt-4">
           <h3 className="font-serif text-base font-bold text-ink">
-            Earnings Projection Hub
+            {revenueStats ? "Revenue Overview" : "Earnings Projection Hub"}
           </h3>
           <p className="editorial-overline">
-            Revenue Attribution &middot; Sponsorship Rates
+            {revenueStats
+              ? "Actual Revenue &middot; Pipeline"
+              : "Revenue Attribution &middot; Sponsorship Rates"}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="border border-rule bg-surface-card px-4 py-3">
-              <p className="editorial-overline">Est. Monthly</p>
+              <p className="editorial-overline">
+                {revenueStats ? "This Month" : "Est. Monthly"}
+              </p>
               <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                ${(summaryStats.estMonthly ?? 0).toLocaleString()}
+                $
+                {revenueStats
+                  ? (revenueStats.thisMonth ?? 0).toLocaleString()
+                  : (summaryStats?.estMonthly ?? 0).toLocaleString()}
+              </p>
+              {revenueStats?.thisMonthChange != null &&
+                revenueStats.thisMonthChange !== 0 && (
+                  <p
+                    className={cn(
+                      "text-[9px] font-semibold",
+                      revenueStats.thisMonthChange > 0
+                        ? "text-editorial-green"
+                        : "text-editorial-red",
+                    )}
+                  >
+                    {revenueStats.thisMonthChange > 0 ? "+" : ""}
+                    {revenueStats.thisMonthChange.toFixed(0)}%
+                  </p>
+                )}
+            </div>
+            <div className="border border-rule bg-surface-card px-4 py-3">
+              <p className="editorial-overline">
+                {revenueStats ? "Pipeline Value" : "Active Deals"}
+              </p>
+              <p className="mt-1 font-serif text-2xl font-bold text-ink">
+                {revenueStats
+                  ? `$${(revenueStats.pipelineValue ?? 0).toLocaleString()}`
+                  : (summaryStats?.activeDeals ?? 0)}
               </p>
             </div>
             <div className="border border-rule bg-surface-card px-4 py-3">
-              <p className="editorial-overline">Active Deals</p>
-              <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                {summaryStats.activeDeals ?? 0}
+              <p className="editorial-overline">
+                {revenueStats ? "Total Earnings" : "YTD Revenue"}
               </p>
-            </div>
-            <div className="border border-rule bg-surface-card px-4 py-3">
-              <p className="editorial-overline">YTD Revenue</p>
               <p className="mt-1 font-serif text-2xl font-bold text-editorial-green">
-                ${(summaryStats.ytdRevenue ?? 0).toLocaleString()}
+                $
+                {revenueStats
+                  ? (revenueStats.totalEarnings ?? 0).toLocaleString()
+                  : (summaryStats?.ytdRevenue ?? 0).toLocaleString()}
               </p>
-              {summaryStats.ytdDealsCompleted != null && (
+              {!revenueStats && summaryStats?.ytdDealsCompleted != null && (
                 <p className="text-[9px] text-ink-muted">
                   {summaryStats.ytdDealsCompleted} deals completed
                 </p>
               )}
             </div>
             <div className="border border-rule bg-surface-card px-4 py-3">
-              <p className="editorial-overline">Profiles</p>
+              <p className="editorial-overline">
+                {revenueStats ? "Pending" : "Profiles"}
+              </p>
               <p className="mt-1 font-serif text-2xl font-bold text-ink">
-                {profiles.length}
+                {revenueStats
+                  ? `$${(revenueStats.pendingPayments ?? 0).toLocaleString()}`
+                  : profiles.length}
               </p>
             </div>
           </div>
@@ -1924,7 +2128,7 @@ export function SocialIntelligenceOverview({
       <div className="mt-6 border-t border-rule pt-3">
         <p className="text-[9px] leading-relaxed text-ink-muted">
           <span className="font-bold">Disclaimer:</span> All metrics, earnings
-          projections, and growth estimates are AI-generated based on industry
+          projections, and growth estimates are generated based on industry
           benchmarks and publicly available data. They are not guaranteed and
           should be used for strategic planning purposes only.
         </p>

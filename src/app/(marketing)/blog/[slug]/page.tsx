@@ -7,13 +7,13 @@ import { MarketingFooter } from "@/components/marketing/Footer";
 import { ArrowLeft } from "lucide-react";
 
 const C = {
-  bg: "#1A1035",
-  card: "#2A1B54",
+  bg: "#0B1928",
+  card: "#112240",
   primary: "#FFB84D",
-  purple: "#8B5CF6",
-  text: "#F0ECF8",
-  textSecondary: "#8A7AAE",
-  border: "rgba(139,92,246,0.12)",
+  purple: "#4B9CD3",
+  text: "#E8F0FA",
+  textSecondary: "#8BACC8",
+  border: "rgba(75,156,211,0.12)",
 } as const;
 
 const font = "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
@@ -122,7 +122,7 @@ export default async function BlogPostPage({ params }: Props) {
                     padding: "4px 12px",
                     borderRadius: 100,
                     fontSize: 11,
-                    background: "rgba(139,92,246,0.12)",
+                    background: "rgba(75,156,211,0.12)",
                     color: C.purple,
                     fontWeight: 600,
                   }}
@@ -137,29 +137,29 @@ export default async function BlogPostPage({ params }: Props) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-.bc h2 { font-size:1.75rem; font-weight:800; letter-spacing:-0.03em; line-height:1.25; margin:2.5rem 0 1rem; color:#F0ECF8; }
-.bc h3 { font-size:1.3rem; font-weight:700; letter-spacing:-0.02em; line-height:1.3; margin:2rem 0 0.75rem; color:#F0ECF8; }
-.bc h4 { font-size:1.1rem; font-weight:700; line-height:1.4; margin:1.5rem 0 0.5rem; color:#F0ECF8; }
+.bc h2 { font-size:1.75rem; font-weight:800; letter-spacing:-0.03em; line-height:1.25; margin:2.5rem 0 1rem; color:#E8F0FA; }
+.bc h3 { font-size:1.3rem; font-weight:700; letter-spacing:-0.02em; line-height:1.3; margin:2rem 0 0.75rem; color:#E8F0FA; }
+.bc h4 { font-size:1.1rem; font-weight:700; line-height:1.4; margin:1.5rem 0 0.5rem; color:#E8F0FA; }
 .bc p { margin:0 0 1.25rem; font-size:1.065rem; line-height:1.85; color:#d4cce6; }
 .bc a { color:#FFB84D; text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1px; }
 .bc a:hover { color:#ffd280; }
-.bc strong, .bc b { color:#F0ECF8; font-weight:700; }
+.bc strong, .bc b { color:#E8F0FA; font-weight:700; }
 .bc em, .bc i { font-style:italic; }
 .bc ul, .bc ol { margin:0.5rem 0 1.5rem 1.5rem; padding:0; }
 .bc ul { list-style-type:disc; }
 .bc ol { list-style-type:decimal; }
 .bc li { margin-bottom:0.5rem; font-size:1.065rem; line-height:1.75; color:#d4cce6; }
-.bc li::marker { color:#8B5CF6; }
-.bc blockquote { border-left:4px solid #8B5CF6; margin:1.5rem 0; padding:1rem 1.5rem; background:rgba(139,92,246,0.08); border-radius:0 12px 12px 0; font-style:italic; color:#c4b8e0; }
+.bc li::marker { color:#4B9CD3; }
+.bc blockquote { border-left:4px solid #4B9CD3; margin:1.5rem 0; padding:1rem 1.5rem; background:rgba(75,156,211,0.08); border-radius:0 12px 12px 0; font-style:italic; color:#c4b8e0; }
 .bc blockquote p { margin-bottom:0; color:inherit; }
 .bc img { max-width:100%; height:auto; border-radius:12px; margin:1.5rem 0; }
-.bc hr { border:none; border-top:1px solid rgba(139,92,246,0.15); margin:2.5rem 0; }
-.bc code { background:rgba(139,92,246,0.12); padding:0.15em 0.4em; border-radius:4px; font-size:0.9em; color:#c4b8e0; }
-.bc pre { background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.12); border-radius:12px; padding:1.25rem; overflow-x:auto; margin:1.5rem 0; }
+.bc hr { border:none; border-top:1px solid rgba(75,156,211,0.15); margin:2.5rem 0; }
+.bc code { background:rgba(75,156,211,0.12); padding:0.15em 0.4em; border-radius:4px; font-size:0.9em; color:#c4b8e0; }
+.bc pre { background:rgba(75,156,211,0.08); border:1px solid rgba(75,156,211,0.12); border-radius:12px; padding:1.25rem; overflow-x:auto; margin:1.5rem 0; }
 .bc pre code { background:none; padding:0; }
 .bc table { width:100%; border-collapse:collapse; margin:1.5rem 0; }
-.bc th, .bc td { border:1px solid rgba(139,92,246,0.12); padding:0.75rem 1rem; text-align:left; font-size:0.95rem; }
-.bc th { background:rgba(139,92,246,0.1); font-weight:700; color:#F0ECF8; }
+.bc th, .bc td { border:1px solid rgba(75,156,211,0.12); padding:0.75rem 1rem; text-align:left; font-size:0.95rem; }
+.bc th { background:rgba(75,156,211,0.1); font-weight:700; color:#E8F0FA; }
 .bc td { color:#d4cce6; }
 .bc > h2:first-child { margin-top:0; }
 `,

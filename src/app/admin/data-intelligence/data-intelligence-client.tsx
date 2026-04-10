@@ -144,6 +144,8 @@ export function DataIntelligenceClient({
     paidOrgs: number;
     freeOrgs: number;
     churnRate: number;
+    creatorMrr: number;
+    brandMrr: number;
   };
   apiUsage: {
     totalCalls: number;
@@ -255,14 +257,27 @@ export function DataIntelligenceClient({
       icon: DollarSign,
     },
     {
+      label: "Creator MRR",
+      value: `$${metrics.creatorMrr.toLocaleString()}`,
+      icon: DollarSign,
+      accent: "text-editorial-green",
+    },
+    {
+      label: "Brand MRR",
+      value: `$${metrics.brandMrr.toLocaleString()}`,
+      icon: DollarSign,
+      accent: "text-editorial-gold",
+    },
+    {
       label: "Active Users",
       value: stats.totalUsers.toLocaleString(),
       icon: Users,
     },
     {
-      label: "Active Orgs",
-      value: metrics.totalOrgs.toLocaleString(),
+      label: "Brand Users",
+      value: stats.brandUsers.toLocaleString(),
       icon: Building2,
+      accent: "text-editorial-blue",
     },
     {
       label: "Churn",
@@ -279,19 +294,9 @@ export function DataIntelligenceClient({
       icon: Cpu,
     },
     {
-      label: "API Calls",
-      value: apiUsage.totalCalls.toLocaleString(),
-      icon: PhoneCall,
-    },
-    {
       label: "AI Cost",
       value: `$${totalAICost.toFixed(2)}`,
       icon: Brain,
-    },
-    {
-      label: "Social Profiles",
-      value: stats.totalProfiles.toLocaleString(),
-      icon: Share2,
     },
   ];
 

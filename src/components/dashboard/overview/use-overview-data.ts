@@ -11,7 +11,9 @@ import type {
   Notification,
   SocialMetrics,
   RecentPost,
+  TrustScore,
 } from "@/types";
+import type { RevenueStats } from "@/lib/dal/revenue";
 import {
   getResult,
   extractGrowthBrief,
@@ -38,6 +40,8 @@ export interface OverviewProps {
   campaigns: Campaign[];
   notifications: Notification[];
   metricsMap: Record<string, SocialMetrics[]>;
+  trustScore: TrustScore | null;
+  revenueStats: RevenueStats | null;
 }
 
 // ============================================================
@@ -396,7 +400,7 @@ export function useOverviewData({
     }
     const followers = formatCompact(profileForData.followers_count);
     const likes = profileAvgLikes;
-    return `With ${followers} followers${likes ? ` and ${formatCompact(likes)} avg likes/post` : ""}, @${profileForData.handle} has growth potential. Run AI analyses in the AI Studio tab for detailed strategic insights.`;
+    return `With ${followers} followers${likes ? ` and ${formatCompact(likes)} avg likes/post` : ""}, @${profileForData.handle} has growth potential. Run analyses in the Intelligence tab for detailed strategic insights.`;
   })();
 
   // Competitors for sidebar

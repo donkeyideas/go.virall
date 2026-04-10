@@ -49,6 +49,7 @@ export function ApiKeysTab() {
   const [expandedProvider, setExpandedProvider] = useState<AIProvider | null>(null);
   const [newKey, setNewKey] = useState("");
   const [saving, setSaving] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -63,15 +64,30 @@ export function ApiKeysTab() {
 
   async function handleSave(provider: AIProvider) {
     if (!newKey.trim()) return;
-    setSaving(true);
     setMessage(null);
-
-    const { saveUserApiKey } = await import("@/lib/actions/api-keys");
     const providerConfig = PROVIDERS.find((p) => p.id === provider);
+
+    // Step 1: Verify the key works
+    setVerifying(true);
+    const { verifyApiKey } = await import("@/lib/actions/api-keys");
+    const verification = await verifyApiKey(provider, newKey.trim());
+    setVerifying(false);
+
+    if (!verification.valid) {
+      setMessage({
+        type: "error",
+        text: `${providerConfig?.name} key verification failed: ${verification.error || "Invalid key"}. Please check your key and try again.`,
+      });
+      return;
+    }
+
+    // Step 2: Key is valid — save it
+    setSaving(true);
+    const { saveUserApiKey } = await import("@/lib/actions/api-keys");
     const result = await saveUserApiKey(provider, newKey.trim(), providerConfig?.defaultModel);
 
     if (result.success) {
-      setMessage({ type: "success", text: `${providerConfig?.name} key saved!` });
+      setMessage({ type: "success", text: `${providerConfig?.name} key verified and saved!` });
       setNewKey("");
       setExpandedProvider(null);
       await loadKeys();
@@ -98,9 +114,9 @@ export function ApiKeysTab() {
 
   return (
     <div>
-      <h3 className="mb-1 font-serif text-lg font-bold text-ink">AI API Keys</h3>
+      <h3 className="mb-1 font-serif text-lg font-bold text-ink">API Keys</h3>
       <p className="mb-4 font-sans text-xs text-ink-secondary">
-        Bring your own API key for a premium AI experience in Chat. Your key is used
+        Bring your own API key for a premium experience in Chat. Your key is used
         first; Go Virall&apos;s system key is the fallback.
       </p>
 
@@ -189,10 +205,10 @@ export function ApiKeysTab() {
                     />
                     <button
                       onClick={() => handleSave(provider.id)}
-                      disabled={!newKey.trim() || saving}
+                      disabled={!newKey.trim() || saving || verifying}
                       className="rounded bg-editorial-red px-4 py-2 font-sans text-[10px] font-bold uppercase tracking-wider text-white hover:bg-editorial-red/90 disabled:opacity-50"
                     >
-                      {saving ? "Saving..." : "Save"}
+                      {verifying ? "Verifying..." : saving ? "Saving..." : "Verify & Save"}
                     </button>
                   </div>
                   <p className="mt-2 font-sans text-[10px] text-ink-secondary">

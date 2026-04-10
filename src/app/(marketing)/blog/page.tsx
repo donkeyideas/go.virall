@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 };
 
 const C = {
-  bg: "#1A1035",
-  card: "#2A1B54",
+  bg: "#0B1928",
+  card: "#112240",
   primary: "#FFB84D",
-  purple: "#8B5CF6",
-  text: "#F0ECF8",
-  textSecondary: "#8A7AAE",
-  border: "rgba(139,92,246,0.12)",
+  purple: "#4B9CD3",
+  text: "#E8F0FA",
+  textSecondary: "#8BACC8",
+  border: "rgba(75,156,211,0.12)",
 } as const;
 
 const font = "-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
@@ -56,8 +56,8 @@ export default async function BlogPage() {
         <div
           style={{
             display: "inline-block",
-            background: "rgba(139,92,246,0.15)",
-            border: "1px solid rgba(139,92,246,0.3)",
+            background: "rgba(75,156,211,0.15)",
+            border: "1px solid rgba(75,156,211,0.3)",
             color: C.purple,
             padding: "8px 20px",
             borderRadius: 100,
@@ -179,7 +179,7 @@ export default async function BlogPage() {
                           padding: "4px 12px",
                           borderRadius: 100,
                           fontSize: 11,
-                          background: "rgba(139,92,246,0.12)",
+                          background: "rgba(75,156,211,0.12)",
                           color: C.purple,
                           fontWeight: 600,
                         }}

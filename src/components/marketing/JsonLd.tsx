@@ -107,9 +107,9 @@ export const FAQ_ITEMS = [
       "Yes. Go Virall offers a completely free plan that includes 1 connected platform, 10 smart analyses per month, 5 content generations, and 5 chat messages per day. No credit card is required. Paid plans (Creator and Pro) also come with a free trial so you can test premium features before committing.",
   },
   {
-    question: "How is Go Virall different from Hootsuite or Sprout Social?",
+    question: "How is Go Virall different from HypeAuditor or Social Blade?",
     answer:
-      "Unlike general-purpose social media management tools, Go Virall is purpose-built for content creators and influencers. It offers smart viral score prediction, personalized content strategy, creator-specific revenue tracking for sponsorships and affiliate deals, and audience intelligence — features that generic tools don't provide. Go Virall also starts free, while most alternatives start at $49+/month.",
+      "HypeAuditor and Social Blade analyze publicly available profile data — useful for third-party research, but they cannot access your private analytics like Reels metrics, Story data, or audience demographics. Go Virall connects directly to your accounts via secure OAuth to provide deep, authenticated analytics, plus AI content strategy, viral score prediction, and revenue tracking. CreatorIQ targets enterprise brands at $1,000+/month. Go Virall is purpose-built for individual creators and starts free.",
   },
   {
     question: "Is my data safe with Go Virall?",
@@ -140,6 +140,24 @@ const websiteSchema = {
   url: SITE_URL,
   description:
     "Social intelligence platform for influencers and content creators.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/blog?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: SITE_URL,
+    },
+  ],
 };
 
 const howToSchema = {
@@ -197,6 +215,12 @@ export function JsonLd({ faqItems }: { faqItems?: { question: string; answer: st
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(howToSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
         }}
       />
     </>

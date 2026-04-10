@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput as RNTextInput, View, Text, StyleSheet, type TextInputProps } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, neuInset, neuInsetBg } from '../../constants/theme';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -21,10 +21,12 @@ export function TextInput({ label, style, ...rest }: Props) {
         style={[
           styles.input,
           {
-            backgroundColor: colors.inputBg,
+            backgroundColor: focused ? colors.inputBg : neuInsetBg(colors),
             color: colors.text,
-            borderColor: focused ? colors.accent : colors.border,
           },
+          focused
+            ? { borderWidth: 1.5, borderColor: colors.accent }
+            : neuInset(colors),
           style,
         ]}
         {...rest}
@@ -43,7 +45,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontSize: FontSize.md,

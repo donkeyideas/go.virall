@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   runBtnText: {
     fontSize: FontSize.sm,
     fontWeight: '800',
-    color: '#1A1035',
+    color: '#FFFFFF',
     letterSpacing: 1.5,
   },
   runBtnSmall: {
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   runBtnSmallText: {
     fontSize: FontSize.xs,
     fontWeight: '800',
-    color: '#1A1035',
+    color: '#FFFFFF',
     letterSpacing: 1,
   },
 });

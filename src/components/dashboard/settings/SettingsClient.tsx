@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
@@ -12,15 +12,16 @@ import { MediaKitTab } from "./MediaKitTab";
 import { TeamTab } from "./TeamTab";
 import { ApiKeysTab } from "./ApiKeysTab";
 import type { Profile, Organization, SocialProfile, UserPreferences, SubscriptionData, BillingInvoice } from "@/types";
+import type { MediaKitData } from "@/lib/dal/media-kit";
 
-const SETTINGS_TABS = [
+const ALL_SETTINGS_TABS = [
   { key: "account", label: "Account" },
   { key: "connected", label: "Connected Accounts" },
   { key: "billing", label: "Subscription & Billing" },
   { key: "notifications", label: "Notifications" },
-  { key: "media-kit", label: "Media Kit" },
+  { key: "media-kit", label: "Media Kit", creatorOnly: true },
   { key: "team", label: "Team" },
-  { key: "api-keys", label: "AI API Keys" },
+  { key: "api-keys", label: "API Keys" },
 ] as const;
 
 interface SettingsClientProps {
@@ -31,6 +32,7 @@ interface SettingsClientProps {
   userEmail: string | null;
   subscription: SubscriptionData | null;
   invoices: BillingInvoice[];
+  mediaKitData?: MediaKitData | null;
 }
 
 export function SettingsClient({
@@ -41,10 +43,17 @@ export function SettingsClient({
   userEmail,
   subscription,
   invoices,
+  mediaKitData,
 }: SettingsClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+
+  const accountType = profile?.account_type ?? "creator";
+  const SETTINGS_TABS = useMemo(
+    () => ALL_SETTINGS_TABS.filter((t) => !("creatorOnly" in t && t.creatorOnly) || accountType === "creator"),
+    [accountType],
+  );
 
   const activeKey = searchParams.get("tab") || "account";
   const activeTab = SETTINGS_TABS.find((t) => t.key === activeKey) ?? SETTINGS_TABS[0];
@@ -106,7 +115,7 @@ export function SettingsClient({
           <NotificationsTab userPreferences={userPreferences} />
         )}
         {activeTab.key === "media-kit" && (
-          <MediaKitTab profile={profile} socialProfiles={socialProfiles} />
+          <MediaKitTab profile={profile} socialProfiles={socialProfiles} mediaKitData={mediaKitData} />
         )}
         {activeTab.key === "team" && (
           <TeamTab profile={profile} organization={organization} userEmail={userEmail} />

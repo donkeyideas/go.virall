@@ -1,8 +1,13 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getSocialProfiles } from "@/lib/dal/profiles";
 import { getCachedResults } from "@/lib/dal/analyses";
-import { RunAnalysisTab } from "@/components/dashboard/RunAnalysisTab";
+import { SmoScoreClient } from "./SmoScoreClient";
 
 export default async function SmoScorePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
   const profiles = await getSocialProfiles();
   const cachedResults = await getCachedResults(
     profiles.map((p) => p.id),
@@ -10,12 +15,8 @@ export default async function SmoScorePage() {
   );
 
   return (
-    <RunAnalysisTab
+    <SmoScoreClient
       profiles={profiles}
-      analysisType="smo_score"
-      title="SMO Score"
-      description="Click 'Calculate SMO Score' to get a Social Media Optimization score based on 6 factors: profile completeness, content quality, posting consistency, engagement, growth trajectory, and monetization readiness."
-      buttonLabel="Calculate SMO Score"
       cachedResults={cachedResults}
     />
   );

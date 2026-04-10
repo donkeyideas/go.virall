@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { TextInput } from '../../components/ui/TextInput';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadowSm } from '../../constants/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -43,10 +43,11 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         <View style={styles.header}>
           <Image
@@ -63,7 +64,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={() => handleOAuth('google')}
             disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border, opacity: oauthLoading === 'apple' ? 0.5 : 1 }]}
+            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'apple' ? 0.5 : 1 }, neuShadowSm(colors)]}
           >
             {oauthLoading === 'google' ? (
               <ActivityIndicator size="small" color={colors.text} />
@@ -77,7 +78,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={() => handleOAuth('apple')}
             disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border, opacity: oauthLoading === 'google' ? 0.5 : 1 }]}
+            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'google' ? 0.5 : 1 }, neuShadowSm(colors)]}
           >
             {oauthLoading === 'apple' ? (
               <ActivityIndicator size="small" color={colors.text} />
@@ -115,9 +116,9 @@ export default function LoginScreen() {
           <Pressable
             onPress={handleSignIn}
             disabled={loading}
-            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
+            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }, neuShadowSm(colors)]}
           >
-            <Text style={[styles.primaryBtnText, { color: '#1A1035' }]}>
+            <Text style={[styles.primaryBtnText, { color: '#FFFFFF' }]}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Text>
           </Pressable>
@@ -168,7 +169,6 @@ const styles = StyleSheet.create({
   socialBtn: {
     flex: 1,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     minHeight: 48,

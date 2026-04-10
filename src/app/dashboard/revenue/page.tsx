@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function RevenuePage() {
-  redirect("/dashboard/monetization?tab=revenue");
+  redirect("/dashboard/business?tab=revenue");
 }

@@ -19,6 +19,8 @@ export interface Organization {
   updated_at: string;
 }
 
+export type AccountType = "creator" | "brand";
+
 export interface Profile {
   id: string;
   organization_id: string | null;
@@ -31,6 +33,17 @@ export interface Profile {
   role: string;
   system_role: string;
   timezone: string;
+  account_type: AccountType;
+  company_name: string | null;
+  company_website: string | null;
+  company_size: string | null;
+  industry: string | null;
+  brand_logo_url: string | null;
+  brand_description: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  stripe_connect_id: string | null;
+  stripe_connect_onboarded: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -93,6 +106,10 @@ export interface SocialProfile {
   last_synced_at: string | null;
   recent_posts: RecentPost[] | null;
   platform_data: Record<string, unknown> | null;
+  ownership_verified: boolean;
+  verification_code: string | null;
+  verification_code_expires_at: string | null;
+  ownership_verified_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -179,16 +196,35 @@ export interface SocialGoal {
 
 // --- Deals & Campaigns ---
 
+export type DealPipelineStage = "lead" | "outreach" | "negotiating" | "contracted" | "in_progress" | "delivered" | "invoiced" | "paid" | "completed";
+
+// Deal closure types (honor system)
+export type DealClosureOutcomeType = "paid" | "partially_paid" | "not_paid" | "cancelled";
+export type DealClosureStatus = "pending_closure" | "matched" | "disputed" | "stale";
+export type DealFinalOutcome = "paid" | "partially_paid" | "not_paid" | "cancelled" | "disputed" | "stale";
+
 export interface Deal {
   id: string;
   organization_id: string;
   brand_name: string;
   contact_email: string | null;
   status: "inquiry" | "negotiation" | "active" | "completed" | "cancelled";
+  pipeline_stage: DealPipelineStage;
   total_value: number | null;
+  paid_amount: number;
   notes: string | null;
+  proposal_id: string | null;
+  thread_id: string | null;
+  brand_profile_id: string | null;
+  contract_url: string | null;
+  is_from_platform: boolean;
   created_at: string;
   updated_at: string;
+  // Deal closure (honor system)
+  closure_status: DealClosureStatus | null;
+  closed_at: string | null;
+  dispute_deadline: string | null;
+  final_outcome: DealFinalOutcome | null;
 }
 
 export interface DealDeliverable {
@@ -201,6 +237,14 @@ export interface DealDeliverable {
   status: "pending" | "in_progress" | "submitted" | "revision" | "approved";
   payment_amount: number | null;
   created_at: string;
+  // Submission tracking
+  submission_url: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  revision_comment: string | null;
+  // Joined (loaded on demand)
+  submissions?: DeliverableSubmission[];
 }
 
 export interface Campaign {
@@ -215,6 +259,76 @@ export interface Campaign {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// --- Deliverable Verification ---
+
+export interface OEmbedData {
+  title: string | null;
+  thumbnail_url: string | null;
+  author_name: string | null;
+  provider_name: string | null;
+  html: string | null;
+  type: string | null;
+}
+
+export interface DeliverableSubmission {
+  id: string;
+  deliverable_id: string;
+  submitted_by: string;
+  url: string;
+  platform_detected: string | null;
+  oembed_data: OEmbedData | null;
+  note: string | null;
+  status: "pending" | "approved" | "revision_requested";
+  reviewer_id: string | null;
+  review_comment: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  // Joined
+  submitter?: Pick<Profile, "id" | "full_name" | "avatar_url">;
+}
+
+// --- Deal Closure (Honor System) ---
+
+export interface DealClosureOutcome {
+  id: string;
+  deal_id: string;
+  user_id: string;
+  outcome: DealClosureOutcomeType;
+  notes: string | null;
+  submitted_at: string;
+  is_locked: boolean;
+}
+
+// --- Trust & Reputation ---
+
+export interface TrustScore {
+  id: string;
+  profile_id: string;
+  overall_score: number;
+  completion_rate: number;
+  response_time_score: number;
+  dispute_rate: number;
+  consistency_score: number;
+  deal_volume_score: number;
+  total_deals_closed: number;
+  total_deals_completed: number;
+  total_deals_disputed: number;
+  avg_response_hours: number | null;
+  is_public: boolean;
+  last_calculated_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrustScoreHistory {
+  id: string;
+  profile_id: string;
+  overall_score: number;
+  breakdown: Record<string, unknown>;
+  deal_id: string | null;
+  created_at: string;
 }
 
 // --- Platform Config ---
@@ -253,13 +367,32 @@ export interface SubscriptionData {
   payment_method_brand: string | null;
 }
 
+export interface BillingInvoiceLineItem {
+  description: string;
+  quantity: number;
+  unit_amount: number;
+  amount: number;
+}
+
 export interface BillingInvoice {
   id: string;
+  number: string | null;
   date: string;
+  due_date: string | null;
   description: string;
   amount: number;
+  subtotal: number;
+  tax: number;
   status: string;
   invoice_url: string | null;
+  invoice_pdf: string | null;
+  payment_method_brand: string | null;
+  payment_method_last4: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  line_items: BillingInvoiceLineItem[];
+  period_start: string | null;
+  period_end: string | null;
 }
 
 // --- Admin Dashboard ---
@@ -294,6 +427,11 @@ export interface ContactSubmission {
   message: string;
   status: "new" | "read" | "replied" | "archived";
   created_at: string;
+  user_id?: string | null;
+  organization_id?: string | null;
+  admin_reply?: string | null;
+  admin_reply_at?: string | null;
+  brand_read?: boolean;
 }
 
 export interface SiteContent {
@@ -422,9 +560,15 @@ export interface PlatformInsight {
 export interface PricingPlan {
   id: string;
   name: string;
+  account_type: "creator" | "brand";
   max_social_profiles: number;
   price_monthly: number;
+  description: string | null;
+  stripe_price_id: string | null;
+  is_active: boolean;
+  sort_order: number;
   features: Record<string, unknown>;
+  updated_at: string;
 }
 
 // Admin composite types
@@ -437,6 +581,7 @@ export interface UserRow {
   system_role: string;
   org_name: string | null;
   org_plan: string | null;
+  account_type: "creator" | "brand";
   provider: string | null;
   created_at: string;
 }
@@ -451,6 +596,7 @@ export interface OrgRow {
   profile_count: number;
   deal_count: number;
   stripe_customer_id: string | null;
+  account_type: "creator" | "brand";
   created_at: string;
 }
 
@@ -460,6 +606,10 @@ export interface AdminStats {
   totalProfiles: number;
   totalAnalyses: number;
   pendingDeals: number;
+  creatorUsers: number;
+  brandUsers: number;
+  creatorOrgs: number;
+  brandOrgs: number;
 }
 
 export interface AdminNotification {
@@ -547,6 +697,291 @@ export interface PlatformBenchmark {
   avg_earnings_monthly: number | null;
   sample_size: number;
   computed_at: string;
+}
+
+// --- Messaging ---
+
+export interface MessageThread {
+  id: string;
+  participant_1: string;
+  participant_2: string;
+  last_message_at: string;
+  last_message_preview: string | null;
+  unread_count_1: number;
+  unread_count_2: number;
+  is_archived_1: boolean;
+  is_archived_2: boolean;
+  deal_id: string | null;
+  created_at: string;
+  // Joined fields
+  other_user?: Pick<Profile, "id" | "full_name" | "avatar_url" | "account_type" | "company_name">;
+}
+
+export interface DirectMessage {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  content: string;
+  message_type: "text" | "proposal" | "file" | "system";
+  metadata: Record<string, unknown>;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface MessageAttachment {
+  id: string;
+  message_id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string | null;
+  file_size: number | null;
+  created_at: string;
+}
+
+// --- Proposals ---
+
+export type ProposalStatus = "draft" | "pending" | "negotiating" | "accepted" | "declined" | "expired" | "cancelled";
+
+export interface ProposalDeliverable {
+  platform: string;
+  content_type: string;
+  quantity: number;
+  deadline: string | null;
+  amount: number | null;
+  description: string | null;
+}
+
+export interface Proposal {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  deal_id: string | null;
+  thread_id: string | null;
+  title: string;
+  description: string | null;
+  proposal_type: "brand_to_creator" | "creator_to_brand";
+  deliverables: ProposalDeliverable[];
+  total_amount: number | null;
+  currency: string;
+  payment_type: "fixed" | "per_deliverable" | "revenue_share" | "product_only";
+  start_date: string | null;
+  end_date: string | null;
+  status: ProposalStatus;
+  counter_offer: Record<string, unknown> | null;
+  revision_count: number;
+  notes: string | null;
+  attachments: Record<string, unknown>[];
+  created_at: string;
+  updated_at: string;
+  expires_at: string | null;
+  // Joined
+  sender?: Pick<Profile, "id" | "full_name" | "avatar_url" | "account_type" | "company_name">;
+  receiver?: Pick<Profile, "id" | "full_name" | "avatar_url" | "account_type" | "company_name">;
+}
+
+export interface ProposalEvent {
+  id: string;
+  proposal_id: string;
+  actor_id: string;
+  event_type: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+// --- Platform Payments ---
+
+export interface PlatformPayment {
+  id: string;
+  deal_id: string | null;
+  proposal_id: string | null;
+  payer_id: string;
+  payee_id: string;
+  amount: number;
+  currency: string;
+  platform_fee: number;
+  stripe_payment_intent_id: string | null;
+  stripe_transfer_id: string | null;
+  status: "pending" | "processing" | "completed" | "failed" | "refunded";
+  description: string | null;
+  metadata: Record<string, unknown>;
+  paid_at: string | null;
+  created_at: string;
+}
+
+// --- Audience Quality Score ---
+
+export type AQSGrade = "A+" | "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "C-" | "D+" | "D" | "D-";
+
+export interface AudienceQualityScore {
+  id: string;
+  social_profile_id: string;
+  overall_score: number;
+  engagement_quality: number | null;
+  follower_authenticity: number | null;
+  growth_health: number | null;
+  content_consistency: number | null;
+  audience_demographics: Record<string, unknown>;
+  risk_flags: string[];
+  breakdown: Record<string, unknown>;
+  grade: AQSGrade | null;
+  calculated_at: string;
+  expires_at: string | null;
+}
+
+// --- Content Optimization ---
+
+export interface ContentOptimization {
+  id: string;
+  social_profile_id: string;
+  user_id: string;
+  draft_content: string;
+  target_platform: string;
+  content_type: string | null;
+  predicted_engagement: number | null;
+  optimized_content: string | null;
+  suggestions: string[];
+  hashtag_recommendations: string[];
+  best_posting_time: string | null;
+  tone_analysis: Record<string, unknown> | null;
+  competitor_comparison: Record<string, unknown> | null;
+  created_at: string;
+}
+
+// --- Competitor Insights ---
+
+export interface CompetitorInsight {
+  id: string;
+  social_profile_id: string;
+  competitor_id: string;
+  insight_type: "weekly_summary" | "trend_alert" | "strategy_change" | "viral_content";
+  title: string;
+  description: string;
+  actionable_tips: string[];
+  data_snapshot: Record<string, unknown>;
+  priority: "critical" | "high" | "medium" | "info";
+  is_read: boolean;
+  created_at: string;
+}
+
+// --- Creator Marketplace ---
+
+export interface CreatorMarketplaceProfile {
+  id: string;
+  profile_id: string;
+  is_listed: boolean;
+  is_verified: boolean;
+  categories: string[];
+  content_types: string[];
+  languages: string[];
+  rate_card: Record<string, number>;
+  minimum_budget: number | null;
+  total_followers: number;
+  avg_engagement_rate: number;
+  audience_quality_score: number | null;
+  platforms_active: string[];
+  highlight_reel: Record<string, unknown>[];
+  past_brands: string[];
+  has_verified_profiles?: boolean;
+  updated_at: string;
+  // Joined
+  profile?: Pick<Profile, "id" | "full_name" | "avatar_url" | "bio" | "niche" | "location">;
+}
+
+export interface EnrichedCreatorProfile extends CreatorMarketplaceProfile {
+  social_profiles: Pick<
+    SocialProfile,
+    "id" | "platform" | "handle" | "followers_count" | "engagement_rate" | "posts_count" | "verified" | "avatar_url"
+  >[];
+  aqs_breakdown: {
+    overall_score: number;
+    engagement_quality: number | null;
+    follower_authenticity: number | null;
+    growth_health: number | null;
+    content_consistency: number | null;
+    grade: string | null;
+    risk_flags: string[];
+    audience_demographics: Record<string, unknown>;
+  } | null;
+  growth_metrics: {
+    platform: string;
+    followers_current: number | null;
+    followers_previous: number | null;
+    engagement_current: number | null;
+    engagement_previous: number | null;
+    avg_likes: number | null;
+    avg_comments: number | null;
+    avg_views: number | null;
+  }[];
+  smo_score: number | null;
+  earnings_estimate: {
+    monthly_low: number | null;
+    monthly_high: number | null;
+    per_post_low: number | null;
+    per_post_high: number | null;
+  } | null;
+  top_content: {
+    platform: string;
+    url: string | null;
+    likes: number | null;
+  }[];
+}
+
+// --- Trending Topics ---
+
+export interface TrendingTopic {
+  id: string;
+  platform: string;
+  niche: string;
+  topic: string;
+  hashtags: string[];
+  trend_score: number | null;
+  volume: number | null;
+  growth_rate: number | null;
+  ai_analysis: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
+
+// --- Brand-Creator Matches ---
+
+export interface BrandCreatorMatch {
+  id: string;
+  brand_profile_id: string;
+  creator_profile_id: string;
+  match_score: number;
+  match_reasons: string[];
+  brand_interests: Record<string, unknown>;
+  creator_strengths: Record<string, unknown>;
+  status: "suggested" | "interested" | "contacted" | "dismissed";
+  is_read: boolean;
+  created_at: string;
+  // Joined
+  brand?: Pick<Profile, "id" | "full_name" | "avatar_url" | "company_name" | "industry">;
+  creator?: Pick<Profile, "id" | "full_name" | "avatar_url" | "niche" | "location">;
+}
+
+// --- Scheduled Posts ---
+
+export interface ScheduledPost {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  social_profile_id: string | null;
+  platform: string;
+  content: string;
+  media_urls: string[];
+  hashtags: string[];
+  scheduled_at: string;
+  published_at: string | null;
+  status: "draft" | "scheduled" | "publishing" | "published" | "failed" | "cancelled";
+  platform_post_id: string | null;
+  error_message: string | null;
+  ai_optimized: boolean;
+  ai_suggestions: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 // --- Platform Display Config ---

@@ -6,16 +6,16 @@ import { signIn } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/client";
 
 const C = {
-  bg: "#1A1035",
-  card: "#2A1B54",
-  cardElevated: "#33225E",
+  bg: "#0B1928",
+  card: "#112240",
+  cardElevated: "#1A2F50",
   primary: "#FFB84D",
   secondary: "#FFD280",
-  purple: "#8B5CF6",
-  text: "#F0ECF8",
-  textSecondary: "#8A7AAE",
-  border: "rgba(139,92,246,0.15)",
-  inputBg: "#221548",
+  purple: "#4B9CD3",
+  text: "#E8F0FA",
+  textSecondary: "#8BACC8",
+  border: "rgba(75,156,211,0.15)",
+  inputBg: "#0D1E35",
   error: "#EF4444",
 };
 

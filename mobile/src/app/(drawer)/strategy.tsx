@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { supabase } from '../../lib/supabase';
-import { Spacing, FontSize, BorderRadius } from '../../constants/theme';
+import { Spacing, FontSize, BorderRadius, neuShadowSm } from '../../constants/theme';
 import { TabPills } from '../../components/ui/TabPills';
 import { Card } from '../../components/ui/Card';
 import { ProfileSelector } from '../../components/ui/ProfileSelector';
@@ -254,7 +254,7 @@ export default function StrategyScreen() {
             return (
               <View
                 key={i}
-                style={[styles.hashtagPill, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}
+                style={[styles.hashtagPill, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
               >
                 <Text style={[styles.hashtagText, { color: colors.accent }]}>
                   {label.startsWith('#') ? label : `#${label}`}
@@ -375,7 +375,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    borderWidth: 1,
   },
   hashtagText: {
     fontSize: FontSize.sm,
@@ -397,7 +396,7 @@ const styles = StyleSheet.create({
   runBtnText: {
     fontSize: FontSize.sm,
     fontWeight: '800',
-    color: '#1A1035',
+    color: '#FFFFFF',
     letterSpacing: 1.5,
   },
   runBtnSmall: {
@@ -411,7 +410,7 @@ const styles = StyleSheet.create({
   runBtnSmallText: {
     fontSize: FontSize.xs,
     fontWeight: '800',
-    color: '#1A1035',
+    color: '#FFFFFF',
     letterSpacing: 1,
   },
 });

@@ -6,7 +6,7 @@ import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { Avatar } from '../ui/Avatar';
 import { MenuIcon, type MenuIconName } from './MenuIcon';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadowSm } from '../../constants/theme';
 
 function SunIcon({ size, color }: { size: number; color: string }) {
   return (
@@ -31,7 +31,7 @@ interface MenuItem {
   route: string;
 }
 
-const MENU_ITEMS: MenuItem[] = [
+const CREATOR_MENU_ITEMS: MenuItem[] = [
   { label: 'Overview', icon: 'overview', route: '/(drawer)' },
   { label: 'Profiles', icon: 'profiles', route: '/(drawer)/profiles' },
   { label: 'Chat', icon: 'chat', route: '/(drawer)/chat' },
@@ -40,10 +40,34 @@ const MENU_ITEMS: MenuItem[] = [
   { label: 'Strategy', icon: 'strategy', route: '/(drawer)/strategy' },
   { label: 'Intelligence', icon: 'intelligence', route: '/(drawer)/intelligence' },
   { label: 'Monetization', icon: 'monetization', route: '/(drawer)/monetization' },
+  { label: 'Deals', icon: 'deals', route: '/(drawer)/deals' },
+  { label: 'Proposals', icon: 'proposals', route: '/(drawer)/proposals' },
+  { label: 'Opportunities', icon: 'opportunities', route: '/(drawer)/opportunities' },
+  { label: 'Messages', icon: 'messages', route: '/(drawer)/messages' },
+  { label: 'Publish', icon: 'publish', route: '/(drawer)/publish' },
+  { label: 'Hashtags', icon: 'hashtags', route: '/(drawer)/hashtags' },
+  { label: 'Revenue', icon: 'revenue', route: '/(drawer)/revenue' },
   { label: 'SMO Score', icon: 'smo-score', route: '/(drawer)/smo-score' },
   { label: 'Recommendations', icon: 'recommendations', route: '/(drawer)/recommendations' },
   { label: 'Goals', icon: 'goals', route: '/(drawer)/goals' },
+  { label: 'Marketplace', icon: 'marketplace', route: '/(drawer)/marketplace' },
   { label: 'Settings', icon: 'settings', route: '/(drawer)/settings' },
+];
+
+const BRAND_MENU_ITEMS: MenuItem[] = [
+  { label: 'Overview', icon: 'overview', route: '/(drawer)/brand-overview' },
+  { label: 'Discover', icon: 'discover', route: '/(drawer)/brand-discover' },
+  { label: 'Matches', icon: 'matches', route: '/(drawer)/brand-matches' },
+  { label: 'Messages', icon: 'messages', route: '/(drawer)/brand-messages' },
+  { label: 'Campaigns', icon: 'campaigns', route: '/(drawer)/brand-campaigns' },
+  { label: 'Calendar', icon: 'calendar', route: '/(drawer)/brand-calendar' },
+  { label: 'Proposals', icon: 'proposals', route: '/(drawer)/brand-proposals' },
+  { label: 'Deals', icon: 'deals', route: '/(drawer)/brand-deals' },
+  { label: 'Payments', icon: 'payments', route: '/(drawer)/brand-payments' },
+  { label: 'Analytics', icon: 'analytics', route: '/(drawer)/brand-analytics' },
+  { label: 'Trust Score', icon: 'trust', route: '/(drawer)/brand-trust' },
+  { label: 'Marketplace', icon: 'marketplace', route: '/(drawer)/marketplace' },
+  { label: 'Settings', icon: 'settings', route: '/(drawer)/brand-settings' },
 ];
 
 export function DrawerMenu(props: any) {
@@ -62,9 +86,9 @@ export function DrawerMenu(props: any) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Avatar name={profile?.full_name || 'User'} size={48} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header]}>
+        <Avatar name={profile?.full_name || 'User'} size={48} imageUrl={profile?.avatar_url} />
         <View style={styles.headerInfo}>
           <Text style={[styles.headerName, { color: colors.text }]} numberOfLines={1}>
             {profile?.full_name || 'User'}
@@ -72,34 +96,39 @@ export function DrawerMenu(props: any) {
           <Text style={[styles.headerEmail, { color: colors.textSecondary }]} numberOfLines={1}>
             {user?.email || ''}
           </Text>
+          {profile?.account_type === 'brand' && (
+            <View style={[styles.accountBadge, { backgroundColor: colors.primary + '20' }]}>
+              <Text style={[styles.accountBadgeText, { color: colors.primary }]}>Brand</Text>
+            </View>
+          )}
         </View>
       </View>
 
       {/* Theme Toggle */}
-      <View style={[styles.themeRow, { borderBottomColor: colors.border }]}>
+      <View style={[styles.themeRow]}>
         <Pressable
           onPress={toggleTheme}
-          style={[styles.themeToggle, { backgroundColor: colors.surfaceLight }]}
+          style={[styles.themeToggle, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
         >
           <View style={[
             styles.themeOption,
             mode === 'light' && { backgroundColor: colors.primary },
           ]}>
-            <SunIcon size={14} color={mode === 'light' ? '#1A1035' : colors.textMuted} />
-            <Text style={[styles.themeText, { color: mode === 'light' ? '#1A1035' : colors.textMuted }]}>Light</Text>
+            <SunIcon size={14} color={mode === 'light' ? '#FFFFFF' : colors.textMuted} />
+            <Text style={[styles.themeText, { color: mode === 'light' ? '#FFFFFF' : colors.textMuted }]}>Light</Text>
           </View>
           <View style={[
             styles.themeOption,
             mode === 'dark' && { backgroundColor: colors.primary },
           ]}>
-            <MoonIcon size={14} color={mode === 'dark' ? '#1A1035' : colors.textMuted} />
-            <Text style={[styles.themeText, { color: mode === 'dark' ? '#1A1035' : colors.textMuted }]}>Dark</Text>
+            <MoonIcon size={14} color={mode === 'dark' ? '#FFFFFF' : colors.textMuted} />
+            <Text style={[styles.themeText, { color: mode === 'dark' ? '#FFFFFF' : colors.textMuted }]}>Dark</Text>
           </View>
         </Pressable>
       </View>
 
       <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
-        {MENU_ITEMS.map((item) => {
+        {(profile?.account_type === 'brand' ? BRAND_MENU_ITEMS : CREATOR_MENU_ITEMS).map((item) => {
           const isActive = pathname === item.route ||
             (item.route === '/(drawer)' && pathname === '/') ||
             (item.route !== '/(drawer)' && pathname.startsWith(item.route));
@@ -110,7 +139,7 @@ export function DrawerMenu(props: any) {
               onPress={() => handleNav(item.route)}
               style={[
                 styles.menuItem,
-                isActive && { backgroundColor: colors.primary + '15' },
+                isActive && [{ backgroundColor: colors.surface }, neuShadowSm(colors)],
               ]}
             >
               <MenuIcon
@@ -135,7 +164,7 @@ export function DrawerMenu(props: any) {
 
       <Pressable
         onPress={handleSignOut}
-        style={[styles.signOutBtn, { borderTopColor: colors.border }]}
+        style={[styles.signOutBtn]}
       >
         <MenuIcon name="signout" color={colors.error} size={22} />
         <Text style={[styles.signOutText, { color: colors.error }]}>Sign Out</Text>
@@ -154,7 +183,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.lg,
     gap: Spacing.md,
-    borderBottomWidth: 1,
     marginBottom: Spacing.sm,
   },
   headerInfo: {
@@ -203,16 +231,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
     padding: Spacing.lg,
-    borderTopWidth: 1,
   },
   signOutText: {
     fontSize: FontSize.md,
     fontWeight: '600',
   },
+  accountBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  accountBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
   themeRow: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
     marginBottom: Spacing.xs,
   },
   themeToggle: {

@@ -12,7 +12,7 @@ import { TabPills } from '../../components/ui/TabPills';
 import { Card } from '../../components/ui/Card';
 import { SectionTitle } from '../../components/ui/SectionTitle';
 import { AnalysisModal } from '../../components/ui/AnalysisModal';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadow, neuShadowSm, neuInset } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
 import { mobileApi } from '../../lib/api';
 import { trackEvent } from '../../lib/track';
@@ -318,10 +318,10 @@ function ContentGeneratorTab({
       </ScrollView>
 
       {/* Input Form */}
-      <View style={[styles.formCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View style={[styles.formCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <Text style={[styles.formLabel, { color: colors.textMuted }]}>TOPIC / THEME</Text>
         <RNTextInput
-          style={[styles.topicInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+          style={[styles.topicInput, { backgroundColor: colors.inputBg, color: colors.text }, neuInset(colors)]}
           placeholder="e.g. Summer fashion trends, Productivity hacks..."
           placeholderTextColor={colors.textMuted}
           value={topic}
@@ -334,7 +334,7 @@ function ContentGeneratorTab({
             <Text style={[styles.formLabel, { color: colors.textMuted }]}>TONE</Text>
             <Pressable
               onPress={() => setShowTonePicker(true)}
-              style={[styles.pickerBtn, { backgroundColor: colors.inputBg, borderColor: colors.border }]}
+              style={[styles.pickerBtn, { backgroundColor: colors.inputBg }, neuInset(colors)]}
             >
               <Text style={[styles.pickerText, { color: colors.text }]}>{tone}</Text>
               <Text style={[styles.pickerArrow, { color: colors.textMuted }]}>▼</Text>
@@ -343,7 +343,7 @@ function ContentGeneratorTab({
           <View style={styles.formHalf}>
             <Text style={[styles.formLabel, { color: colors.textMuted }]}>COUNT</Text>
             <RNTextInput
-              style={[styles.countInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+              style={[styles.countInput, { backgroundColor: colors.inputBg, color: colors.text }, neuInset(colors)]}
               value={count}
               onChangeText={setCount}
               keyboardType="number-pad"
@@ -362,7 +362,7 @@ function ContentGeneratorTab({
         >
           {generating ? (
             <View style={styles.generatingRow}>
-              <ActivityIndicator size="small" color="#1A1035" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
               <Text style={styles.generateText}>GENERATING...</Text>
             </View>
           ) : (
@@ -379,7 +379,7 @@ function ContentGeneratorTab({
 
       {/* Error */}
       {error ? (
-        <View style={[styles.errorCard, { borderColor: colors.error }]}>
+        <View style={[styles.errorCard, { backgroundColor: colors.error + '10' }, neuShadow(colors)]}>
           <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
       ) : null}
@@ -388,7 +388,7 @@ function ContentGeneratorTab({
       {result && <ContentResults data={result} contentType={contentType} />}
 
       {!result && !generating && !error && (
-        <View style={[styles.emptyState, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+        <View style={[styles.emptyState, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             Enter a topic and click Generate to create {CONTENT_TYPES.find((t) => t.key === contentType)?.label.toLowerCase() || 'content'}.
           </Text>
@@ -398,7 +398,7 @@ function ContentGeneratorTab({
       {/* Tone Picker Modal */}
       <Modal visible={showTonePicker} transparent animationType="fade" onRequestClose={() => setShowTonePicker(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowTonePicker(false)}>
-          <View style={[styles.toneModal, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.toneModal, { backgroundColor: colors.surface }, neuShadow(colors)]}>
             <Text style={[styles.toneModalTitle, { color: colors.text }]}>Select Tone</Text>
             {TONES.map((t) => (
               <Pressable
@@ -430,7 +430,7 @@ function CopyButton({ text }: { text: string }) {
   };
 
   return (
-    <Pressable onPress={handleCopy} style={[styles.copyBtn, { borderColor: colors.border }]}>
+    <Pressable onPress={handleCopy} style={[styles.copyBtn, { backgroundColor: colors.surface }, neuShadowSm(colors)]}>
       <Text style={[styles.copyBtnText, { color: copied ? colors.success : colors.textSecondary }]}>
         {copied ? 'COPIED' : 'COPY'}
       </Text>
@@ -467,7 +467,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
   const renderPostIdeas = () => {
     const ideas = data.ideas || [];
     return ideas.map((idea: any, i: number) => (
-      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <View style={styles.resultHeader}>
           <Text style={[styles.resultTitle, { color: colors.text, flex: 1 }]}>{idea.title}</Text>
           <CopyButton text={extractText(idea)} />
@@ -485,7 +485,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
   const renderCaptions = () => {
     const captions = data.captions || [];
     return captions.map((cap: any, i: number) => (
-      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <View style={styles.resultHeader}>
           <View style={{ flex: 1 }} />
           <CopyButton text={extractText(cap)} />
@@ -500,7 +500,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
   const renderCalendar = () => {
     const days = data.calendar || [];
     return days.map((day: any, i: number) => (
-      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <View style={styles.resultHeader}>
           <View style={styles.calRow}>
             <Text style={[styles.calDay, { color: colors.primary }]}>{day.day}</Text>
@@ -518,7 +518,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
   const renderScripts = () => {
     const scripts = data.scripts || [];
     return scripts.map((script: any, i: number) => (
-      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <View style={styles.resultHeader}>
           <Text style={[styles.resultTitle, { color: colors.text, flex: 1 }]}>{script.title}</Text>
           <CopyButton text={extractText(script)} />
@@ -549,7 +549,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
   const renderCarousels = () => {
     const carousels = data.carousels || [];
     return carousels.map((c: any, i: number) => (
-      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <View style={styles.resultHeader}>
           <Text style={[styles.resultTitle, { color: colors.text, flex: 1 }]}>{c.title}</Text>
           <CopyButton text={extractText(c)} />
@@ -569,7 +569,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
   const renderBios = () => {
     const bios = data.bios || [];
     return bios.map((bio: any, i: number) => (
-      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View key={i} style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <View style={styles.resultHeader}>
           {bio.style ? <Text style={[styles.resultBadge, { color: colors.accent }]}>{bio.style}</Text> : <View />}
           <CopyButton text={extractText(bio)} />
@@ -595,7 +595,7 @@ function ContentResults({ data, contentType }: { data: any; contentType: string 
     case 'carousels': content = renderCarousels(); break;
     case 'bio': content = renderBios(); break;
     default: content = (
-      <View style={[styles.resultCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+      <View style={[styles.resultCard, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
         <Text style={[styles.resultBody, { color: colors.text }]}>{JSON.stringify(data, null, 2)}</Text>
       </View>
     );
@@ -616,26 +616,26 @@ const styles = StyleSheet.create({
   typePill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm },
   typeLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
 
-  formCard: { borderRadius: BorderRadius.lg, borderWidth: 1, padding: Spacing.lg, gap: Spacing.md },
+  formCard: { borderRadius: BorderRadius.lg, padding: Spacing.lg, gap: Spacing.md },
   formLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
-  topicInput: { borderRadius: BorderRadius.md, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
+  topicInput: { borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
   formRow: { flexDirection: 'row', gap: Spacing.md },
   formHalf: { flex: 1 },
-  pickerBtn: { borderRadius: BorderRadius.md, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 44 },
+  pickerBtn: { borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 44 },
   pickerText: { fontSize: FontSize.md },
   pickerArrow: { fontSize: 10 },
-  countInput: { borderRadius: BorderRadius.md, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
+  countInput: { borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.md, minHeight: 44 },
   generateBtn: { borderRadius: BorderRadius.md, paddingVertical: Spacing.md, alignItems: 'center', justifyContent: 'center', minHeight: 48 },
-  generateText: { fontSize: FontSize.sm, fontWeight: '800', color: '#1A1035', letterSpacing: 1.5 },
+  generateText: { fontSize: FontSize.sm, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1.5 },
 
-  errorCard: { borderRadius: BorderRadius.md, borderWidth: 1, padding: Spacing.md },
+  errorCard: { borderRadius: BorderRadius.md, padding: Spacing.md },
   errorText: { fontSize: FontSize.sm },
 
-  emptyState: { borderRadius: BorderRadius.lg, borderWidth: 1, padding: Spacing.xxxl, alignItems: 'center' },
+  emptyState: { borderRadius: BorderRadius.lg, padding: Spacing.xxxl, alignItems: 'center' },
   emptyText: { fontSize: FontSize.md, textAlign: 'center', lineHeight: 22 },
 
   resultsContainer: { gap: Spacing.md },
-  resultCard: { borderRadius: BorderRadius.lg, borderWidth: 1, padding: Spacing.lg, gap: Spacing.sm },
+  resultCard: { borderRadius: BorderRadius.lg, padding: Spacing.lg, gap: Spacing.sm },
   resultTitle: { fontSize: FontSize.lg, fontWeight: '700' },
   resultHook: { fontSize: FontSize.sm, fontWeight: '600', fontStyle: 'italic' },
   resultBody: { fontSize: FontSize.sm, lineHeight: 20 },
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
   keyword: { fontSize: FontSize.xs },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: Spacing.xxl },
-  toneModal: { width: '100%', maxWidth: 300, borderRadius: BorderRadius.lg, borderWidth: 1, padding: Spacing.md },
+  toneModal: { width: '100%', maxWidth: 300, borderRadius: BorderRadius.lg, padding: Spacing.md },
   toneModalTitle: { fontSize: FontSize.lg, fontWeight: '700', marginBottom: Spacing.md, textAlign: 'center' },
   toneOption: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.md, borderRadius: BorderRadius.md },
   toneOptionText: { fontSize: FontSize.md, fontWeight: '500' },
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
   generatingHint: { fontSize: FontSize.xs, textAlign: 'center' },
 
   resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  copyBtn: { borderRadius: BorderRadius.sm, borderWidth: 1, paddingHorizontal: Spacing.sm, paddingVertical: 4 },
+  copyBtn: { borderRadius: BorderRadius.sm, paddingHorizontal: Spacing.sm, paddingVertical: 4 },
   copyBtnText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
 
   // Strategic Analysis

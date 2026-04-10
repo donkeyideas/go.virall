@@ -54,15 +54,19 @@ export async function scrapeTwitterProfile(
 
   // Method 1: Official API (includes tweet fetching if bearer token exists)
   const official = await fetchViaOfficialAPI(cleanHandle);
-  if (official) return official;
+  if (official && official.recentPosts.length > 0) return official;
 
   // Method 2: Guest Token + GraphQL (same as browser incognito mode)
   const guest = await fetchViaGuestGraphQL(cleanHandle);
-  if (guest) return guest;
+  if (guest && guest.recentPosts.length > 0) return guest;
+
+  // Best profile data so far (may have empty posts)
+  let bestProfile = official || guest;
 
   // Method 3: FxTwitter proxy for profile data + tweet hydration
   const fx = await fetchViaFxTwitter(cleanHandle);
   if (fx) {
+    if (!bestProfile) bestProfile = fx;
     if (fx.recentPosts.length === 0) {
       const tweets = await fetchTweetsViaFxHydration(cleanHandle);
       if (tweets.length > 0) {
@@ -76,12 +80,31 @@ export async function scrapeTwitterProfile(
         }
       }
     }
-    return fx;
+    if (fx.recentPosts.length > 0) {
+      // Attach posts to the best profile data available
+      if (bestProfile && bestProfile !== fx) {
+        bestProfile.recentPosts = fx.recentPosts;
+        return bestProfile;
+      }
+      return fx;
+    }
   }
 
   // Method 4: Syndication (profile + tweets)
   const syndication = await fetchViaSyndication(cleanHandle);
-  if (syndication) return syndication;
+  if (syndication && syndication.recentPosts.length > 0) {
+    if (bestProfile) {
+      bestProfile.recentPosts = syndication.recentPosts;
+      return bestProfile;
+    }
+    return syndication;
+  }
+
+  // Return whatever profile data we have, even without posts
+  if (bestProfile) {
+    console.log(`[twitter] Returning profile for @${cleanHandle} without posts (all tweet methods failed)`);
+    return bestProfile;
+  }
 
   console.log(`[twitter] All methods failed for @${cleanHandle}`);
   return null;
@@ -263,7 +286,7 @@ async function fetchViaGuestGraphQL(
       responsive_web_graphql_timeline_navigation_enabled: true,
     });
 
-    const userUrl = `https://x.com/i/api/graphql/BQ6xjFU6Mgm-WhEP3OiT9w/UserByScreenName?variables=${encodeURIComponent(userVariables)}&features=${encodeURIComponent(userFeatures)}`;
+    const userUrl = `https://x.com/i/api/graphql/sLVLhk0bGj3MVFEKTdax1w/UserByScreenName?variables=${encodeURIComponent(userVariables)}&features=${encodeURIComponent(userFeatures)}`;
 
     const controller1 = new AbortController();
     const timer1 = setTimeout(() => controller1.abort(), FETCH_TIMEOUT_MS);
@@ -346,7 +369,7 @@ async function fetchViaGuestGraphQL(
       responsive_web_enhance_cards_enabled: false,
     });
 
-    const tweetsUrl = `https://x.com/i/api/graphql/E3opETHurmVJflFsUBVuUQ/UserTweets?variables=${encodeURIComponent(tweetsVariables)}&features=${encodeURIComponent(tweetsFeatures)}`;
+    const tweetsUrl = `https://x.com/i/api/graphql/HuTx74BxAnezK1gWvYY7zg/UserTweets?variables=${encodeURIComponent(tweetsVariables)}&features=${encodeURIComponent(tweetsFeatures)}`;
 
     const controller2 = new AbortController();
     const timer2 = setTimeout(() => controller2.abort(), FETCH_TIMEOUT_MS);

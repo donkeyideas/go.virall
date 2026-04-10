@@ -10,7 +10,7 @@ import { Card } from '../../components/ui/Card';
 import { SectionTitle } from '../../components/ui/SectionTitle';
 import { PlatformIcon } from '../../components/ui/PlatformIcon';
 import { PlatformColors, PlatformLabels, type PlatformName } from '../../constants/platforms';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadowSm, neuInset } from '../../constants/theme';
 import { formatNumber } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { mobileApi } from '../../lib/api';
@@ -202,7 +202,7 @@ export default function ProfilesScreen() {
               <Pressable
                 onPress={() => handleSync(p.id)}
                 disabled={syncingId === p.id}
-                style={[styles.actionBtn, { borderColor: colors.border }]}
+                style={[styles.actionBtn, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
               >
                 {syncingId === p.id ? (
                   <ActivityIndicator size="small" color={colors.primary} />
@@ -212,7 +212,7 @@ export default function ProfilesScreen() {
               </Pressable>
               <Pressable
                 onPress={() => handleDisconnect(p.id, p.display_name || p.handle)}
-                style={[styles.actionBtn, { borderColor: colors.error + '40' }]}
+                style={[styles.actionBtn, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
               >
                 <Text style={[styles.actionBtnText, { color: colors.error }]}>Disconnect</Text>
               </Pressable>
@@ -242,7 +242,7 @@ export default function ProfilesScreen() {
                     <Pressable
                       key={p.key}
                       onPress={() => setSelectedPlatform(p.key)}
-                      style={[styles.platformItem, { borderColor: colors.border, backgroundColor: colors.surfaceLight }]}
+                      style={[styles.platformItem, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
                     >
                       <PlatformIcon platform={p.key as PlatformName} size={36} />
                       <Text style={[styles.platformLabel, { color: colors.text }]}>{p.label}</Text>
@@ -267,7 +267,7 @@ export default function ProfilesScreen() {
                   Enter your username or profile URL
                 </Text>
                 <RNTextInput
-                  style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+                  style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text }, neuInset(colors)]}
                   placeholder="@username or profile URL"
                   placeholderTextColor={colors.textMuted}
                   value={handle}
@@ -382,7 +382,6 @@ const styles = StyleSheet.create({
   actionBtn: {
     flex: 1,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingVertical: Spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
@@ -433,7 +432,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     padding: Spacing.md,
   },
   platformLabel: {
@@ -461,7 +459,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontSize: FontSize.md,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, Fragment } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -8,9 +8,11 @@ import {
   Search,
   Mail,
   MailOpen,
+  Send,
+  Circle,
 } from "lucide-react";
 import type { ContactSubmission } from "@/types";
-import { updateContactStatus } from "@/lib/actions/admin";
+import { updateContactStatus, replyToContact } from "@/lib/actions/admin";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -67,6 +69,8 @@ export function ContactsClient({
   const [isPending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [replySuccess, setReplySuccess] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     let result = contacts;
@@ -98,27 +102,56 @@ export function ContactsClient({
     handleStatusChange(id, "read");
   }
 
+  function handleReply(id: string) {
+    const text = replyText[id];
+    if (!text?.trim()) return;
+    setActionError(null);
+    startTransition(async () => {
+      const result = await replyToContact(id, text);
+      if (result.error) {
+        setActionError(result.error);
+      } else {
+        setReplyText((prev) => ({ ...prev, [id]: "" }));
+        setReplySuccess(id);
+        setTimeout(() => setReplySuccess(null), 3000);
+      }
+    });
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-3">
-          <h1 className="font-serif text-2xl font-bold text-ink">
-            Contact Submissions
-          </h1>
-          {unreadCount > 0 && (
-            <span className="flex items-center gap-1 border border-editorial-red bg-editorial-red/5 px-2 py-0.5">
-              <Mail size={10} className="text-editorial-red" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-editorial-red">
-                {unreadCount} unread
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <Mail size={22} className="text-ink" />
+            <h1 className="font-serif text-2xl font-bold text-ink">
+              Inbox
+            </h1>
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: 22,
+                  minWidth: 22,
+                  padding: "0 6px",
+                  background: "var(--color-editorial-red)",
+                  color: "#fff",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  borderRadius: 11,
+                }}
+              >
+                {unreadCount}
               </span>
-            </span>
-          )}
+            )}
+          </div>
+          <p className="text-xs text-ink-muted mt-1">
+            {contacts.length} message{contacts.length !== 1 ? "s" : ""}{unreadCount > 0 ? ` · ${unreadCount} unread` : ""}
+          </p>
         </div>
       </div>
-      <p className="text-xs text-ink-muted mb-4">
-        {contacts.length} total submission
-        {contacts.length !== 1 ? "s" : ""}
-      </p>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 mb-6">
@@ -162,12 +195,13 @@ export function ContactsClient({
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="border border-rule bg-transparent px-3 py-2.5 text-xs font-mono text-ink focus:outline-none focus:border-ink"
+          className="border border-rule bg-surface-card px-3 py-2.5 text-xs font-mono text-ink focus:outline-none focus:border-ink"
+          style={{ colorScheme: "dark" }}
         >
           <option value="all">All statuses</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {s.charAt(0).toUpperCase() + s.slice(1)}
             </option>
           ))}
         </select>
@@ -221,38 +255,51 @@ export function ContactsClient({
             ) : (
               filtered.map((contact) => {
                 const isExpanded = expandedId === contact.id;
+                const isUnread = contact.status === "new";
                 return (
-                  <tbody key={contact.id}>
+                  <Fragment key={contact.id}>
                     <tr
-                      onClick={() =>
-                        setExpandedId(isExpanded ? null : contact.id)
-                      }
-                      className={`border-b border-rule hover:bg-surface-raised/50 cursor-pointer transition-colors ${contact.status === "new" ? "bg-editorial-red/[0.02]" : ""}`}
+                      onClick={() => {
+                        const willExpand = !isExpanded;
+                        setExpandedId(willExpand ? contact.id : null);
+                        // Auto-mark as read when expanding, like Gmail
+                        if (willExpand && isUnread) {
+                          handleMarkAsRead(contact.id);
+                        }
+                      }}
+                      className={`border-b border-rule cursor-pointer transition-colors ${isUnread ? "bg-editorial-blue/[0.04] hover:bg-editorial-blue/[0.08]" : "hover:bg-surface-raised/50"}`}
                     >
-                      <td className="px-4 py-2.5 text-ink-muted">
-                        {isExpanded ? (
+                      <td className="px-4 py-3 text-ink-muted w-8">
+                        {isUnread && !isExpanded ? (
+                          <Circle size={8} fill="var(--color-editorial-red)" stroke="none" />
+                        ) : isExpanded ? (
                           <ChevronDown size={14} />
                         ) : (
                           <ChevronRight size={14} />
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-sm font-medium text-ink whitespace-nowrap">
+                      <td className={`px-4 py-3 text-sm whitespace-nowrap ${isUnread ? "font-bold text-ink" : "font-medium text-ink"}`}>
                         {contact.name}
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-sm text-ink-secondary whitespace-nowrap">
+                      <td className={`px-4 py-3 font-mono text-sm whitespace-nowrap ${isUnread ? "font-semibold text-ink" : "text-ink-secondary"}`}>
                         {contact.email}
                       </td>
-                      <td className="px-4 py-2.5 text-sm text-ink-secondary max-w-[200px] truncate">
+                      <td className={`px-4 py-3 text-sm max-w-[300px] truncate ${isUnread ? "font-semibold text-ink" : "text-ink-secondary"}`}>
                         {contact.subject ?? "--"}
+                        {!isExpanded && (
+                          <span className="text-ink-muted font-normal">
+                            {" — "}{contact.message.slice(0, 60)}{contact.message.length > 60 ? "..." : ""}
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <ContactStatusBadge status={contact.status} />
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-ink-muted whitespace-nowrap">
+                      <td className={`px-4 py-3 font-mono text-xs whitespace-nowrap ${isUnread ? "font-semibold text-ink-secondary" : "text-ink-muted"}`}>
                         {timeAgo(contact.created_at)}
                       </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        {contact.status === "new" && (
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {isUnread && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -262,10 +309,7 @@ export function ContactsClient({
                             className="flex items-center gap-1 text-ink-muted hover:text-ink transition-colors disabled:opacity-40"
                             title="Mark as Read"
                           >
-                            <MailOpen size={20} />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">
-                              Mark Read
-                            </span>
+                            <MailOpen size={16} />
                           </button>
                         )}
                       </td>
@@ -290,6 +334,67 @@ export function ContactsClient({
                               <p className="mt-2 font-mono text-sm text-ink-muted">
                                 Received: {formatDate(contact.created_at)}
                               </p>
+
+                              {/* Existing Admin Reply */}
+                              {contact.admin_reply && (
+                                <div className="mt-3">
+                                  <p className="text-[11px] font-bold uppercase tracking-widest text-editorial-green mb-2">
+                                    Your Reply
+                                  </p>
+                                  <div className="border border-editorial-green/20 bg-editorial-green/5 p-3">
+                                    <p className="text-xs text-ink whitespace-pre-wrap leading-relaxed">
+                                      {contact.admin_reply}
+                                    </p>
+                                    {contact.admin_reply_at && (
+                                      <p className="mt-1 text-[10px] text-ink-muted">
+                                        Replied: {formatDate(contact.admin_reply_at)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Reply Form */}
+                              <div className="mt-3">
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-2">
+                                  {contact.admin_reply ? "Update Reply" : "Reply"}
+                                </p>
+                                {replySuccess === contact.id && (
+                                  <p className="mb-2 text-xs font-semibold text-editorial-green">
+                                    Reply sent successfully!
+                                  </p>
+                                )}
+                                <textarea
+                                  value={replyText[contact.id] ?? ""}
+                                  onChange={(e) =>
+                                    setReplyText((prev) => ({
+                                      ...prev,
+                                      [contact.id]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="Type your reply..."
+                                  rows={3}
+                                  className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink resize-vertical"
+                                />
+                                <button
+                                  onClick={() => handleReply(contact.id)}
+                                  disabled={
+                                    isPending ||
+                                    !replyText[contact.id]?.trim()
+                                  }
+                                  className="mt-2 flex items-center gap-1.5 border border-editorial-green bg-editorial-green/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-editorial-green hover:bg-editorial-green/20 transition-colors disabled:opacity-40"
+                                >
+                                  {isPending ? (
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Send size={12} />
+                                  )}
+                                  Send Reply
+                                </button>
+                              </div>
                             </div>
 
                             {/* Status Management */}
@@ -307,7 +412,8 @@ export function ContactsClient({
                                     )
                                   }
                                   disabled={isPending}
-                                  className="w-full border border-rule bg-transparent px-2 py-1.5 text-xs font-mono text-ink focus:outline-none focus:border-ink disabled:opacity-50"
+                                  className="w-full border border-rule bg-surface-card px-2 py-1.5 text-xs font-mono text-ink focus:outline-none focus:border-ink disabled:opacity-50"
+                                  style={{ colorScheme: "dark" }}
                                 >
                                   {STATUSES.map((s) => (
                                     <option key={s} value={s}>
@@ -343,7 +449,7 @@ export function ContactsClient({
                         </td>
                       </tr>
                     )}
-                  </tbody>
+                  </Fragment>
                 );
               })
             )}

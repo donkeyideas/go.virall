@@ -50,13 +50,34 @@ export async function requireAdmin(): Promise<string> {
 }
 
 // ============================================================
+// Shared helper — org → account type map
+// ============================================================
+
+async function getOrgAccountTypeMap(
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<Map<string, "creator" | "brand">> {
+  const { data } = await admin
+    .from("profiles")
+    .select("organization_id, account_type")
+    .not("organization_id", "is", null);
+
+  const map = new Map<string, "creator" | "brand">();
+  for (const row of data ?? []) {
+    if (row.organization_id && !map.has(row.organization_id)) {
+      map.set(row.organization_id, (row.account_type as "creator" | "brand") ?? "creator");
+    }
+  }
+  return map;
+}
+
+// ============================================================
 // 4.1 — Overview & Stats
 // ============================================================
 
 export async function getAdminStats(): Promise<AdminStats> {
   const admin = createAdminClient();
 
-  const [users, orgs, profiles, analyses, deals] = await Promise.all([
+  const [users, orgs, profiles, analyses, deals, creatorUsers, brandUsers] = await Promise.all([
     admin.from("profiles").select("id", { count: "exact", head: true }),
     admin.from("organizations").select("id", { count: "exact", head: true }),
     admin.from("social_profiles").select("id", { count: "exact", head: true }),
@@ -65,7 +86,17 @@ export async function getAdminStats(): Promise<AdminStats> {
       .from("deals")
       .select("id", { count: "exact", head: true })
       .in("status", ["inquiry", "negotiation"]),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("account_type", "creator"),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("account_type", "brand"),
   ]);
+
+  const orgTypeMap = await getOrgAccountTypeMap(admin);
+  let creatorOrgs = 0;
+  let brandOrgs = 0;
+  for (const type of orgTypeMap.values()) {
+    if (type === "brand") brandOrgs++;
+    else creatorOrgs++;
+  }
 
   return {
     totalUsers: users.count ?? 0,
@@ -73,6 +104,10 @@ export async function getAdminStats(): Promise<AdminStats> {
     totalProfiles: profiles.count ?? 0,
     totalAnalyses: analyses.count ?? 0,
     pendingDeals: deals.count ?? 0,
+    creatorUsers: creatorUsers.count ?? 0,
+    brandUsers: brandUsers.count ?? 0,
+    creatorOrgs,
+    brandOrgs,
   };
 }
 
@@ -83,13 +118,14 @@ export async function getRecentSignups(limit = 10): Promise<
     email: string | null;
     org_name: string | null;
     org_plan: string | null;
+    account_type: "creator" | "brand";
     created_at: string;
   }>
 > {
   const admin = createAdminClient();
   const { data: profiles } = await admin
     .from("profiles")
-    .select("id, full_name, organization_id, created_at")
+    .select("id, full_name, organization_id, account_type, created_at")
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -129,6 +165,7 @@ export async function getRecentSignups(limit = 10): Promise<
     email: emailMap.get(p.id) ?? null,
     org_name: p.organization_id ? (orgMap.get(p.organization_id)?.name ?? null) : null,
     org_plan: p.organization_id ? (orgMap.get(p.organization_id)?.plan ?? null) : null,
+    account_type: (p.account_type as "creator" | "brand") ?? "creator",
     created_at: p.created_at,
   }));
 }
@@ -158,7 +195,7 @@ export async function getAllUsers(opts?: {
 
   let query = admin
     .from("profiles")
-    .select("id, full_name, avatar_url, role, system_role, organization_id, created_at")
+    .select("id, full_name, avatar_url, role, system_role, organization_id, account_type, created_at")
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -212,6 +249,7 @@ export async function getAllUsers(opts?: {
     system_role: p.system_role,
     org_name: p.organization_id ? (orgMap.get(p.organization_id)?.name ?? null) : null,
     org_plan: p.organization_id ? (orgMap.get(p.organization_id)?.plan ?? null) : null,
+    account_type: (p.account_type as "creator" | "brand") ?? "creator",
     provider: authMap.get(p.id)?.provider ?? null,
     created_at: p.created_at,
   }));
@@ -274,6 +312,7 @@ export async function getAllOrgs(opts?: {
   const memberCounts = countBy(members.data);
   const profileCounts = countBy(profiles.data);
   const dealCounts = countBy(deals.data);
+  const orgTypeMap = await getOrgAccountTypeMap(admin);
 
   return orgs.map((o) => ({
     id: o.id,
@@ -285,6 +324,7 @@ export async function getAllOrgs(opts?: {
     profile_count: profileCounts.get(o.id) ?? 0,
     deal_count: dealCounts.get(o.id) ?? 0,
     stripe_customer_id: o.stripe_customer_id,
+    account_type: orgTypeMap.get(o.id) ?? "creator",
     created_at: o.created_at,
   }));
 }
@@ -293,17 +333,111 @@ export async function getAllOrgs(opts?: {
 // 4.4 — Billing & Revenue
 // ============================================================
 
+/**
+ * One-time backfill: seeds billing_events from existing active subscriptions
+ * and completed platform payments. Skips if events already exist.
+ */
+export async function backfillBillingEvents(): Promise<number> {
+  const admin = createAdminClient();
+
+  // Skip if we already have events
+  const { count } = await admin
+    .from("billing_events")
+    .select("id", { count: "exact", head: true });
+  if ((count ?? 0) > 0) return 0;
+
+  const [orgsResult, plansResult, paymentsResult] = await Promise.all([
+    admin
+      .from("organizations")
+      .select("id, plan, subscription_status, stripe_subscription_id, created_at"),
+    admin.from("pricing_plans").select("id, name, price_monthly, account_type"),
+    admin
+      .from("platform_payments")
+      .select("id, deal_id, payer_id, payee_id, amount, currency, status, paid_at, created_at")
+      .eq("status", "completed"),
+  ]);
+
+  // Build price lookup
+  const planPriceMap = new Map<string, number>();
+  for (const p of plansResult.data ?? []) {
+    if (p.name) planPriceMap.set(p.name.toLowerCase(), p.price_monthly ?? 0);
+  }
+
+  const rows: Array<{
+    organization_id: string;
+    event_type: string;
+    amount_cents: number;
+    currency: string;
+    metadata: Record<string, unknown>;
+    created_at: string;
+  }> = [];
+
+  // 1. Subscription-based events for paid orgs
+  for (const o of orgsResult.data ?? []) {
+    const plan = o.plan ?? "free";
+    if (plan === "free") continue;
+    const status = o.subscription_status ?? "active";
+    if (status !== "active") continue;
+
+    const amountCents = planPriceMap.get(plan) ?? 0;
+    rows.push({
+      organization_id: o.id,
+      event_type: "invoice.paid",
+      amount_cents: amountCents,
+      currency: "usd",
+      metadata: {
+        plan,
+        backfill: true,
+        subscription_id: o.stripe_subscription_id ?? null,
+      },
+      created_at: o.created_at,
+    });
+  }
+
+  // 2. Brand payment events from completed platform_payments
+  for (const p of paymentsResult.data ?? []) {
+    rows.push({
+      organization_id: null as unknown as string, // may not map to an org
+      event_type: "brand_payment",
+      amount_cents: p.amount ?? 0,
+      currency: p.currency ?? "usd",
+      metadata: {
+        deal_id: p.deal_id,
+        payment_id: p.id,
+        payer_id: p.payer_id,
+        payee_id: p.payee_id,
+        backfill: true,
+      },
+      created_at: p.paid_at ?? p.created_at,
+    });
+  }
+
+  if (rows.length === 0) return 0;
+
+  const { error } = await admin.from("billing_events").insert(rows);
+  if (error) {
+    console.error("[backfillBillingEvents] Insert failed:", error.message);
+    return 0;
+  }
+
+  return rows.length;
+}
+
 export async function getBillingOverview(): Promise<{
   totalOrgs: number;
   paidOrgs: number;
   freeOrgs: number;
   planDistribution: Record<string, number>;
-  recentEvents: BillingEvent[];
+  creatorPlanDistribution: Record<string, number>;
+  brandPlanDistribution: Record<string, number>;
+  creatorPaidOrgs: number;
+  brandPaidOrgs: number;
+  recentEvents: Array<BillingEvent & { org_name: string | null }>;
 }> {
   const admin = createAdminClient();
 
   const [orgsResult, eventsResult] = await Promise.all([
-    admin.from("organizations").select("plan"),
+    admin.from("organizations").select("id, plan, name"),
     admin
       .from("billing_events")
       .select("*")
@@ -312,14 +446,30 @@ export async function getBillingOverview(): Promise<{
   ]);
 
   const orgs = orgsResult.data ?? [];
+  const orgTypeMap = await getOrgAccountTypeMap(admin);
+
   const planDist: Record<string, number> = {};
-  let paid = 0;
-  let free = 0;
+  const creatorPlanDist: Record<string, number> = {};
+  const brandPlanDist: Record<string, number> = {};
+  let paid = 0, free = 0, creatorPaid = 0, brandPaid = 0;
+
   for (const o of orgs) {
     const plan = o.plan ?? "free";
+    const acctType = orgTypeMap.get(o.id) ?? "creator";
     planDist[plan] = (planDist[plan] ?? 0) + 1;
+
+    if (acctType === "brand") {
+      brandPlanDist[plan] = (brandPlanDist[plan] ?? 0) + 1;
+    } else {
+      creatorPlanDist[plan] = (creatorPlanDist[plan] ?? 0) + 1;
+    }
+
     if (plan === "free") free++;
-    else paid++;
+    else {
+      paid++;
+      if (acctType === "brand") brandPaid++;
+      else creatorPaid++;
+    }
   }
 
   return {
@@ -327,7 +477,16 @@ export async function getBillingOverview(): Promise<{
     paidOrgs: paid,
     freeOrgs: free,
     planDistribution: planDist,
-    recentEvents: (eventsResult.data ?? []) as BillingEvent[],
+    creatorPlanDistribution: creatorPlanDist,
+    brandPlanDistribution: brandPlanDist,
+    creatorPaidOrgs: creatorPaid,
+    brandPaidOrgs: brandPaid,
+    recentEvents: ((eventsResult.data ?? []) as BillingEvent[]).map((e) => ({
+      ...e,
+      org_name: e.organization_id
+        ? (orgs.find((o) => o.id === e.organization_id)?.name ?? null)
+        : null,
+    })),
   };
 }
 
@@ -336,36 +495,55 @@ export async function getRevenueAnalytics(): Promise<{
   arr: number;
   arpu: number;
   churnRate: number;
+  creatorMrr: number;
+  brandMrr: number;
+  creatorArr: number;
+  brandArr: number;
 }> {
   const admin = createAdminClient();
 
-  const { data: orgs } = await admin
-    .from("organizations")
-    .select("plan, subscription_status");
+  const [orgsResult, plansResult] = await Promise.all([
+    admin.from("organizations").select("id, plan, subscription_status"),
+    admin.from("pricing_plans").select("id, name, price_monthly, account_type"),
+  ]);
 
-  const planPrices: Record<string, number> = {
-    free: 0,
-    pro: 29,
-    business: 79,
-    enterprise: 199,
-  };
+  // Build price lookup: plan ID or lowercase name → price in dollars
+  const planPriceMap = new Map<string, number>();
+  for (const p of plansResult.data ?? []) {
+    planPriceMap.set(p.id, (p.price_monthly ?? 0) / 100);
+    if (p.name) planPriceMap.set(p.name.toLowerCase(), (p.price_monthly ?? 0) / 100);
+  }
 
-  let mrr = 0;
+  const orgTypeMap = await getOrgAccountTypeMap(admin);
+
+  let mrr = 0, creatorMrr = 0, brandMrr = 0;
   let activeCount = 0;
   let canceledCount = 0;
 
-  for (const o of orgs ?? []) {
+  for (const o of orgsResult.data ?? []) {
     const plan = o.plan ?? "free";
     const status = o.subscription_status ?? "active";
+    const acctType = orgTypeMap.get(o.id) ?? "creator";
+    const price = planPriceMap.get(plan) ?? 0;
+
     if (plan !== "free" && status === "active") {
-      mrr += planPrices[plan] ?? 0;
+      mrr += price;
+      if (acctType === "brand") brandMrr += price;
+      else creatorMrr += price;
       activeCount++;
     }
     if (status === "canceled") canceledCount++;
   }
 
-  const totalPaid = activeCount + canceledCount;
-  const churnRate = totalPaid > 0 ? canceledCount / totalPaid : 0;
+  // Monthly churn: cancellations in last 30 days / active at start of period
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+  const { count: recentCancels } = await admin
+    .from("billing_events")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "cancellation")
+    .gte("created_at", thirtyDaysAgo);
+  const churnDenominator = activeCount + (recentCancels ?? 0);
+  const churnRate = churnDenominator > 0 ? (recentCancels ?? 0) / churnDenominator : 0;
   const arpu = activeCount > 0 ? mrr / activeCount : 0;
 
   return {
@@ -373,6 +551,10 @@ export async function getRevenueAnalytics(): Promise<{
     arr: mrr * 12,
     arpu,
     churnRate,
+    creatorMrr,
+    brandMrr,
+    creatorArr: creatorMrr * 12,
+    brandArr: brandMrr * 12,
   };
 }
 
@@ -420,11 +602,21 @@ export async function getAdminNotifications(
     });
   }
 
+  const BILLING_LABELS: Record<string, string> = {
+    "invoice.paid": "Payment Received",
+    "invoice.payment_failed": "Payment Failed",
+    upgrade: "Plan Upgrade",
+    downgrade: "Plan Downgrade",
+    plan_change: "Plan Changed",
+    cancellation: "Subscription Cancelled",
+    brand_payment: "Brand Payment",
+  };
+
   for (const e of events.data ?? []) {
     items.push({
       id: e.id,
       type: "billing",
-      title: e.event_type,
+      title: BILLING_LABELS[e.event_type] ?? e.event_type.replace(/[._]/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
       description: e.amount_cents
         ? `$${(e.amount_cents / 100).toFixed(2)}`
         : "Billing event",
@@ -432,12 +624,20 @@ export async function getAdminNotifications(
     });
   }
 
+  const AUDIT_LABELS: Record<string, string> = {
+    role_change: "Role Changed",
+    plan_change: "Plan Changed",
+    delete_user: "User Deleted",
+    create_org: "Organization Created",
+    update_settings: "Settings Updated",
+  };
+
   for (const a of audit.data ?? []) {
     items.push({
       id: a.id,
       type: "audit",
-      title: a.action,
-      description: a.resource_type ?? "",
+      title: AUDIT_LABELS[a.action] ?? a.action.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      description: a.resource_type?.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) ?? "",
       created_at: a.created_at,
     });
   }
@@ -465,7 +665,25 @@ export async function getAdminNotifications(
 
 export async function getAllPricingPlans(): Promise<PricingPlan[]> {
   const admin = createAdminClient();
-  const { data } = await admin.from("pricing_plans").select("*");
+  const { data } = await admin
+    .from("pricing_plans")
+    .select("*")
+    .order("account_type")
+    .order("sort_order")
+    .order("price_monthly");
+  return (data ?? []) as PricingPlan[];
+}
+
+export async function getPricingPlansByType(
+  accountType: "creator" | "brand",
+): Promise<PricingPlan[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("pricing_plans")
+    .select("*")
+    .eq("account_type", accountType)
+    .eq("is_active", true)
+    .order("sort_order");
   return (data ?? []) as PricingPlan[];
 }
 
@@ -652,38 +870,65 @@ export async function getInvestorMetrics(): Promise<{
   paidOrgs: number;
   freeOrgs: number;
   churnRate: number;
+  creatorMrr: number;
+  brandMrr: number;
+  creatorUsers: number;
+  brandUsers: number;
+  creatorOrgs: number;
+  brandOrgs: number;
+  creatorPaidOrgs: number;
+  brandPaidOrgs: number;
 }> {
   const admin = createAdminClient();
-  const { data: orgs } = await admin
-    .from("organizations")
-    .select("plan, subscription_status");
 
-  const planPrices: Record<string, number> = {
-    free: 0,
-    pro: 29,
-    business: 79,
-    enterprise: 199,
-  };
+  const [orgsResult, plansResult] = await Promise.all([
+    admin.from("organizations").select("id, plan, subscription_status"),
+    admin.from("pricing_plans").select("id, name, price_monthly, account_type"),
+  ]);
 
-  let mrr = 0;
-  let paid = 0;
+  // Build price lookup from DB: plan ID or lowercase name → price in dollars
+  const planPriceMap = new Map<string, number>();
+  for (const p of plansResult.data ?? []) {
+    planPriceMap.set(p.id, (p.price_monthly ?? 0) / 100);
+    if (p.name) planPriceMap.set(p.name.toLowerCase(), (p.price_monthly ?? 0) / 100);
+  }
+
+  const orgTypeMap = await getOrgAccountTypeMap(admin);
+
+  let mrr = 0, creatorMrr = 0, brandMrr = 0;
+  let paid = 0, creatorPaid = 0, brandPaid = 0;
   let free = 0;
   let canceled = 0;
 
-  for (const o of orgs ?? []) {
+  for (const o of orgsResult.data ?? []) {
     const plan = o.plan ?? "free";
     const status = o.subscription_status ?? "active";
+    const acctType = orgTypeMap.get(o.id) ?? "creator";
+    const price = planPriceMap.get(plan) ?? 0;
+
     if (plan === "free") {
       free++;
     } else if (status === "active") {
-      mrr += planPrices[plan] ?? 0;
+      mrr += price;
+      if (acctType === "brand") { brandMrr += price; brandPaid++; }
+      else { creatorMrr += price; creatorPaid++; }
       paid++;
     }
     if (status === "canceled") canceled++;
   }
 
-  const total = (orgs ?? []).length;
+  const total = (orgsResult.data ?? []).length;
   const totalPaid = paid + canceled;
+
+  // Count users + orgs by account type
+  let creatorOrgs = 0, brandOrgs = 0;
+  for (const type of orgTypeMap.values()) {
+    if (type === "brand") brandOrgs++; else creatorOrgs++;
+  }
+  const [creatorUsersResult, brandUsersResult] = await Promise.all([
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("account_type", "creator"),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("account_type", "brand"),
+  ]);
 
   return {
     mrr,
@@ -693,41 +938,76 @@ export async function getInvestorMetrics(): Promise<{
     paidOrgs: paid,
     freeOrgs: free,
     churnRate: totalPaid > 0 ? canceled / totalPaid : 0,
+    creatorMrr,
+    brandMrr,
+    creatorUsers: creatorUsersResult.count ?? 0,
+    brandUsers: brandUsersResult.count ?? 0,
+    creatorOrgs,
+    brandOrgs,
+    creatorPaidOrgs: creatorPaid,
+    brandPaidOrgs: brandPaid,
   };
 }
 
 export async function getGrowthTimeSeries(): Promise<
-  Array<{ month: string; users: number; orgs: number; profiles: number; analyses: number }>
+  Array<{
+    month: string;
+    users: number; orgs: number; profiles: number; analyses: number;
+    creatorUsers: number; brandUsers: number; creatorOrgs: number; brandOrgs: number;
+  }>
 > {
   const admin = createAdminClient();
 
-  // Get all items from last 12 months
   const since = new Date();
   since.setMonth(since.getMonth() - 12);
   const sinceStr = since.toISOString();
 
   const [users, orgs, profiles, analyses] = await Promise.all([
-    admin.from("profiles").select("created_at").gte("created_at", sinceStr),
-    admin.from("organizations").select("created_at").gte("created_at", sinceStr),
+    admin.from("profiles").select("created_at, account_type").gte("created_at", sinceStr),
+    admin.from("organizations").select("id, created_at").gte("created_at", sinceStr),
     admin.from("social_profiles").select("created_at").gte("created_at", sinceStr),
     admin.from("social_analyses").select("created_at").gte("created_at", sinceStr),
   ]);
 
-  const monthMap = new Map<string, { users: number; orgs: number; profiles: number; analyses: number }>();
+  const orgTypeMap = await getOrgAccountTypeMap(admin);
 
-  const addToMonth = (data: Array<{ created_at: string }> | null, key: "users" | "orgs" | "profiles" | "analyses") => {
+  type Row = {
+    users: number; orgs: number; profiles: number; analyses: number;
+    creatorUsers: number; brandUsers: number; creatorOrgs: number; brandOrgs: number;
+  };
+  const empty = (): Row => ({ users: 0, orgs: 0, profiles: 0, analyses: 0, creatorUsers: 0, brandUsers: 0, creatorOrgs: 0, brandOrgs: 0 });
+  const monthMap = new Map<string, Row>();
+
+  for (const row of users.data ?? []) {
+    const month = row.created_at?.slice(0, 7) ?? "";
+    if (!month) continue;
+    if (!monthMap.has(month)) monthMap.set(month, empty());
+    const m = monthMap.get(month)!;
+    m.users++;
+    if ((row as { account_type?: string }).account_type === "brand") m.brandUsers++;
+    else m.creatorUsers++;
+  }
+
+  for (const row of orgs.data ?? []) {
+    const month = row.created_at?.slice(0, 7) ?? "";
+    if (!month) continue;
+    if (!monthMap.has(month)) monthMap.set(month, empty());
+    const m = monthMap.get(month)!;
+    m.orgs++;
+    if (orgTypeMap.get(row.id) === "brand") m.brandOrgs++;
+    else m.creatorOrgs++;
+  }
+
+  const addSimple = (data: Array<{ created_at: string }> | null, key: "profiles" | "analyses") => {
     for (const row of data ?? []) {
       const month = row.created_at?.slice(0, 7) ?? "";
       if (!month) continue;
-      if (!monthMap.has(month)) monthMap.set(month, { users: 0, orgs: 0, profiles: 0, analyses: 0 });
+      if (!monthMap.has(month)) monthMap.set(month, empty());
       monthMap.get(month)![key]++;
     }
   };
-
-  addToMonth(users.data, "users");
-  addToMonth(orgs.data, "orgs");
-  addToMonth(profiles.data, "profiles");
-  addToMonth(analyses.data, "analyses");
+  addSimple(profiles.data, "profiles");
+  addSimple(analyses.data, "analyses");
 
   return Array.from(monthMap.entries())
     .map(([month, data]) => ({ month, ...data }))

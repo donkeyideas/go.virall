@@ -276,10 +276,17 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "profileId is required." }, { status: 400 });
   }
 
+  // Verify the profile belongs to the user's organization
+  const orgId = await getOrgId(auth.user.id);
+  if (!orgId) {
+    return NextResponse.json({ error: "Organization not found." }, { status: 404 });
+  }
+
   const { data: sp } = await supabaseAdmin
     .from("social_profiles")
     .select("*")
     .eq("id", profileId)
+    .eq("organization_id", orgId)
     .single();
 
   if (!sp) {

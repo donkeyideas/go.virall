@@ -29,7 +29,7 @@ export default function DrawerLayout() {
     headerTintColor: colors.text,
     headerTitleStyle: { fontWeight: '700' as const, fontSize: FontSize.lg },
     headerLeft: () => <HamburgerButton />,
-    drawerStyle: { backgroundColor: colors.surface, width: 280 },
+    drawerStyle: { backgroundColor: colors.background, width: 280 },
   };
 
   return (
@@ -45,10 +45,30 @@ export default function DrawerLayout() {
       <Drawer.Screen name="strategy" options={{ title: 'Strategy' }} />
       <Drawer.Screen name="intelligence" options={{ title: 'Intelligence' }} />
       <Drawer.Screen name="monetization" options={{ title: 'Monetization' }} />
+      <Drawer.Screen name="deals" options={{ title: 'Deals' }} />
+      <Drawer.Screen name="proposals" options={{ title: 'Proposals' }} />
+      <Drawer.Screen name="opportunities" options={{ title: 'Opportunities' }} />
+      <Drawer.Screen name="messages" options={{ title: 'Messages' }} />
+      <Drawer.Screen name="publish" options={{ title: 'Publish' }} />
+      <Drawer.Screen name="hashtags" options={{ title: 'Hashtags' }} />
+      <Drawer.Screen name="revenue" options={{ title: 'Revenue' }} />
+      <Drawer.Screen name="marketplace" options={{ title: 'Marketplace' }} />
       <Drawer.Screen name="smo-score" options={{ title: 'SMO Score' }} />
       <Drawer.Screen name="recommendations" options={{ title: 'Recommendations' }} />
       <Drawer.Screen name="goals" options={{ title: 'Goals' }} />
       <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
+      <Drawer.Screen name="brand-overview" options={{ title: 'Overview' }} />
+      <Drawer.Screen name="brand-discover" options={{ title: 'Discover' }} />
+      <Drawer.Screen name="brand-matches" options={{ title: 'Matches' }} />
+      <Drawer.Screen name="brand-deals" options={{ title: 'Deals' }} />
+      <Drawer.Screen name="brand-campaigns" options={{ title: 'Campaigns' }} />
+      <Drawer.Screen name="brand-calendar" options={{ title: 'Calendar' }} />
+      <Drawer.Screen name="brand-proposals" options={{ title: 'Proposals' }} />
+      <Drawer.Screen name="brand-payments" options={{ title: 'Payments' }} />
+      <Drawer.Screen name="brand-messages" options={{ title: 'Messages' }} />
+      <Drawer.Screen name="brand-analytics" options={{ title: 'Analytics' }} />
+      <Drawer.Screen name="brand-trust" options={{ title: 'Trust Score' }} />
+      <Drawer.Screen name="brand-settings" options={{ title: 'Settings' }} />
     </Drawer>
   );
 }

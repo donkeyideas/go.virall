@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getSocialProfiles } from "@/lib/dal/profiles";
 import { getCachedResults } from "@/lib/dal/analyses";
 import { GroupedAnalysisPage, type TabDef } from "@/components/dashboard/GroupedAnalysisPage";
@@ -34,6 +36,10 @@ const INTELLIGENCE_TABS: TabDef[] = [
 ];
 
 export default async function IntelligencePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const profiles = await getSocialProfiles();
   const ids = profiles.map((p) => p.id);
 

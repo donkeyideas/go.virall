@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
 
   emptyText: { fontSize: FontSize.md, textAlign: 'center', lineHeight: 22 },
   runBtn: { borderRadius: BorderRadius.md, paddingVertical: Spacing.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.lg, minHeight: 48 },
-  runBtnText: { fontSize: FontSize.sm, fontWeight: '800', color: '#1A1035', letterSpacing: 1.5 },
+  runBtnText: { fontSize: FontSize.sm, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1.5 },
   runBtnSmall: { borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', minHeight: 36 },
-  runBtnSmallText: { fontSize: FontSize.xs, fontWeight: '800', color: '#1A1035', letterSpacing: 1 },
+  runBtnSmallText: { fontSize: FontSize.xs, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1 },
 });

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, Modal } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadow } from '../../constants/theme';
 
 interface HeatmapData {
   data: Array<{ day: string; hours: number[] }>;
@@ -45,7 +45,7 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
   if (!heatmap?.data || heatmap.data.length === 0) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+    <View style={[styles.container, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
       <View style={styles.titleRow}>
         <Text style={[styles.title, { color: colors.text }]}>Activity Heatmap</Text>
         <Text style={[styles.tapHint, { color: colors.textMuted }]}>Tap for details</Text>
@@ -105,7 +105,7 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
       {/* Detail Modal */}
       <Modal visible={!!selectedCell} transparent animationType="fade" onRequestClose={() => setSelectedCell(null)}>
         <Pressable style={styles.modalOverlay} onPress={() => setSelectedCell(null)}>
-          <Pressable style={[styles.tooltipModal, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => {}}>
+          <Pressable style={[styles.tooltipModal, { backgroundColor: colors.surface }, neuShadow(colors)]} onPress={() => {}}>
             {selectedCell && (() => {
               const { day, hour, val } = selectedCell;
               const label = getActivityLabel(val);
@@ -163,7 +163,7 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { borderRadius: BorderRadius.md, borderWidth: 1, padding: Spacing.md },
+  container: { borderRadius: BorderRadius.md, padding: Spacing.md },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
   title: { fontSize: FontSize.md, fontWeight: '700' },
   tapHint: { fontSize: 10 },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   peakTagText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: Spacing.xxl },
-  tooltipModal: { width: '100%', maxWidth: 320, borderRadius: BorderRadius.lg, borderWidth: 1, padding: Spacing.lg },
+  tooltipModal: { width: '100%', maxWidth: 320, borderRadius: BorderRadius.lg, padding: Spacing.lg },
   tooltipTitle: { fontSize: FontSize.lg, fontWeight: '800', textAlign: 'center' },
   divLine: { height: 1, marginVertical: Spacing.sm },
   tooltipRow: { marginBottom: Spacing.sm },

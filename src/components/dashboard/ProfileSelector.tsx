@@ -46,8 +46,12 @@ export function ProfileSelector({
               className={cn(
                 chipBase,
                 selectedId === null
-                  ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
-                  : "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
+                  ? ed
+                    ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
+                    : "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                  : ed
+                    ? "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink"
+                    : "border-rule bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
               )}
             >
               All
@@ -63,8 +67,12 @@ export function ProfileSelector({
                 className={cn(
                   chipBase,
                   isActive
-                    ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
-                    : "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink",
+                    ? ed
+                      ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
+                      : "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                    : ed
+                      ? "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink"
+                      : "border-rule bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
                 )}
               >
                 <PlatformIcon platform={profile.platform} size={14} />

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, neuShadowSm } from '../../constants/theme';
 import { formatPercent } from '../../lib/format';
 
 interface KpiCardProps {
@@ -58,7 +58,7 @@ export function KpiCard({ label, value, change, accentColor, icon }: KpiCardProp
   const accent = accentColor || colors.primary;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+    <View style={[styles.card, { backgroundColor: colors.cardBg }, neuShadowSm(colors)]}>
       <View style={styles.topRow}>
         {icon && (
           <KpiIcon icon={icon} color={accent} size={16} />
@@ -79,7 +79,6 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
     padding: Spacing.md,
   },
   topRow: {

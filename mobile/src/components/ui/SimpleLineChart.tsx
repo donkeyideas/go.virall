@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../../contexts/theme-context';
-import { FontSize, Spacing, BorderRadius } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, neuShadow } from '../../constants/theme';
 
 interface SimpleLineChartProps {
   data: number[];
@@ -33,7 +33,7 @@ export function SimpleLineChart({ data, labels, height = 140, title }: SimpleLin
   const areaPath = `${linePath} L${points[points.length - 1].x},${padding + chartH} L${points[0].x},${padding + chartH} Z`;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+    <View style={[styles.container, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
       {title && <Text style={[styles.title, { color: colors.text }]}>{title}</Text>}
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>
@@ -63,7 +63,6 @@ export function SimpleLineChart({ data, labels, height = 140, title }: SimpleLin
 const styles = StyleSheet.create({
   container: {
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
     padding: Spacing.md,
   },
   title: {

@@ -74,6 +74,57 @@ export async function getCachedResults(
   return result;
 }
 
+/**
+ * Batch-fetch cached results for MULTIPLE analysis types in ONE query.
+ * Returns a map of analysisType → { profileId → result }.
+ * Single auth call + single DB round-trip instead of N separate calls.
+ */
+export async function getCachedResultsBatch(
+  profileIds: string[],
+  analysisTypes: AnalysisType[],
+): Promise<Record<string, Record<string, Record<string, unknown>>>> {
+  if (profileIds.length === 0 || analysisTypes.length === 0) {
+    const empty: Record<string, Record<string, Record<string, unknown>>> = {};
+    for (const t of analysisTypes) empty[t] = {};
+    return empty;
+  }
+
+  const userId = await getAuthUserId();
+  if (!userId) {
+    const empty: Record<string, Record<string, Record<string, unknown>>> = {};
+    for (const t of analysisTypes) empty[t] = {};
+    return empty;
+  }
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("social_analyses")
+    .select("social_profile_id, analysis_type, result, created_at")
+    .in("social_profile_id", profileIds)
+    .in("analysis_type", analysisTypes)
+    .order("created_at", { ascending: false });
+
+  const analyses = (data ?? []) as Array<{
+    social_profile_id: string;
+    analysis_type: string;
+    result: Record<string, unknown>;
+    created_at: string;
+  }>;
+
+  // Build nested map: type → profileId → result (latest only)
+  const result: Record<string, Record<string, Record<string, unknown>>> = {};
+  for (const t of analysisTypes) result[t] = {};
+
+  for (const a of analyses) {
+    const typeMap = result[a.analysis_type];
+    if (typeMap && !typeMap[a.social_profile_id]) {
+      typeMap[a.social_profile_id] = a.result;
+    }
+  }
+
+  return result;
+}
+
 export async function getAllLatestAnalyses(
   profileId: string,
 ): Promise<Record<AnalysisType, SocialAnalysis | null>> {
@@ -113,6 +164,45 @@ export async function getAllLatestAnalyses(
   }
 
   return result as Record<AnalysisType, SocialAnalysis | null>;
+}
+
+/**
+ * Batch version: fetch ALL latest analyses for MULTIPLE profiles in one query.
+ * Returns profileId → { analysisType → SocialAnalysis | null }.
+ * Single auth call + single DB query instead of N separate calls.
+ */
+export async function getAllLatestAnalysesBatch(
+  profileIds: string[],
+): Promise<Record<string, Record<AnalysisType, SocialAnalysis | null>>> {
+  const result: Record<string, Record<AnalysisType, SocialAnalysis | null>> = {};
+  for (const id of profileIds) result[id] = emptyAnalysesRecord();
+
+  if (profileIds.length === 0) return result;
+
+  const userId = await getAuthUserId();
+  if (!userId) return result;
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("social_analyses")
+    .select("*")
+    .in("social_profile_id", profileIds)
+    .order("created_at", { ascending: false });
+
+  const analyses = (data ?? []) as SocialAnalysis[];
+
+  // Track seen types per profile to keep only the latest
+  const seen = new Set<string>();
+  for (const a of analyses) {
+    const key = `${a.social_profile_id}:${a.analysis_type}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (result[a.social_profile_id]) {
+      (result[a.social_profile_id] as Record<string, SocialAnalysis | null>)[a.analysis_type] = a;
+    }
+  }
+
+  return result;
 }
 
 export async function getAnalysisStatus(

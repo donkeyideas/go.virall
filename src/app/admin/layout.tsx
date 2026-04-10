@@ -47,8 +47,8 @@ export default async function AdminLayout({
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: 1.5,
-              color: "#8B5CF6",
-              border: "1px solid rgba(139,92,246,0.3)",
+              color: "#4B9CD3",
+              border: "1px solid rgba(75,156,211,0.3)",
               padding: "4px 10px",
               borderRadius: 6,
             }}
