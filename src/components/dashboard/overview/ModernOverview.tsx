@@ -624,7 +624,7 @@ export function ModernOverview(props: OverviewProps) {
           )}
 
           {/* Charts Grid */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className={`grid gap-4 ${d.engagementTrendData.length > 2 && d.followerGrowthData.length > 2 ? "md:grid-cols-2" : "grid-cols-1"}`}>
             {/* Engagement Rate Trend */}
             {d.engagementTrendData.length > 2 && (
               <div className="rounded-[14px] border border-modern-card-border bg-surface-card p-5">
