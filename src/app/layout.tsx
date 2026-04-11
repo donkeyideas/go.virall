@@ -24,15 +24,33 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Go Virall — Social Intelligence Platform",
+  title: {
+    default: "Go Virall — Social Intelligence Platform",
+    template: "%s | Go Virall",
+  },
   description:
-    "Social media analytics, growth strategies, and content intelligence for influencers and creators.",
+    "Go Virall is the AI-powered social intelligence platform that helps creators and influencers grow their audience, analyze performance, and land brand deals.",
+  metadataBase: new URL("https://www.govirall.com"),
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/icon.png", type: "image/png", sizes: "32x32" },
     ],
     apple: "/apple-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Go Virall",
+    title: "Go Virall — Social Intelligence Platform",
+    description:
+      "AI-powered social media analytics, growth strategies, and brand deal management for creators and influencers.",
+    url: "https://www.govirall.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Go Virall — Social Intelligence Platform",
+    description:
+      "AI-powered social media analytics, growth strategies, and brand deal management for creators and influencers.",
   },
 };
 
@@ -47,19 +65,21 @@ export default function RootLayout({
       className={`${playfair.variable} ${ibmSans.variable} ${ibmMono.variable} dark`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh flex flex-col">{children}</body>
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-P1HL4ZZ8QK"
-        strategy="afterInteractive"
-      />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-P1HL4ZZ8QK');
-        `}
-      </Script>
+      <body className="min-h-dvh flex flex-col">
+        {children}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-P1HL4ZZ8QK"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-P1HL4ZZ8QK');
+          `}
+        </Script>
+      </body>
     </html>
   );
 }

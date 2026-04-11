@@ -343,6 +343,7 @@ function PostForm({
   initialSlug,
   initialContent,
   initialExcerpt,
+  initialCoverImage,
   initialTags,
   initialStatus,
   isPending,
@@ -355,6 +356,7 @@ function PostForm({
   initialSlug?: string;
   initialContent: string;
   initialExcerpt: string;
+  initialCoverImage: string;
   initialTags: string;
   initialStatus: string;
   isPending: boolean;
@@ -362,6 +364,7 @@ function PostForm({
     title: string;
     content: string;
     excerpt: string;
+    cover_image: string;
     tags: string;
     status: string;
   }) => void;
@@ -370,6 +373,7 @@ function PostForm({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
+  const [coverImage, setCoverImage] = useState(initialCoverImage);
   const [tags, setTags] = useState(initialTags);
   const [status, setStatus] = useState(initialStatus);
   const [backlink, setBacklink] = useState("");
@@ -506,6 +510,25 @@ function PostForm({
         </div>
       )}
 
+      {/* Cover Image */}
+      <input
+        type="url"
+        value={coverImage}
+        onChange={(e) => setCoverImage(e.target.value)}
+        placeholder="Cover image URL (1200x630px recommended for social sharing)"
+        className="w-full border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
+      />
+      {coverImage && (
+        <div className="border border-rule p-2">
+          <img
+            src={coverImage}
+            alt="Cover preview"
+            className="h-24 w-auto object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+        </div>
+      )}
+
       {/* Tags */}
       <input
         type="text"
@@ -527,7 +550,7 @@ function PostForm({
           <option value="archived">Archived</option>
         </select>
         <button
-          onClick={() => onSubmit({ title, content, excerpt, tags, status })}
+          onClick={() => onSubmit({ title, content, excerpt, cover_image: coverImage, tags, status })}
           disabled={isPending || !title.trim() || !content.trim()}
           className="border border-rule px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink hover:bg-surface-raised transition-colors disabled:opacity-40"
         >
@@ -580,6 +603,7 @@ export function BlogClient({
     title: string;
     content: string;
     excerpt: string;
+    cover_image: string;
     tags: string;
     status: string;
   }) {
@@ -591,6 +615,7 @@ export function BlogClient({
         content: data.content.trim(),
         type: tab,
         excerpt: data.excerpt.trim() || undefined,
+        cover_image: data.cover_image.trim() || undefined,
         tags: data.tags
           .split(",")
           .map((t) => t.trim())
@@ -615,6 +640,7 @@ export function BlogClient({
       title: string;
       content: string;
       excerpt: string;
+      cover_image: string;
       tags: string;
       status: string;
     },
@@ -626,6 +652,7 @@ export function BlogClient({
         title: data.title.trim(),
         content: data.content.trim(),
         excerpt: data.excerpt.trim() || undefined,
+        cover_image: data.cover_image.trim() || undefined,
         tags: data.tags
           .split(",")
           .map((t) => t.trim())
@@ -787,6 +814,7 @@ export function BlogClient({
           initialTitle=""
           initialContent=""
           initialExcerpt=""
+          initialCoverImage=""
           initialTags=""
           initialStatus="draft"
           isPending={isPending}
@@ -814,6 +842,7 @@ export function BlogClient({
                   initialSlug={post.slug}
                   initialContent={post.content}
                   initialExcerpt={post.excerpt ?? ""}
+                  initialCoverImage={post.cover_image ?? ""}
                   initialTags={post.tags.join(", ")}
                   initialStatus={post.status}
                   isPending={isPending}
