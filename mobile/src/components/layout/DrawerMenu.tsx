@@ -6,7 +6,7 @@ import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { Avatar } from '../ui/Avatar';
 import { MenuIcon, type MenuIconName } from './MenuIcon';
-import { FontSize, Spacing, BorderRadius, neuShadowSm } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, glassShadowSm } from '../../constants/theme';
 
 function SunIcon({ size, color }: { size: number; color: string }) {
   return (
@@ -35,20 +35,29 @@ const CREATOR_MENU_ITEMS: MenuItem[] = [
   { label: 'Overview', icon: 'overview', route: '/(drawer)' },
   { label: 'Profiles', icon: 'profiles', route: '/(drawer)/profiles' },
   { label: 'Chat', icon: 'chat', route: '/(drawer)/chat' },
+  { label: 'Inbox', icon: 'inbox', route: '/(drawer)/inbox' },
+  { label: 'Content', icon: 'content', route: '/(drawer)/content' },
   { label: 'Analytics', icon: 'analytics', route: '/(drawer)/analytics' },
   { label: 'Studio', icon: 'ai-studio', route: '/(drawer)/ai-studio' },
   { label: 'Strategy', icon: 'strategy', route: '/(drawer)/strategy' },
   { label: 'Intelligence', icon: 'intelligence', route: '/(drawer)/intelligence' },
+  { label: 'SMO Score', icon: 'smo-score', route: '/(drawer)/smo-score' },
+  { label: 'Trust Score', icon: 'trust-score', route: '/(drawer)/trust-score' },
+  { label: 'Recommendations', icon: 'recommendations', route: '/(drawer)/recommendations' },
   { label: 'Monetization', icon: 'monetization', route: '/(drawer)/monetization' },
   { label: 'Deals', icon: 'deals', route: '/(drawer)/deals' },
   { label: 'Proposals', icon: 'proposals', route: '/(drawer)/proposals' },
   { label: 'Opportunities', icon: 'opportunities', route: '/(drawer)/opportunities' },
   { label: 'Messages', icon: 'messages', route: '/(drawer)/messages' },
   { label: 'Publish', icon: 'publish', route: '/(drawer)/publish' },
+  { label: 'Campaigns', icon: 'campaigns', route: '/(drawer)/campaigns' },
   { label: 'Hashtags', icon: 'hashtags', route: '/(drawer)/hashtags' },
   { label: 'Revenue', icon: 'revenue', route: '/(drawer)/revenue' },
-  { label: 'SMO Score', icon: 'smo-score', route: '/(drawer)/smo-score' },
-  { label: 'Recommendations', icon: 'recommendations', route: '/(drawer)/recommendations' },
+  { label: 'Growth', icon: 'growth', route: '/(drawer)/growth' },
+  { label: 'Audience', icon: 'audience', route: '/(drawer)/audience' },
+  { label: 'Competitors', icon: 'competitors', route: '/(drawer)/competitors' },
+  { label: 'Network', icon: 'network', route: '/(drawer)/network' },
+  { label: 'Business', icon: 'business', route: '/(drawer)/business' },
   { label: 'Goals', icon: 'goals', route: '/(drawer)/goals' },
   { label: 'Marketplace', icon: 'marketplace', route: '/(drawer)/marketplace' },
   { label: 'Settings', icon: 'settings', route: '/(drawer)/settings' },
@@ -87,7 +96,7 @@ export function DrawerMenu(props: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header]}>
+      <View style={[styles.header, { borderBottomWidth: 1, borderBottomColor: colors.glassBorder }]}>
         <Avatar name={profile?.full_name || 'User'} size={48} imageUrl={profile?.avatar_url} />
         <View style={styles.headerInfo}>
           <Text style={[styles.headerName, { color: colors.text }]} numberOfLines={1}>
@@ -108,7 +117,7 @@ export function DrawerMenu(props: any) {
       <View style={[styles.themeRow]}>
         <Pressable
           onPress={toggleTheme}
-          style={[styles.themeToggle, { backgroundColor: colors.surface }, neuShadowSm(colors)]}
+          style={[styles.themeToggle, { backgroundColor: colors.glassBg, borderWidth: 1, borderColor: colors.glassBorder }]}
         >
           <View style={[
             styles.themeOption,
@@ -139,7 +148,11 @@ export function DrawerMenu(props: any) {
               onPress={() => handleNav(item.route)}
               style={[
                 styles.menuItem,
-                isActive && [{ backgroundColor: colors.surface }, neuShadowSm(colors)],
+                isActive && [{
+                  backgroundColor: colors.glassBg,
+                  borderWidth: 1,
+                  borderColor: colors.glassBorder,
+                }, glassShadowSm(colors)],
               ]}
             >
               <MenuIcon
@@ -164,7 +177,7 @@ export function DrawerMenu(props: any) {
 
       <Pressable
         onPress={handleSignOut}
-        style={[styles.signOutBtn]}
+        style={[styles.signOutBtn, { borderTopWidth: 1, borderTopColor: colors.glassBorder }]}
       >
         <MenuIcon name="signout" color={colors.error} size={22} />
         <Text style={[styles.signOutText, { color: colors.error }]}>Sign Out</Text>

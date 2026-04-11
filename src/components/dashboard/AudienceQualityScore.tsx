@@ -334,8 +334,8 @@ export function AudienceQualityScore({
             )}
 
             {breakdown.consistency_analysis && (
-              <div className="border-l-2 border-[#4B9CD3]/40 pl-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-[#4B9CD3]">
+              <div className="border-l-2 border-editorial-blue/40 pl-3">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-editorial-blue">
                   Consistency
                 </p>
                 <p className="mt-0.5 text-xs text-ink-secondary">

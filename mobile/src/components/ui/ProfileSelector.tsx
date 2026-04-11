@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ScrollView, Pressable, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing, neuShadowSm } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, glassShadowSm } from '../../constants/theme';
 import { PlatformIcon } from './PlatformIcon';
 
 interface Profile {
@@ -26,9 +26,11 @@ export function ProfileSelector({ profiles, selectedId, onSelect }: ProfileSelec
         style={[
           styles.pill,
           {
-            backgroundColor: selectedId === null ? colors.accent : colors.surfaceLight,
+            backgroundColor: selectedId === null ? colors.primary : colors.glassBg,
+            borderWidth: 1,
+            borderColor: selectedId === null ? colors.primary : colors.glassBorder,
           },
-          neuShadowSm(colors),
+          glassShadowSm(colors),
         ]}
       >
         <Text style={[styles.label, { color: selectedId === null ? '#FFFFFF' : colors.textSecondary }]}>
@@ -44,9 +46,11 @@ export function ProfileSelector({ profiles, selectedId, onSelect }: ProfileSelec
             style={[
               styles.pill,
               {
-                backgroundColor: active ? colors.accent : colors.surfaceLight,
+                backgroundColor: active ? colors.primary : colors.glassBg,
+                borderWidth: 1,
+                borderColor: active ? colors.primary : colors.glassBorder,
               },
-              neuShadowSm(colors),
+              glassShadowSm(colors),
             ]}
           >
             <View style={styles.pillContent}>

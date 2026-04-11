@@ -173,7 +173,7 @@ async function runTechnicalChecks(): Promise<AuditCategoryResult> {
     .from('posts')
     .select('id')
     .eq('status', 'published')
-    .or('meta_title.is.null,meta_title.eq.')
+    .or('title.is.null,title.eq.')
 
   const blogsMissingMeta = postsWithoutMeta?.length ?? 0
   const total = totalPublished ?? 0
@@ -194,7 +194,7 @@ async function runTechnicalChecks(): Promise<AuditCategoryResult> {
     .from('posts')
     .select('id')
     .eq('status', 'published')
-    .or('meta_description.is.null,meta_description.eq.')
+    .or('excerpt.is.null,excerpt.eq.')
 
   const blogsMissingDesc = postsWithoutDesc?.length ?? 0
   checks.push({ name: 'Blog posts have meta descriptions', passed: blogsMissingDesc === 0, details: `${blogsMissingDesc}/${total} missing` })
@@ -276,11 +276,11 @@ async function runContentChecks(): Promise<AuditCategoryResult> {
   // Check: Blog posts with thin content (< 300 words)
   const { data: allPosts } = await admin
     .from('posts')
-    .select('id, title, body, slug')
+    .select('id, title, content, slug')
     .eq('status', 'published')
 
   const thinPosts = (allPosts ?? []).filter((p: any) => {
-    const wordCount = (p.body || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length
+    const wordCount = (p.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length
     return wordCount < 300
   })
   checks.push({ name: 'Blog posts have sufficient content', passed: thinPosts.length === 0, details: `${thinPosts.length}/${(allPosts ?? []).length} with < 300 words` })
@@ -317,7 +317,7 @@ async function runContentChecks(): Promise<AuditCategoryResult> {
   const avgWordCount = (allPosts ?? []).length > 0
     ? Math.round(
         (allPosts ?? []).reduce((sum: number, p: any) =>
-          sum + (p.body || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0
+          sum + (p.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0
         ) / (allPosts ?? []).length
       )
     : 0
@@ -456,11 +456,11 @@ async function runGeoChecks(): Promise<AuditCategoryResult> {
   // Check: Content quality for AI engines
   const { data: allPosts } = await admin
     .from('posts')
-    .select('body, tags')
+    .select('content, tags')
     .eq('status', 'published')
 
   const wordCounts = (allPosts ?? []).map((p: any) =>
-    (p.body || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length
+    (p.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length
   )
   const avgWords = wordCounts.length > 0 ? Math.round(wordCounts.reduce((a: number, b: number) => a + b, 0) / wordCounts.length) : 0
   checks.push({ name: 'Content depth for AI engines', passed: avgWords >= 500, details: `${avgWords} avg words per post` })

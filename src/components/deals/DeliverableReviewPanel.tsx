@@ -43,7 +43,7 @@ export function DeliverableReviewPanel({ deliverable, onReviewed }: Props) {
     <div
       style={{
         background: "var(--color-surface-inset)",
-        border: "1px solid rgba(75,156,211,0.12)",
+        border: "1px solid rgba(var(--accent-rgb),0.12)",
         borderRadius: 10,
         padding: 14,
         marginTop: 8,
@@ -70,7 +70,7 @@ export function DeliverableReviewPanel({ deliverable, onReviewed }: Props) {
             alignItems: "center",
             gap: 6,
             fontSize: 12,
-            color: "rgba(75,156,211,0.9)",
+            color: "var(--color-editorial-blue)",
             textDecoration: "none",
             marginBottom: 10,
             wordBreak: "break-all",

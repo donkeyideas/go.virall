@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput as RNTextInput, View, Text, StyleSheet, type TextInputProps } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing, neuInset, neuInsetBg } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, glassInset } from '../../constants/theme';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -20,13 +20,9 @@ export function TextInput({ label, style, ...rest }: Props) {
         onBlur={() => setFocused(false)}
         style={[
           styles.input,
-          {
-            backgroundColor: focused ? colors.inputBg : neuInsetBg(colors),
-            color: colors.text,
-          },
-          focused
-            ? { borderWidth: 1.5, borderColor: colors.accent }
-            : neuInset(colors),
+          glassInset(colors),
+          { color: colors.text },
+          focused && { borderColor: colors.primary },
           style,
         ]}
         {...rest}

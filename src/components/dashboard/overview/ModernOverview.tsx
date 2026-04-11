@@ -649,25 +649,25 @@ export function ModernOverview(props: OverviewProps) {
                       >
                         <stop
                           offset="5%"
-                          stopColor="var(--color-editorial-red)"
+                          stopColor="#4B9CD3"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="95%"
-                          stopColor="var(--color-editorial-red)"
+                          stopColor="#4B9CD3"
                           stopOpacity={0.03}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="var(--color-rule)"
+                      stroke="rgba(75,156,211,0.08)"
                     />
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 9, fill: "var(--color-ink-muted)" }}
                       tickLine={false}
-                      axisLine={{ stroke: "var(--color-rule)" }}
+                      axisLine={{ stroke: "rgba(75,156,211,0.15)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
@@ -679,11 +679,11 @@ export function ModernOverview(props: OverviewProps) {
                     />
                     <RechartsTooltip
                       contentStyle={{
-                        backgroundColor: "var(--color-surface-card)",
-                        border: "1px solid var(--color-rule)",
-                        borderRadius: "10px",
+                        backgroundColor: "#112240",
+                        border: "none",
+                        borderRadius: "6px",
                         fontSize: "11px",
-                        color: "var(--color-ink)",
+                        color: "#E8F0FA",
                       }}
                       formatter={(value) => [
                         `${value}%`,
@@ -693,7 +693,7 @@ export function ModernOverview(props: OverviewProps) {
                     <Area
                       type="monotone"
                       dataKey="rate"
-                      stroke="var(--color-editorial-red)"
+                      stroke="#4B9CD3"
                       strokeWidth={2}
                       fill="url(#modernEngGradient)"
                     />
@@ -726,25 +726,25 @@ export function ModernOverview(props: OverviewProps) {
                       >
                         <stop
                           offset="5%"
-                          stopColor="var(--color-editorial-blue)"
+                          stopColor="var(--color-editorial-red)"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="95%"
-                          stopColor="var(--color-editorial-blue)"
+                          stopColor="var(--color-editorial-red)"
                           stopOpacity={0.03}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="var(--color-rule)"
+                      stroke="rgba(75,156,211,0.08)"
                     />
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 9, fill: "var(--color-ink-muted)" }}
                       tickLine={false}
-                      axisLine={{ stroke: "var(--color-rule)" }}
+                      axisLine={{ stroke: "rgba(75,156,211,0.15)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
@@ -756,11 +756,11 @@ export function ModernOverview(props: OverviewProps) {
                     />
                     <RechartsTooltip
                       contentStyle={{
-                        backgroundColor: "var(--color-surface-card)",
-                        border: "1px solid var(--color-rule)",
-                        borderRadius: "10px",
+                        backgroundColor: "#112240",
+                        border: "none",
+                        borderRadius: "6px",
                         fontSize: "11px",
-                        color: "var(--color-ink)",
+                        color: "#E8F0FA",
                       }}
                       formatter={(value) => [
                         formatCompact(Number(value)),
@@ -770,7 +770,7 @@ export function ModernOverview(props: OverviewProps) {
                     <Area
                       type="monotone"
                       dataKey="followers"
-                      stroke="var(--color-editorial-blue)"
+                      stroke="var(--color-editorial-red)"
                       strokeWidth={2}
                       fill="url(#modernFollowGradient)"
                     />

@@ -22,6 +22,7 @@ import {
   Briefcase,
   MailOpen,
   Mail,
+  Globe,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { label: "Search & AI", icon: Search, href: "/admin/search-ai" },
   { label: "API Management", icon: Key, href: "/admin/api" },
   { label: "System Health", icon: Activity, href: "/admin/health" },
+  { label: "SEO", icon: Globe, href: "/admin/seo" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
   { label: "Data Intelligence", icon: Brain, href: "/admin/data-intelligence" },
   { label: "AI Intelligence", icon: Sparkles, href: "/admin/ai-intelligence" },

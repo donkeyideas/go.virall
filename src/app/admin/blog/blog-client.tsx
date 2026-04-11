@@ -31,6 +31,7 @@ import {
   updatePost,
   deletePost,
   generateBlogWithAI,
+  generateBlogTitle,
 } from "@/lib/actions/admin";
 import type { Post } from "@/types";
 
@@ -378,12 +379,30 @@ function PostForm({
   const [status, setStatus] = useState(initialStatus);
   const [backlink, setBacklink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const slug = initialSlug ?? slugify(title);
   const typeLabel = tab === "guide" ? "Guide" : "Blog Post";
+
+  async function handleGenerateTitle() {
+    setIsGeneratingTitle(true);
+    setGenError(null);
+    try {
+      const result = await generateBlogTitle(tab);
+      if ("error" in result) {
+        setGenError(result.error);
+      } else {
+        setTitle(result.title);
+      }
+    } catch {
+      setGenError("Title generation failed. Please try again.");
+    } finally {
+      setIsGeneratingTitle(false);
+    }
+  }
 
   async function handleGenerate() {
     if (!title.trim()) {
@@ -427,6 +446,19 @@ function PostForm({
           placeholder="Title"
           className="flex-1 border border-rule bg-transparent px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink font-mono"
         />
+        <button
+          onClick={handleGenerateTitle}
+          disabled={isGeneratingTitle}
+          className="flex items-center gap-1.5 border border-rule px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-editorial-gold hover:bg-surface-raised transition-colors disabled:opacity-40 whitespace-nowrap"
+          title="Generate a blog title with AI"
+        >
+          {isGeneratingTitle ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Sparkles size={14} />
+          )}
+          {isGeneratingTitle ? "Generating..." : "Generate Title"}
+        </button>
         <button
           onClick={handleGenerate}
           disabled={isGenerating || !title.trim()}

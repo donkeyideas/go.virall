@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Modal, StyleSheet, Pressable, Animated } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../../contexts/theme-context';
-import { FontSize, Spacing, BorderRadius, neuShadow } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, glassShadow } from '../../constants/theme';
 import { mobileApi } from '../../lib/api';
 import { trackEvent } from '../../lib/track';
 
@@ -133,7 +133,7 @@ export function AnalysisModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.modal, { backgroundColor: colors.surface }, neuShadow(colors)]}>
+        <View style={[styles.modal, { backgroundColor: colors.surface }, glassShadow(colors)]}>
           {/* Header */}
           <View style={styles.modalHeader}>
             <View style={styles.headerLeft}>

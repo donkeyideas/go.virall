@@ -22,7 +22,7 @@ function getGrade(score: number): string {
 
 function getColor(score: number): string {
   if (score >= 90) return "#22C55E";
-  if (score >= 75) return "rgba(75,156,211,0.9)";
+  if (score >= 75) return "var(--color-editorial-blue)";
   if (score >= 60) return "#F59E0B";
   return "#EF4444";
 }

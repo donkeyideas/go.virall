@@ -51,7 +51,7 @@ export function SubmissionHistory({ deliverableId, refreshKey }: Props) {
   if (loading) {
     return (
       <div style={{ padding: "12px 0", textAlign: "center" }}>
-        <Loader2 size={14} style={{ color: "rgba(75,156,211,0.5)" }} />
+        <Loader2 size={14} style={{ color: "var(--color-editorial-blue)" }} />
       </div>
     );
   }
@@ -93,7 +93,7 @@ export function SubmissionHistory({ deliverableId, refreshKey }: Props) {
                   {timeAgo(sub.created_at)}
                 </span>
                 {idx === 0 && (
-                  <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(75,156,211,0.7)", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: "var(--color-editorial-blue)", textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Latest
                   </span>
                 )}

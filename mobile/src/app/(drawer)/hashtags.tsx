@@ -95,7 +95,7 @@ export default function HashtagsScreen() {
     >
       {/* Hashtag Analyzer */}
       <Card>
-        <SectionTitle title="Hashtag Analyzer" />
+        <SectionTitle>Hashtag Analyzer</SectionTitle>
         <TextInput
           placeholder="Paste your post content here..."
           placeholderTextColor={colors.textMuted}
@@ -140,7 +140,7 @@ export default function HashtagsScreen() {
       {/* AI Results */}
       {result && (
         <Card>
-          <SectionTitle title="Recommended Hashtags" />
+          <SectionTitle>Recommended Hashtags</SectionTitle>
           <View style={styles.hashtagGrid}>
             {(result.hashtags ?? []).map((tag: string, i: number) => (
               <View key={i} style={[styles.hashtagChip, { backgroundColor: colors.primary + '15' }]}>
@@ -172,7 +172,7 @@ export default function HashtagsScreen() {
 
       {/* Trending Topics */}
       <View style={styles.trendHeader}>
-        <SectionTitle title="Trending Topics" />
+        <SectionTitle>Trending Topics</SectionTitle>
         <Pressable
           onPress={handleScanTrends}
           disabled={scanning}

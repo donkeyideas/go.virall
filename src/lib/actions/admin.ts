@@ -731,6 +731,55 @@ TAGS: [3-5 comma-separated relevant tags]`;
   return { content, excerpt, tags };
 }
 
+/**
+ * Generate a blog title using AI that fits the Go Virall platform.
+ */
+export async function generateBlogTitle(
+  type: "blog" | "guide" = "blog",
+): Promise<{ title: string } | { error: string }> {
+  await requireAdmin();
+
+  const { aiChat } = await import("@/lib/ai/provider");
+
+  const prompt = `You are a content strategist for Go Virall, a social intelligence platform for influencers and creators.
+
+Generate ONE compelling ${type === "guide" ? "guide" : "blog post"} title.
+
+The title must be relevant to one of these topics:
+- Social media analytics and data-driven growth
+- Creator economy trends and monetization
+- Influencer marketing strategies
+- Content strategy and optimization
+- Platform-specific growth (Instagram, TikTok, YouTube, LinkedIn, X/Twitter)
+- Personal branding for creators
+- Cross-platform content strategies
+- AI-powered social intelligence
+- Brand-creator collaborations and deals
+- Audience engagement and community building
+
+Rules:
+- Make it compelling, specific, and actionable
+- Use a mix of styles: how-to, listicles, data-backed, provocative questions, trend pieces
+- Target 8-14 words
+- Do NOT use generic filler — be specific and punchy
+- Do NOT wrap in quotes
+
+Return ONLY the title text, nothing else.`;
+
+  try {
+    const result = await aiChat(prompt, { maxTokens: 100, timeout: 30_000 });
+    if (!result?.text) return { error: "AI returned an empty response. Check that an AI provider key is configured." };
+    const title = result.text
+      .replace(/^["']|["']$/g, "")
+      .replace(/^\d+\.\s*/, "")
+      .trim();
+    if (!title) return { error: "AI returned an empty title." };
+    return { title };
+  } catch {
+    return { error: "Title generation failed. Please try again." };
+  }
+}
+
 // ============================================================
 // Pricing Plan CRUD
 // ============================================================

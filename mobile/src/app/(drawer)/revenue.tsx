@@ -90,7 +90,7 @@ export default function RevenueScreen() {
 
   const renderSources = () => (
     <>
-      <SectionTitle title="Revenue by Source" />
+      <SectionTitle>Revenue by Source</SectionTitle>
       {(sources ?? []).map((s: any) => (
         <View key={s.source} style={styles.sourceRow}>
           <View style={[styles.sourceDot, { backgroundColor: s.color }]} />
@@ -104,7 +104,7 @@ export default function RevenueScreen() {
 
   const renderMonthly = () => (
     <>
-      <SectionTitle title="Monthly Revenue" />
+      <SectionTitle>Monthly Revenue</SectionTitle>
       {(monthly ?? []).slice(-6).map((m: any, i: number) => (
         <View key={i} style={styles.monthRow}>
           <Text style={[styles.monthLabel, { color: colors.textSecondary }]}>{m.month} {m.year}</Text>
@@ -119,7 +119,7 @@ export default function RevenueScreen() {
 
   const renderForecast = () => (
     <>
-      <SectionTitle title="Revenue Forecast" />
+      <SectionTitle>Revenue Forecast</SectionTitle>
       <Card>
         <View style={styles.forecastRow}>
           <Text style={{ color: colors.textSecondary }}>Projected Total</Text>
@@ -147,7 +147,7 @@ export default function RevenueScreen() {
 
   const renderPayments = () => (
     <>
-      <SectionTitle title="Payment History" />
+      <SectionTitle>Payment History</SectionTitle>
       {(paymentHistory ?? []).length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No payments yet</Text>
       ) : (
@@ -179,7 +179,7 @@ export default function RevenueScreen() {
 
   const renderDeals = () => (
     <>
-      <SectionTitle title="Deal Revenue" />
+      <SectionTitle>Deal Revenue</SectionTitle>
       {(dealRevenue ?? []).length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No deals yet</Text>
       ) : (

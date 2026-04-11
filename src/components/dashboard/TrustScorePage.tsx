@@ -37,7 +37,7 @@ interface TrustScorePageProps {
 
 const cardStyle: React.CSSProperties = {
   background: "var(--color-surface-card)",
-  border: "1px solid rgba(75,156,211,0.12)",
+  border: "1px solid rgba(var(--accent-rgb),0.12)",
   borderRadius: 14,
   padding: "20px 22px",
 };
@@ -45,7 +45,7 @@ const cardStyle: React.CSSProperties = {
 const FACTOR_CONFIG = [
   { key: "completion_rate" as const, label: "Completion Rate", weight: "35%", icon: CheckCircle2, color: "#22C55E", description: "Paid deals / total closed deals", tip: "Complete every deal you commit to" },
   { key: "dispute_rate" as const, label: "Dispute Rate", weight: "25%", icon: AlertTriangle, color: "#F59E0B", description: "Fewer disputes = higher score", tip: "Set clear expectations upfront" },
-  { key: "response_time_score" as const, label: "Response Time", weight: "15%", icon: Clock, color: "rgba(75,156,211,0.9)", description: "Avg deliverable review time", tip: "Respond within 24 hours" },
+  { key: "response_time_score" as const, label: "Response Time", weight: "15%", icon: Clock, color: "var(--color-editorial-blue)", description: "Avg deliverable review time", tip: "Respond within 24 hours" },
   { key: "consistency_score" as const, label: "Consistency", weight: "15%", icon: Handshake, color: "#8B5CF6", description: "Matched outcomes with other party", tip: "Report outcomes honestly" },
   { key: "deal_volume_score" as const, label: "Deal Volume", weight: "10%", icon: BarChart3, color: "#EC4899", description: "Total closed deals (log scale)", tip: "Close more platform deals" },
 ];
@@ -64,7 +64,7 @@ function getGrade(score: number): string {
 
 function getGradeColor(score: number): string {
   if (score >= 90) return "#22C55E";
-  if (score >= 75) return "rgba(75,156,211,0.9)";
+  if (score >= 75) return "var(--color-editorial-blue)";
   if (score >= 60) return "#F59E0B";
   return "#EF4444";
 }
@@ -104,13 +104,13 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
   const breakdown = data.payload.breakdown;
 
   return (
-    <div style={{ background: "var(--color-surface-card)", border: "1px solid rgba(75,156,211,0.2)", borderRadius: 10, padding: "12px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.3)", fontSize: 11 }}>
+    <div style={{ background: "var(--color-surface-card)", border: "1px solid rgba(var(--accent-rgb),0.2)", borderRadius: 10, padding: "12px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.3)", fontSize: 11 }}>
       <div style={{ fontWeight: 700, color: "var(--color-ink)", marginBottom: 6 }}>{label}</div>
       <div style={{ fontWeight: 800, fontSize: 20, color: getGradeColor(data.value), marginBottom: 2 }}>
         {Math.round(data.value)} <span style={{ fontSize: 12 }}>{getGrade(data.value)}</span>
       </div>
       {breakdown && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 3, borderTop: "1px solid rgba(75,156,211,0.1)", paddingTop: 8, marginTop: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3, borderTop: "1px solid rgba(var(--accent-rgb),0.1)", paddingTop: 8, marginTop: 6 }}>
           {FACTOR_CONFIG.map(({ key, label: lbl, color }) => (
             <div key={key} style={{ display: "flex", justifyContent: "space-between", gap: 20 }}>
               <span style={{ color: "var(--color-ink-secondary)" }}>{lbl}</span>
@@ -191,7 +191,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
         {/* Score Circle */}
         <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
           <svg width="120" height="120" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(75,156,211,0.08)" strokeWidth="8" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(var(--accent-rgb),0.08)" strokeWidth="8" />
             <circle
               cx="60" cy="60" r="52"
               fill="none"
@@ -247,7 +247,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
                 padding: "18px 16px",
                 cursor: "default",
                 transition: "border-color 0.15s, transform 0.15s",
-                borderColor: isHovered ? `${color}40` : "rgba(75,156,211,0.12)",
+                borderColor: isHovered ? `${color}40` : "rgba(var(--accent-rgb),0.12)",
                 transform: isHovered ? "translateY(-2px)" : "none",
               }}
             >
@@ -275,7 +275,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
               </div>
 
               {/* Progress Bar */}
-              <div style={{ height: 6, borderRadius: 3, background: "rgba(75,156,211,0.08)", overflow: "hidden" }}>
+              <div style={{ height: 6, borderRadius: 3, background: "rgba(var(--accent-rgb),0.08)", overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
@@ -301,7 +301,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
       {/* ── Score History Chart ── */}
       <div style={cardStyle}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-ink)", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-          <TrendingUp size={16} style={{ color: "rgba(75,156,211,0.7)" }} />
+          <TrendingUp size={16} style={{ color: "var(--color-editorial-blue)" }} />
           Score History
         </div>
         {chartData.length >= 2 ? (
@@ -314,8 +314,8 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
                     <stop offset="95%" stopColor={gradeColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(75,156,211,0.06)" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--color-ink-secondary)" }} axisLine={{ stroke: "rgba(75,156,211,0.1)" }} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--accent-rgb),0.06)" />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--color-ink-secondary)" }} axisLine={{ stroke: "rgba(var(--accent-rgb),0.1)" }} tickLine={false} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "var(--color-ink-secondary)" }} axisLine={false} tickLine={false} width={30} />
                 <RechartsTooltip content={<ChartTooltip />} />
                 <Area type="monotone" dataKey="score" stroke={gradeColor} strokeWidth={2.5} fill="url(#gradTrust)" dot={{ r: 4, fill: gradeColor, strokeWidth: 0 }} activeDot={{ r: 6, fill: gradeColor, strokeWidth: 2, stroke: "var(--color-surface-card)" }} />
@@ -323,13 +323,13 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
             </ResponsiveContainer>
           </div>
         ) : (
-          <div style={{ padding: "40px 16px", textAlign: "center", background: "rgba(75,156,211,0.02)", borderRadius: 10 }}>
-            <TrendingUp size={28} style={{ color: "rgba(75,156,211,0.2)", margin: "0 auto 10px" }} />
+          <div style={{ padding: "40px 16px", textAlign: "center", background: "rgba(var(--accent-rgb),0.02)", borderRadius: 10 }}>
+            <TrendingUp size={28} style={{ color: "rgba(var(--accent-rgb),0.2)", margin: "0 auto 10px" }} />
             <p style={{ fontSize: 12, color: "var(--color-ink-muted)", margin: 0 }}>
               Score history will appear here after multiple deal closures.
             </p>
             {isNew && (
-              <Link href={dealsHref} style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 12, fontSize: 12, fontWeight: 600, color: "rgba(75,156,211,0.8)", textDecoration: "none" }}>
+              <Link href={dealsHref} style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 12, fontSize: 12, fontWeight: 600, color: "var(--color-editorial-blue)", textDecoration: "none" }}>
                 Start a deal <ArrowRight size={12} />
               </Link>
             )}
@@ -340,13 +340,13 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
       {/* ── Breakdown Table ── */}
       <div style={cardStyle}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-ink)", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-          <Shield size={16} style={{ color: "rgba(75,156,211,0.7)" }} />
+          <Shield size={16} style={{ color: "var(--color-editorial-blue)" }} />
           Score Breakdown
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(75,156,211,0.1)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(var(--accent-rgb),0.1)" }}>
                 {["Factor", "Weight", "Score", "Progress", "Status", "Tip"].map((h) => (
                   <th key={h} style={{ padding: "8px 12px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>
                     {h}
@@ -358,10 +358,10 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
               {FACTOR_CONFIG.map(({ key, label: factorLabel, weight, icon: Icon, color, tip }) => {
                 const val = Math.round(Number(score[key]) || 0);
                 const status = val >= 90 ? "Excellent" : val >= 75 ? "Good" : val >= 60 ? "Fair" : "Improve";
-                const statusColor = val >= 90 ? "#22C55E" : val >= 75 ? "rgba(75,156,211,0.9)" : val >= 60 ? "#F59E0B" : "#EF4444";
+                const statusColor = val >= 90 ? "#22C55E" : val >= 75 ? "var(--color-editorial-blue)" : val >= 60 ? "#F59E0B" : "#EF4444";
 
                 return (
-                  <tr key={key} style={{ borderBottom: "1px solid rgba(75,156,211,0.06)" }}>
+                  <tr key={key} style={{ borderBottom: "1px solid rgba(var(--accent-rgb),0.06)" }}>
                     <td style={{ padding: "12px", display: "flex", alignItems: "center", gap: 8 }}>
                       <Icon size={14} style={{ color, flexShrink: 0 }} />
                       <span style={{ fontWeight: 600, color: "var(--color-ink)" }}>{factorLabel}</span>
@@ -374,7 +374,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
                       <span style={{ color: "var(--color-ink-muted)", fontSize: 10, marginLeft: 2 }}>/100</span>
                     </td>
                     <td style={{ padding: "12px", minWidth: 120 }}>
-                      <div style={{ height: 6, borderRadius: 3, background: "rgba(75,156,211,0.08)", overflow: "hidden" }}>
+                      <div style={{ height: 6, borderRadius: 3, background: "rgba(var(--accent-rgb),0.08)", overflow: "hidden" }}>
                         <div style={{ height: "100%", width: `${Math.min(100, val)}%`, background: color, borderRadius: 3, transition: "width 0.8s ease" }} />
                       </div>
                     </td>
@@ -392,7 +392,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
             </tbody>
             {/* Summary row */}
             <tfoot>
-              <tr style={{ borderTop: "2px solid rgba(75,156,211,0.12)" }}>
+              <tr style={{ borderTop: "2px solid rgba(var(--accent-rgb),0.12)" }}>
                 <td style={{ padding: "12px", fontWeight: 800, color: "var(--color-ink)", display: "flex", alignItems: "center", gap: 8 }}>
                   <Shield size={14} style={{ color: gradeColor }} />
                   Overall
@@ -405,7 +405,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
                   <span style={{ color: "var(--color-ink-muted)", fontSize: 10, marginLeft: 2 }}>/100</span>
                 </td>
                 <td style={{ padding: "12px", minWidth: 120 }}>
-                  <div style={{ height: 8, borderRadius: 4, background: "rgba(75,156,211,0.08)", overflow: "hidden" }}>
+                  <div style={{ height: 8, borderRadius: 4, background: "rgba(var(--accent-rgb),0.08)", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${Math.min(100, overall)}%`, background: `linear-gradient(90deg, ${gradeColor}99, ${gradeColor})`, borderRadius: 4, transition: "width 0.8s ease" }} />
                   </div>
                 </td>
@@ -426,10 +426,10 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
       {/* ── Quick Stats Row ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[
-          { label: "Deals Closed", value: String(score.total_deals_closed), color: "rgba(75,156,211,0.9)", icon: Handshake },
+          { label: "Deals Closed", value: String(score.total_deals_closed), color: "var(--color-editorial-blue)", icon: Handshake },
           { label: "Completed", value: String(score.total_deals_completed), color: "#22C55E", icon: CheckCircle2 },
           { label: "Disputed", value: String(score.total_deals_disputed), color: score.total_deals_disputed > 0 ? "#EF4444" : "var(--color-ink-muted)", icon: AlertTriangle },
-          { label: "Avg Response", value: score.avg_response_hours != null ? `${Math.round(score.avg_response_hours)}h` : "—", color: "rgba(75,156,211,0.9)", icon: Clock },
+          { label: "Avg Response", value: score.avg_response_hours != null ? `${Math.round(score.avg_response_hours)}h` : "—", color: "var(--color-editorial-blue)", icon: Clock },
         ].map((stat) => {
           const StatIcon = stat.icon;
           return (
@@ -452,7 +452,7 @@ export function TrustScorePage({ trustScore, history, basePath }: TrustScorePage
           <p style={{ fontSize: 13, color: "var(--color-ink-secondary)", maxWidth: 500, margin: "0 auto 20px", lineHeight: 1.6 }}>
             You start with a perfect 100. When deals close, both parties report the outcome — disputes, slow responses, and incomplete deals lower your score. Keep it high by delivering consistently.
           </p>
-          <Link href={dealsHref} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 20px", background: "rgba(75,156,211,0.12)", border: "1px solid rgba(75,156,211,0.2)", borderRadius: 10, color: "rgba(75,156,211,0.9)", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+          <Link href={dealsHref} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 20px", background: "rgba(var(--accent-rgb),0.12)", border: "1px solid rgba(var(--accent-rgb),0.2)", borderRadius: 10, color: "var(--color-editorial-blue)", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
             Go to Deals <ArrowRight size={14} />
           </Link>
         </div>

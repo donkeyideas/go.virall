@@ -21,7 +21,7 @@ function getGrade(score: number): string {
 
 function getColor(score: number): string {
   if (score >= 90) return "#22C55E";
-  if (score >= 75) return "rgba(75,156,211,0.9)";
+  if (score >= 75) return "var(--color-editorial-blue)";
   if (score >= 60) return "#F59E0B";
   return "#EF4444";
 }
@@ -50,7 +50,7 @@ export function TrustScoreDetail({ trustScore }: Props) {
     <div
       style={{
         background: "var(--color-surface-card)",
-        border: "1px solid rgba(75,156,211,0.12)",
+        border: "1px solid rgba(var(--accent-rgb),0.12)",
         borderRadius: 14,
         padding: "20px 22px",
       }}
@@ -106,7 +106,7 @@ export function TrustScoreDetail({ trustScore }: Props) {
                 style={{
                   height: 4,
                   borderRadius: 2,
-                  background: "rgba(75,156,211,0.08)",
+                  background: "rgba(var(--accent-rgb),0.08)",
                   overflow: "hidden",
                 }}
               >
@@ -133,7 +133,7 @@ export function TrustScoreDetail({ trustScore }: Props) {
           gap: 12,
           marginTop: 16,
           paddingTop: 16,
-          borderTop: "1px solid rgba(75,156,211,0.08)",
+          borderTop: "1px solid rgba(var(--accent-rgb),0.08)",
         }}
       >
         <div>

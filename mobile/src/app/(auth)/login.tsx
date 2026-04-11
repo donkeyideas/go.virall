@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { TextInput } from '../../components/ui/TextInput';
-import { FontSize, Spacing, BorderRadius, neuShadowSm } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, glassShadowSm } from '../../constants/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -64,7 +64,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={() => handleOAuth('google')}
             disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'apple' ? 0.5 : 1 }, neuShadowSm(colors)]}
+            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'apple' ? 0.5 : 1 }, glassShadowSm(colors), { borderWidth: 1, borderColor: colors.glassBorder }]}
           >
             {oauthLoading === 'google' ? (
               <ActivityIndicator size="small" color={colors.text} />
@@ -78,7 +78,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={() => handleOAuth('apple')}
             disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'google' ? 0.5 : 1 }, neuShadowSm(colors)]}
+            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'google' ? 0.5 : 1 }, glassShadowSm(colors), { borderWidth: 1, borderColor: colors.glassBorder }]}
           >
             {oauthLoading === 'apple' ? (
               <ActivityIndicator size="small" color={colors.text} />
@@ -116,7 +116,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={handleSignIn}
             disabled={loading}
-            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }, neuShadowSm(colors)]}
+            style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }, glassShadowSm(colors), { borderWidth: 1, borderColor: colors.glassBorder }]}
           >
             <Text style={[styles.primaryBtnText, { color: '#FFFFFF' }]}>
               {loading ? 'Signing in...' : 'Sign In'}

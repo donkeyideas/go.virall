@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing, neuShadowSm } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, glassShadowSm } from '../../constants/theme';
 
 interface PillProps {
   label: string;
@@ -18,9 +18,11 @@ export function Pill({ label, active = false, onPress }: PillProps) {
       style={[
         styles.pill,
         {
-          backgroundColor: active ? colors.accent : colors.surfaceLight,
+          backgroundColor: active ? colors.primary : colors.glassBg,
+          borderWidth: 1,
+          borderColor: active ? colors.primary : colors.glassBorder,
         },
-        neuShadowSm(colors),
+        glassShadowSm(colors),
       ]}
     >
       <Text style={[styles.label, { color: active ? '#FFFFFF' : colors.textSecondary }]}>

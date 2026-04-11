@@ -914,8 +914,15 @@ export function SocialIntelligenceOverview({
       {/* ──── Three-Column Newspaper Layout ──── */}
       <div className="mt-6 border-t-4 border-double border-rule-dark pt-4">
         <div className="grid gap-6 lg:grid-cols-[1fr_2.5fr_1.3fr]">
-          {/* ════ LEFT COLUMN: Intelligence Brief ════ */}
+          {/* ════ LEFT COLUMN: Trust Score + Intelligence Brief ════ */}
           <div className="border-r-0 lg:border-r lg:border-rule lg:pr-6">
+            {/* Trust Score Detail — top of left column */}
+            {trustScore && (
+              <a href="/dashboard/trust-score" className="block mb-5">
+                <TrustScoreDetail trustScore={trustScore} />
+              </a>
+            )}
+
             <h2 className="font-serif text-lg font-bold text-ink">
               Social Intelligence Brief
             </h2>
@@ -948,97 +955,6 @@ export function SocialIntelligenceOverview({
                 </div>
               )}
             </div>
-
-            {/* Trust Score Summary */}
-            {trustScore && (
-              <div className="mt-5 border-t border-rule pt-4">
-                <a href="/dashboard/trust-score" className="block group">
-                  <p className="editorial-label">Trust Score</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <div
-                      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-[3px]"
-                      style={{
-                        borderColor:
-                          trustScore.overall_score >= 90
-                            ? "#22C55E"
-                            : trustScore.overall_score >= 75
-                              ? "rgba(75,156,211,0.9)"
-                              : trustScore.overall_score >= 60
-                                ? "#F59E0B"
-                                : "#EF4444",
-                      }}
-                    >
-                      <span
-                        className="font-serif text-lg font-bold"
-                        style={{
-                          color:
-                            trustScore.overall_score >= 90
-                              ? "#22C55E"
-                              : trustScore.overall_score >= 75
-                                ? "rgba(75,156,211,0.9)"
-                                : trustScore.overall_score >= 60
-                                  ? "#F59E0B"
-                                  : "#EF4444",
-                        }}
-                      >
-                        {Math.round(trustScore.overall_score)}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-serif text-sm font-bold text-ink">
-                        {trustScore.overall_score >= 90
-                          ? "Excellent"
-                          : trustScore.overall_score >= 75
-                            ? "Good"
-                            : trustScore.overall_score >= 60
-                              ? "Fair"
-                              : "Needs Work"}
-                      </p>
-                      <p className="text-[10px] text-ink-muted">
-                        {trustScore.total_deals_closed} deal
-                        {trustScore.total_deals_closed !== 1 ? "s" : ""} closed
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 space-y-1.5">
-                    {[
-                      { label: "Completion", value: trustScore.completion_rate },
-                      { label: "Disputes", value: trustScore.dispute_rate },
-                      { label: "Response", value: trustScore.response_time_score },
-                      { label: "Consistency", value: trustScore.consistency_score },
-                    ].map((f) => (
-                      <div key={f.label} className="flex items-center gap-2">
-                        <span className="w-16 text-[9px] text-ink-muted">
-                          {f.label}
-                        </span>
-                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-rule">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${Math.min(100, Number(f.value) || 0)}%`,
-                              backgroundColor:
-                                Number(f.value) >= 90
-                                  ? "#22C55E"
-                                  : Number(f.value) >= 75
-                                    ? "rgba(75,156,211,0.9)"
-                                    : Number(f.value) >= 60
-                                      ? "#F59E0B"
-                                      : "#EF4444",
-                            }}
-                          />
-                        </div>
-                        <span className="w-5 text-right text-[9px] font-bold text-ink-muted">
-                          {Math.round(Number(f.value) || 0)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-[9px] font-semibold text-ink-muted group-hover:text-editorial-red transition-colors">
-                    View Details &rarr;
-                  </p>
-                </a>
-              </div>
-            )}
           </div>
 
           {/* ════ CENTER COLUMN: Main Content ════ */}
@@ -1444,13 +1360,13 @@ export function SocialIntelligenceOverview({
                     />
                     <XAxis
                       dataKey="date"
-                      tick={{ fontSize: 9, fill: "#6B5D8E" }}
+                      tick={{ fontSize: 9, fill: "var(--color-ink-muted)" }}
                       tickLine={false}
                       axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
-                      tick={{ fontSize: 9, fill: "#6B5D8E" }}
+                      tick={{ fontSize: 9, fill: "var(--color-ink-muted)" }}
                       tickLine={false}
                       axisLine={false}
                       width={35}
@@ -1503,12 +1419,12 @@ export function SocialIntelligenceOverview({
                       >
                         <stop
                           offset="5%"
-                          stopColor="#FFB84D"
+                          stopColor="var(--color-editorial-red)"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#FFB84D"
+                          stopColor="var(--color-editorial-red)"
                           stopOpacity={0.03}
                         />
                       </linearGradient>
@@ -1519,13 +1435,13 @@ export function SocialIntelligenceOverview({
                     />
                     <XAxis
                       dataKey="date"
-                      tick={{ fontSize: 9, fill: "#6B5D8E" }}
+                      tick={{ fontSize: 9, fill: "var(--color-ink-muted)" }}
                       tickLine={false}
                       axisLine={{ stroke: "rgba(var(--accent-rgb),0.15)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
-                      tick={{ fontSize: 9, fill: "#6B5D8E" }}
+                      tick={{ fontSize: 9, fill: "var(--color-ink-muted)" }}
                       tickLine={false}
                       axisLine={false}
                       width={45}
@@ -1547,7 +1463,7 @@ export function SocialIntelligenceOverview({
                     <Area
                       type="monotone"
                       dataKey="followers"
-                      stroke="#FFB84D"
+                      stroke="var(--color-editorial-red)"
                       strokeWidth={2}
                       fill="url(#followGradient)"
                     />
@@ -2012,11 +1928,6 @@ export function SocialIntelligenceOverview({
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Your Trust Score */}
-            {trustScore && (
-              <TrustScoreDetail trustScore={trustScore} />
             )}
 
             {/* Recent Activity */}

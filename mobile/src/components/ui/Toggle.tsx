@@ -1,7 +1,6 @@
 import React from 'react';
-import { Pressable, View, StyleSheet, Animated } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { neuShadowSm } from '../../constants/theme';
 
 interface ToggleProps {
   value: boolean;
@@ -17,9 +16,10 @@ export function Toggle({ value, onValueChange }: ToggleProps) {
       style={[
         styles.track,
         {
-          backgroundColor: value ? colors.accent : colors.surfaceLight,
+          backgroundColor: value ? colors.primary : colors.inputBg,
+          borderWidth: 1,
+          borderColor: value ? colors.primary : colors.glassBorder,
         },
-        neuShadowSm(colors),
       ]}
     >
       <View

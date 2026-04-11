@@ -57,6 +57,15 @@ export default function DrawerLayout() {
       <Drawer.Screen name="recommendations" options={{ title: 'Recommendations' }} />
       <Drawer.Screen name="goals" options={{ title: 'Goals' }} />
       <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
+      <Drawer.Screen name="trust-score" options={{ title: 'Trust Score' }} />
+      <Drawer.Screen name="inbox" options={{ title: 'Inbox' }} />
+      <Drawer.Screen name="content" options={{ title: 'Content' }} />
+      <Drawer.Screen name="campaigns" options={{ title: 'Campaigns' }} />
+      <Drawer.Screen name="growth" options={{ title: 'Growth' }} />
+      <Drawer.Screen name="audience" options={{ title: 'Audience' }} />
+      <Drawer.Screen name="competitors" options={{ title: 'Competitors' }} />
+      <Drawer.Screen name="network" options={{ title: 'Network' }} />
+      <Drawer.Screen name="business" options={{ title: 'Business' }} />
       <Drawer.Screen name="brand-overview" options={{ title: 'Overview' }} />
       <Drawer.Screen name="brand-discover" options={{ title: 'Discover' }} />
       <Drawer.Screen name="brand-matches" options={{ title: 'Matches' }} />

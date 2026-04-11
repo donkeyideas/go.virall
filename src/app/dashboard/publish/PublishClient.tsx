@@ -16,6 +16,7 @@ import {
   Handshake,
   DollarSign,
   ExternalLink,
+  Package,
 } from "lucide-react";
 import type { ScheduledPost, SocialPlatform, SocialProfile } from "@/types";
 import { ContentCalendar, type DealEvent } from "@/components/dashboard/ContentCalendar";
@@ -1182,192 +1183,338 @@ function DealEventModal({
     .slice(0, 2)
     .toUpperCase();
 
+  const kpiCard: React.CSSProperties = {
+    background: "var(--color-surface-card)",
+    border: "1px solid rgba(var(--accent-rgb),0.12)",
+    borderRadius: 14,
+    padding: 24,
+  };
+
+  const completedCount = deal.completedDeliverables ?? 0;
+  const totalCount = deal.deliverablesCount ?? 0;
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+    <>
+      {/* Backdrop */}
       <div
-        className="relative w-full max-w-sm border border-rule bg-surface-card shadow-2xl"
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          zIndex: 200,
+          backdropFilter: "blur(4px)",
+        }}
+      />
+
+      {/* Modal */}
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "min(760px, 92vw)",
+          maxHeight: "90vh",
+          background: "var(--color-surface-card)",
+          border: "1px solid rgba(var(--accent-rgb),0.15)",
+          borderRadius: 16,
+          boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+          zIndex: 201,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          fontFamily: "-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--color-ink-muted)",
-            padding: 4,
-          }}
-        >
-          <X size={16} />
-        </button>
-
-        {/* Header */}
-        <div style={{ padding: "20px 20px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {deal.logoUrl ? (
-              <img
-                src={deal.logoUrl}
-                alt=""
-                style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  background: `linear-gradient(135deg, ${stageInfo.color}aa, ${stageInfo.color})`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: "#fff",
-                  flexShrink: 0,
-                }}
-              >
-                {initials}
-              </div>
-            )}
-            <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-ink)", margin: 0 }}>
-                {deal.title}
-              </h3>
-              <span
-                style={{
-                  display: "inline-block",
-                  marginTop: 4,
-                  padding: "3px 10px",
-                  borderRadius: 6,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  background: `${stageInfo.color}18`,
-                  color: stageInfo.color,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {stageInfo.label}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Details */}
-        <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
-          {/* Value */}
-          {deal.value != null && deal.value > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <DollarSign size={14} style={{ color: "#34D399", flexShrink: 0 }} />
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  Deal Value
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#34D399", marginTop: 2 }}>
-                  ${deal.value.toLocaleString()}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dates */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Calendar size={14} style={{ color: "var(--color-ink-secondary)", flexShrink: 0 }} />
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                Timeline
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink)", marginTop: 2 }}>
-                {formatDate(deal.startDate)}
-                {deal.endDate && deal.endDate !== deal.startDate && (
-                  <> — {formatDate(deal.endDate)}</>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Deal ID */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Handshake size={14} style={{ color: "var(--color-ink-secondary)", flexShrink: 0 }} />
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                Deal ID
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--color-ink-muted)", marginTop: 2, fontFamily: "monospace" }}>
-                {deal.id.slice(0, 8)}...
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
+        {/* Header bar */}
         <div
           style={{
-            padding: "12px 20px 16px",
-            borderTop: "1px solid rgba(var(--accent-rgb),0.08)",
             display: "flex",
-            gap: 8,
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 20px",
+            borderBottom: "1px solid rgba(var(--accent-rgb),0.1)",
           }}
         >
-          <a
-            href="/dashboard/deals"
+          <h3
             style={{
-              flex: 1,
+              fontSize: 15,
+              fontWeight: 700,
+              color: "var(--color-ink)",
+              margin: 0,
+            }}
+          >
+            Deal Details
+          </h3>
+          <button
+            onClick={onClose}
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: "rgba(var(--accent-rgb),0.08)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 6,
-              padding: "8px 12px",
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#fff",
-              background: "#10B981",
               border: "none",
-              borderRadius: 6,
-              textDecoration: "none",
               cursor: "pointer",
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
+              color: "var(--color-ink-secondary)",
             }}
           >
-            <ExternalLink size={12} />
-            View in Deals
-          </a>
-          {onViewProposal && (
-            <button
-              onClick={onViewProposal}
+            <X size={15} />
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 20px" }}>
+          <div style={{ maxWidth: 720, margin: "0 auto" }}>
+            {/* Title + Status row */}
+            <div
               style={{
-                flex: 1,
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                padding: "8px 12px",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "var(--color-ink)",
-                background: "rgba(var(--accent-rgb),0.08)",
-                border: "1px solid rgba(var(--accent-rgb),0.12)",
-                borderRadius: 6,
-                cursor: "pointer",
-                textTransform: "uppercase",
-                letterSpacing: "0.04em",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: 24,
+                marginTop: 16,
               }}
             >
-              <FileText size={12} />
-              View Proposal
-            </button>
-          )}
+              <div>
+                <h2
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 800,
+                    color: "var(--color-ink)",
+                    margin: 0,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {deal.title}
+                </h2>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: "var(--color-ink-secondary)",
+                  }}
+                >
+                  {deal.logoUrl ? (
+                    <img
+                      src={deal.logoUrl}
+                      alt=""
+                      style={{ width: 20, height: 20, borderRadius: 6, objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 6,
+                        background: `linear-gradient(135deg, ${stageInfo.color}aa, ${stageInfo.color})`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 8,
+                        fontWeight: 800,
+                        color: "#fff",
+                      }}
+                    >
+                      {initials}
+                    </div>
+                  )}
+                  <span style={{ fontWeight: 600, color: "var(--color-ink)" }}>
+                    {deal.title}
+                  </span>
+                  {deal.contactEmail && (
+                    <span style={{ color: "var(--color-ink-muted)" }}>
+                      · {deal.contactEmail}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 16px",
+                  background: `${stageInfo.color}18`,
+                  borderRadius: 20,
+                  color: stageInfo.color,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                <Handshake size={14} />
+                {stageInfo.label}
+              </div>
+            </div>
+
+            {/* Notes / Description */}
+            {deal.notes && (
+              <div style={{ ...kpiCard, marginBottom: 16, padding: 20 }}>
+                <p style={{ margin: 0, fontSize: 14, color: "var(--color-ink)", lineHeight: 1.6 }}>
+                  {deal.notes}
+                </p>
+              </div>
+            )}
+
+            {/* KPI Cards */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: 12,
+                marginBottom: 16,
+              }}
+            >
+              {/* Total Value */}
+              <div style={kpiCard}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <DollarSign size={14} color="#34D399" />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase" }}>
+                    Total Value
+                  </span>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#34D399" }}>
+                  ${(deal.value ?? 0).toLocaleString()}
+                </div>
+                {deal.paidAmount != null && deal.paidAmount > 0 && (
+                  <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginTop: 4 }}>
+                    ${deal.paidAmount.toLocaleString()} paid
+                  </div>
+                )}
+              </div>
+
+              {/* Campaign Window */}
+              <div style={kpiCard}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <Calendar size={14} color="var(--color-editorial-blue)" />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase" }}>
+                    Campaign Window
+                  </span>
+                </div>
+                <div style={{ fontSize: 13, color: "var(--color-ink)", fontWeight: 600 }}>
+                  {formatDate(deal.startDate)}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginTop: 4 }}>
+                  {deal.endDate && deal.endDate !== deal.startDate
+                    ? `to ${formatDate(deal.endDate)}`
+                    : "No end date"}
+                </div>
+              </div>
+
+              {/* Deliverables */}
+              <div style={kpiCard}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <Package size={14} color="#FFB84D" />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase" }}>
+                    Deliverables
+                  </span>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--color-ink)" }}>
+                  {totalCount}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginTop: 4 }}>
+                  {completedCount} completed
+                </div>
+              </div>
+            </div>
+
+            {/* Deal ID */}
+            <div style={{ ...kpiCard, marginBottom: 16, padding: "14px 20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Handshake size={13} style={{ color: "var(--color-ink-secondary)" }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Deal ID
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: "var(--color-ink-muted)", fontFamily: "monospace", marginLeft: 4 }}>
+                  {deal.id.slice(0, 8)}...
+                </span>
+              </div>
+            </div>
+
+            {/* Disclaimer */}
+            <div
+              style={{
+                padding: "12px 16px",
+                background: "rgba(255,184,77,0.06)",
+                border: "1px solid rgba(255,184,77,0.15)",
+                borderRadius: 10,
+                marginBottom: 16,
+              }}
+            >
+              <span style={{ fontSize: 11, color: "#FFB84D", fontWeight: 700 }}>
+                Disclaimer:
+              </span>{" "}
+              <span style={{ fontSize: 11, color: "var(--color-ink-secondary)" }}>
+                Go Virall facilitates connections only. All payments and financial
+                agreements are handled directly between brand and creator.
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
+              <a
+                href="/dashboard/deals"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  padding: "10px 20px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#fff",
+                  background: "#10B981",
+                  border: "none",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <ExternalLink size={13} />
+                View in Deals
+              </a>
+              {onViewProposal && (
+                <button
+                  onClick={onViewProposal}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    padding: "10px 20px",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "var(--color-ink)",
+                    background: "rgba(var(--accent-rgb),0.08)",
+                    border: "1px solid rgba(var(--accent-rgb),0.12)",
+                    borderRadius: 8,
+                    cursor: "pointer",
+                  }}
+                >
+                  <FileText size={13} />
+                  View Proposal
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

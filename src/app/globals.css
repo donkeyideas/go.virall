@@ -373,9 +373,9 @@ dialog {
 }
 
 /* --- EDITORIAL MODE: sharp newspaper-style corners --- */
-/* Override ALL inline border-radius in editorial mode, then restore circles/pills. */
+/* Override ALL inline border-radius in editorial mode */
 html:not(.modern-view) .dashboard-main [style*="border-radius"] {
-  border-radius: 2px !important;
+  border-radius: 0 !important;
 }
 /* Preserve intentional circles and pills */
 html:not(.modern-view) .dashboard-main [style*="border-radius: 50"],
@@ -388,13 +388,31 @@ html:not(.modern-view) .dashboard-main [style*="box-shadow"] {
   box-shadow: none !important;
 }
 
-/* Also sharpen Tailwind-class-based rounding in editorial */
+/* Sharpen Tailwind-class-based rounding in editorial */
 html:not(.modern-view) .dashboard-main .rounded-lg,
 html:not(.modern-view) .dashboard-main .rounded-xl,
 html:not(.modern-view) .dashboard-main .rounded-2xl,
 html:not(.modern-view) .dashboard-main .rounded-3xl,
 html:not(.modern-view) .dashboard-main .rounded-md {
-  border-radius: 2px !important;
+  border-radius: 0 !important;
+}
+
+/* Progress bars and bar graphs: boxed in editorial mode */
+html:not(.modern-view) .dashboard-main .overflow-hidden.rounded-full,
+html:not(.modern-view) .dashboard-main .overflow-hidden > .rounded-full,
+html:not(.modern-view) .dashboard-main .h-\[6px\].rounded-full,
+html:not(.modern-view) .dashboard-main .h-\[4px\].rounded-full,
+html:not(.modern-view) .dashboard-main .h-1.rounded-full,
+html:not(.modern-view) .dashboard-main .h-1\.5.rounded-full,
+html:not(.modern-view) .dashboard-main .h-2.rounded-full,
+html:not(.modern-view) .dashboard-main .h-4.rounded-full,
+html:not(.modern-view) .dashboard-main .h-\[6px\] > .rounded-full,
+html:not(.modern-view) .dashboard-main .h-\[4px\] > .rounded-full,
+html:not(.modern-view) .dashboard-main .h-1 > .rounded-full,
+html:not(.modern-view) .dashboard-main .h-1\.5 > .rounded-full,
+html:not(.modern-view) .dashboard-main .h-2 > .rounded-full,
+html:not(.modern-view) .dashboard-main .h-4 > .rounded-full {
+  border-radius: 0 !important;
 }
 
 /* --- EDITORIAL MODE: font overrides --- */

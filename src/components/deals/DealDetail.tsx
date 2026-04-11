@@ -83,6 +83,13 @@ const inputStyle: React.CSSProperties = {
   outline: "none",
 };
 
+const cardStyle: React.CSSProperties = {
+  background: "var(--color-surface-card)",
+  border: "1px solid rgba(var(--accent-rgb),0.12)",
+  borderRadius: 14,
+  padding: 24,
+};
+
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 10,
@@ -290,76 +297,48 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "min(580px, 90vw)",
-          maxHeight: "80vh",
+          width: "min(760px, 92vw)",
+          maxHeight: "90vh",
           background: "var(--color-surface-card)",
-          border: "1px solid rgba(var(--accent-rgb),0.12)",
+          border: "1px solid rgba(var(--accent-rgb),0.15)",
           borderRadius: 16,
           zIndex: 201,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+          fontFamily: "-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif",
         }}
       >
-        {/* Header */}
+        {/* Header bar */}
         <div
           style={{
-            padding: "18px 24px",
-            borderBottom: "1px solid rgba(var(--accent-rgb),0.08)",
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 20px",
+            borderBottom: "1px solid rgba(var(--accent-rgb),0.1)",
             flexShrink: 0,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {deal.brand_logo_url ? (
-              <img
-                src={deal.brand_logo_url}
-                alt={brandName}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  objectFit: "cover",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: `linear-gradient(135deg, ${stageConfig.color}aa, ${stageConfig.color})`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  color: "#fff",
-                }}
-              >
-                {brandName.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-ink, #E2E8F0)" }}>
-                {brandName}
-              </div>
-              <div style={{ fontSize: 11, color: stageConfig.color, fontWeight: 600 }}>
-                {stageConfig.label}
-              </div>
-            </div>
-          </div>
+          <h3
+            style={{
+              fontSize: 15,
+              fontWeight: 700,
+              color: "var(--color-ink)",
+              margin: 0,
+            }}
+          >
+            Deal Details
+          </h3>
           <button
             type="button"
             onClick={onClose}
             style={{
-              width: 32,
-              height: 32,
+              width: 30,
+              height: 30,
               borderRadius: 8,
-              background: "var(--color-surface-inset)",
+              background: "rgba(var(--accent-rgb),0.08)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -368,17 +347,91 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
               color: "var(--color-ink-secondary)",
             }}
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
-          {/* Message */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 20px" }}>
+          <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          {/* Title + Status row */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              marginBottom: 24,
+              marginTop: 16,
+            }}
+          >
+            <div>
+              <h2
+                style={{
+                  fontSize: 22,
+                  fontWeight: 800,
+                  color: "var(--color-ink, #E2E8F0)",
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                {brandName}
+              </h2>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: "var(--color-ink-secondary)",
+                }}
+              >
+                {deal.brand_logo_url ? (
+                  <img
+                    src={deal.brand_logo_url}
+                    alt={brandName}
+                    style={{ width: 20, height: 20, borderRadius: 6, objectFit: "cover" }}
+                  />
+                ) : (
+                  <Building2 size={13} />
+                )}
+                {contactEmail && (
+                  <>
+                    <Mail size={11} />
+                    <span>{contactEmail}</span>
+                  </>
+                )}
+                {deal.is_from_platform && otherTrustScore && (
+                  <TrustBadge trustScore={otherTrustScore} size="sm" />
+                )}
+              </div>
+            </div>
+
+            {/* Status Badge */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 16px",
+                background: `${stageConfig.color}18`,
+                borderRadius: 20,
+                color: stageConfig.color,
+                fontSize: 13,
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              <Package size={14} />
+              {stageConfig.label}
+            </div>
+          </div>
+
+          {/* Messages */}
           {message && (
             <div
               style={{
-                padding: "8px 14px",
+                padding: "10px 16px",
                 background:
                   message.type === "error"
                     ? "rgba(239,68,68,0.1)"
@@ -388,9 +441,9 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                     ? "rgba(239,68,68,0.2)"
                     : "rgba(52,211,153,0.2)"
                 }`,
-                borderRadius: 8,
+                borderRadius: 10,
                 color: message.type === "error" ? "#EF4444" : "#34D399",
-                fontSize: 12,
+                fontSize: 13,
                 marginBottom: 16,
               }}
             >
@@ -398,175 +451,229 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
             </div>
           )}
 
-          {/* Stage Selector */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Pipeline Stage</label>
-            <div style={{ position: "relative" }}>
-              <select
-                value={localStage}
-                onChange={(e) =>
-                  handleStageChange(e.target.value as DealPipelineStage)
-                }
+          {/* Notes / Description */}
+          {!editMode && notes && (
+            <div style={{ ...cardStyle, marginBottom: 16 }}>
+              <p
                 style={{
-                  ...inputStyle,
-                  appearance: "none",
-                  paddingRight: 32,
-                  color: stageConfig.color,
-                  fontWeight: 700,
+                  fontSize: 14,
+                  color: "var(--color-ink, #E2E8F0)",
+                  margin: 0,
+                  lineHeight: 1.7,
+                  whiteSpace: "pre-wrap",
                 }}
               >
-                {PIPELINE_STAGES.map((s) => (
-                  <option key={s} value={s}>
-                    {STAGE_CONFIG[s].label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--color-ink-secondary)",
-                  pointerEvents: "none",
-                }}
-              />
+                {notes}
+              </p>
+            </div>
+          )}
+
+          {/* KPI Cards */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 12,
+              marginBottom: 16,
+            }}
+          >
+            {/* Total Value */}
+            <div style={cardStyle}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <DollarSign size={14} color="#34D399" />
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase" }}>
+                  Total Value
+                </span>
+              </div>
+              {editMode ? (
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  style={inputStyle}
+                  value={totalValue || ""}
+                  onChange={(e) =>
+                    setTotalValue(parseFloat(e.target.value) || 0)
+                  }
+                />
+              ) : (
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#34D399" }}>
+                  ${totalValue.toLocaleString()}
+                </div>
+              )}
+            </div>
+
+            {/* Paid Amount */}
+            <div style={cardStyle}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <CreditCard size={14} color="var(--color-editorial-blue)" />
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase" }}>
+                  Paid Amount
+                </span>
+              </div>
+              {editMode ? (
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  style={inputStyle}
+                  value={paidAmount || ""}
+                  onChange={(e) =>
+                    setPaidAmount(parseFloat(e.target.value) || 0)
+                  }
+                />
+              ) : (
+                <>
+                  <div style={{ fontSize: 13, color: "var(--color-ink, #E2E8F0)", fontWeight: 600 }}>
+                    ${paidAmount.toLocaleString()}
+                  </div>
+                  {totalValue > 0 && (
+                    <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginTop: 4 }}>
+                      {Math.round((paidAmount / totalValue) * 100)}% of total
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Deliverables count */}
+            <div style={cardStyle}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <Package size={14} color="#FFB84D" />
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-ink-secondary)", textTransform: "uppercase" }}>
+                  Deliverables
+                </span>
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--color-ink, #E2E8F0)" }}>
+                {localDeliverables.length}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginTop: 4 }}>
+                {localDeliverables.filter((d) => d.status === "approved").length} completed
+              </div>
             </div>
           </div>
 
-          {/* Deal Info */}
-          <div
-            style={{
-              background: "var(--color-surface-inset)",
-              borderRadius: 12,
-              padding: 18,
-              marginBottom: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 14,
-            }}
-          >
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <div>
-                <label style={labelStyle}>
-                  <Building2 size={10} style={{ marginRight: 4 }} />
-                  Brand Name
-                </label>
-                {editMode ? (
+          {/* Edit Details Section (collapsed by default) */}
+          {editMode && (
+            <div
+              style={{
+                ...cardStyle,
+                marginBottom: 16,
+                padding: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+              }}
+            >
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>
+                    <Building2 size={10} style={{ marginRight: 4 }} />
+                    Brand Name
+                  </label>
                   <input
                     style={inputStyle}
                     value={brandName}
                     onChange={(e) => setBrandName(e.target.value)}
                   />
-                ) : (
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink, #E2E8F0)" }}>
-                    {brandName}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label style={labelStyle}>
-                  <Mail size={10} style={{ marginRight: 4 }} />
-                  Contact Email
-                </label>
-                {editMode ? (
+                </div>
+                <div>
+                  <label style={labelStyle}>
+                    <Mail size={10} style={{ marginRight: 4 }} />
+                    Contact Email
+                  </label>
                   <input
                     style={inputStyle}
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
                     placeholder="email@example.com"
                   />
-                ) : (
-                  <div style={{ fontSize: 13, color: "var(--color-ink, #E2E8F0)" }}>
-                    {contactEmail || "--"}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <div>
-                <label style={labelStyle}>
-                  <DollarSign size={10} style={{ marginRight: 4 }} />
-                  Total Value
-                </label>
-                {editMode ? (
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    style={inputStyle}
-                    value={totalValue || ""}
-                    onChange={(e) =>
-                      setTotalValue(parseFloat(e.target.value) || 0)
-                    }
-                  />
-                ) : (
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#34D399" }}>
-                    ${totalValue.toLocaleString()}
-                  </div>
-                )}
+                </div>
               </div>
               <div>
                 <label style={labelStyle}>
-                  <CreditCard size={10} style={{ marginRight: 4 }} />
-                  Paid Amount
+                  <FileText size={10} style={{ marginRight: 4 }} />
+                  Notes
                 </label>
-                {editMode ? (
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    style={inputStyle}
-                    value={paidAmount || ""}
-                    onChange={(e) =>
-                      setPaidAmount(parseFloat(e.target.value) || 0)
-                    }
-                  />
-                ) : (
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink, #E2E8F0)" }}>
-                    ${paidAmount.toLocaleString()}
-                    {totalValue > 0 && (
-                      <span style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginLeft: 6 }}>
-                        ({Math.round((paidAmount / totalValue) * 100)}%)
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label style={labelStyle}>
-                <FileText size={10} style={{ marginRight: 4 }} />
-                Notes
-              </label>
-              {editMode ? (
                 <textarea
                   style={{ ...inputStyle, minHeight: 60, resize: "vertical" }}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Internal notes..."
                 />
-              ) : (
-                <div
+              </div>
+            </div>
+          )}
+
+          {/* Pipeline Stage */}
+          <div style={{ ...cardStyle, marginBottom: 16, padding: 0, overflow: "hidden" }}>
+            <div
+              style={{
+                padding: "14px 20px",
+                borderBottom: "1px solid rgba(var(--accent-rgb),0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Pipeline Stage
+              </span>
+              {!editMode && (
+                <button
+                  type="button"
+                  onClick={() => setEditMode(true)}
                   style={{
-                    fontSize: 12,
-                    color: "var(--color-ink-secondary)",
-                    lineHeight: 1.6,
-                    whiteSpace: "pre-wrap",
+                    padding: "4px 12px",
+                    background: "rgba(var(--accent-rgb),0.08)",
+                    border: "1px solid rgba(var(--accent-rgb),0.15)",
+                    borderRadius: 6,
+                    color: "var(--color-editorial-blue)",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
                   }}
                 >
-                  {notes || "No notes."}
-                </div>
+                  Edit Details
+                </button>
               )}
             </div>
-
-            {/* Edit / Save */}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              {editMode ? (
-                <>
+            <div style={{ padding: "12px 20px" }}>
+              <div style={{ position: "relative" }}>
+                <select
+                  value={localStage}
+                  onChange={(e) =>
+                    handleStageChange(e.target.value as DealPipelineStage)
+                  }
+                  style={{
+                    ...inputStyle,
+                    appearance: "none",
+                    paddingRight: 32,
+                    color: stageConfig.color,
+                    fontWeight: 700,
+                  }}
+                >
+                  {PIPELINE_STAGES.map((s) => (
+                    <option key={s} value={s}>
+                      {STAGE_CONFIG[s].label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={14}
+                  style={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--color-ink-secondary)",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
+              {editMode && (
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -600,7 +707,7 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                       alignItems: "center",
                       gap: 4,
                       padding: "6px 14px",
-                      background: "#4B9CD3",
+                      background: "var(--color-editorial-blue)",
                       border: "none",
                       borderRadius: 8,
                       color: "#fff",
@@ -613,32 +720,14 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                     {loading && <Loader2 size={11} className="animate-spin" />}
                     Save
                   </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setEditMode(true)}
-                  style={{
-                    padding: "6px 14px",
-                    background: "rgba(var(--accent-rgb),0.08)",
-                    border: "1px solid rgba(var(--accent-rgb),0.15)",
-                    borderRadius: 8,
-                    color: "#4B9CD3",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  Edit Details
-                </button>
+                </div>
               )}
             </div>
           </div>
 
           {/* Trust Score — other party */}
           {deal.is_from_platform && otherTrustScore && (
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 16 }}>
               <button
                 type="button"
                 onClick={() => setShowTrustDetail((v) => !v)}
@@ -647,10 +736,10 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  background: "rgba(var(--accent-rgb),0.04)",
-                  border: "1px solid rgba(var(--accent-rgb),0.10)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
+                  background: "var(--color-surface-card)",
+                  border: "1px solid rgba(var(--accent-rgb),0.12)",
+                  borderRadius: 14,
+                  padding: "12px 20px",
                   cursor: "pointer",
                   fontFamily: "inherit",
                 }}
@@ -669,13 +758,14 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
           )}
 
           {/* Deliverables */}
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ ...cardStyle, marginBottom: 16, padding: 0, overflow: "hidden" }}>
             <div
               style={{
+                padding: "14px 20px",
+                borderBottom: "1px solid rgba(var(--accent-rgb),0.08)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 12,
               }}
             >
               <div
@@ -704,7 +794,7 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                   background: "rgba(var(--accent-rgb),0.08)",
                   border: "1px solid rgba(var(--accent-rgb),0.15)",
                   borderRadius: 6,
-                  color: "#4B9CD3",
+                  color: "var(--color-editorial-blue)",
                   fontSize: 10,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -720,11 +810,8 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
             {showNewDeliverable && (
               <div
                 style={{
-                  background: "var(--color-surface-inset)",
-                  borderRadius: 10,
-                  padding: 14,
-                  marginBottom: 10,
-                  border: "1px solid rgba(var(--accent-rgb),0.15)",
+                  padding: "14px 20px",
+                  borderBottom: "1px solid rgba(var(--accent-rgb),0.08)",
                 }}
               >
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
@@ -803,7 +890,7 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                       alignItems: "center",
                       gap: 4,
                       padding: "6px 12px",
-                      background: "#4B9CD3",
+                      background: "var(--color-editorial-blue)",
                       border: "none",
                       borderRadius: 6,
                       color: "#fff",
@@ -821,16 +908,14 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
             )}
 
             {/* Deliverable List */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
               {localDeliverables.length === 0 ? (
                 <div
                   style={{
-                    padding: "20px 16px",
+                    padding: "20px 20px",
                     textAlign: "center",
                     fontSize: 12,
                     color: "var(--color-ink-secondary)",
-                    background: "var(--color-surface-inset)",
-                    borderRadius: 10,
                   }}
                 >
                   No deliverables yet. Add one above.
@@ -847,8 +932,7 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                     <div
                       key={d.id}
                       style={{
-                        background: "var(--color-surface-inset)",
-                        borderRadius: 8,
+                        borderTop: "1px solid rgba(var(--accent-rgb),0.06)",
                         overflow: "hidden",
                       }}
                     >
@@ -858,7 +942,7 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          padding: "10px 14px",
+                          padding: "12px 20px",
                         }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -908,10 +992,10 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
                               onClick={() => setShowSubmitForm(showSubmit ? null : d.id)}
                               style={{
                                 padding: "4px 10px",
-                                background: "rgba(75,156,211,0.1)",
-                                border: "1px solid rgba(75,156,211,0.2)",
+                                background: "rgba(var(--accent-rgb),0.1)",
+                                border: "1px solid rgba(var(--accent-rgb),0.2)",
                                 borderRadius: 6,
-                                color: "rgba(75,156,211,0.9)",
+                                color: "var(--color-editorial-blue)",
                                 fontSize: 9,
                                 fontWeight: 700,
                                 cursor: "pointer",
@@ -1019,91 +1103,86 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
           </div>
 
           {/* Links */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              flexWrap: "wrap",
-              marginBottom: 20,
-            }}
-          >
-            {deal.proposal_id && (
-              <a
-                href={userRole === "brand" ? `/brand/proposals?id=${deal.proposal_id}` : `/dashboard/business?tab=proposals&id=${deal.proposal_id}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "6px 12px",
-                  background: "rgba(var(--accent-rgb),0.06)",
-                  border: "1px solid rgba(var(--accent-rgb),0.12)",
-                  borderRadius: 6,
-                  color: "#4B9CD3",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                <Link2 size={11} />
-                View Proposal
-              </a>
-            )}
-            {deal.thread_id && (
-              <a
-                href={userRole === "brand" ? `/brand/messages?thread=${deal.thread_id}` : `/dashboard/inbox?tab=messages&thread=${deal.thread_id}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "6px 12px",
-                  background: "rgba(var(--accent-rgb),0.06)",
-                  border: "1px solid rgba(var(--accent-rgb),0.12)",
-                  borderRadius: 6,
-                  color: "#4B9CD3",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                <MessageSquare size={11} />
-                Message Thread
-              </a>
-            )}
-            {deal.contract_url && (
-              <a
-                href={deal.contract_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "6px 12px",
-                  background: "rgba(var(--accent-rgb),0.06)",
-                  border: "1px solid rgba(var(--accent-rgb),0.12)",
-                  borderRadius: 6,
-                  color: "#4B9CD3",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                <FileText size={11} />
-                Contract
-              </a>
-            )}
-          </div>
+          {(deal.proposal_id || deal.thread_id || deal.contract_url) && (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                marginBottom: 16,
+              }}
+            >
+              {deal.proposal_id && (
+                <a
+                  href={userRole === "brand" ? `/brand/proposals?id=${deal.proposal_id}` : `/dashboard/business?tab=proposals&id=${deal.proposal_id}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "6px 12px",
+                    background: "rgba(var(--accent-rgb),0.06)",
+                    border: "1px solid rgba(var(--accent-rgb),0.12)",
+                    borderRadius: 6,
+                    color: "var(--color-editorial-blue)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
+                  <Link2 size={11} />
+                  View Proposal
+                </a>
+              )}
+              {deal.thread_id && (
+                <a
+                  href={userRole === "brand" ? `/brand/messages?thread=${deal.thread_id}` : `/dashboard/inbox?tab=messages&thread=${deal.thread_id}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "6px 12px",
+                    background: "rgba(var(--accent-rgb),0.06)",
+                    border: "1px solid rgba(var(--accent-rgb),0.12)",
+                    borderRadius: 6,
+                    color: "var(--color-editorial-blue)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
+                  <MessageSquare size={11} />
+                  Message Thread
+                </a>
+              )}
+              {deal.contract_url && (
+                <a
+                  href={deal.contract_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "6px 12px",
+                    background: "rgba(var(--accent-rgb),0.06)",
+                    border: "1px solid rgba(var(--accent-rgb),0.12)",
+                    borderRadius: 6,
+                    color: "var(--color-editorial-blue)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
+                  <FileText size={11} />
+                  Contract
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Payment Tracking */}
           {totalValue > 0 && (
-            <div
-              style={{
-                background: "var(--color-surface-inset)",
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 20,
-              }}
-            >
+            <div style={{ ...cardStyle, marginBottom: 16 }}>
               <div style={{ ...labelStyle, marginBottom: 10 }}>Payment Progress</div>
               <div
                 style={{
@@ -1144,89 +1223,107 @@ export function DealDetail({ deal, isOpen, onClose, onUpdate, userRole = "creato
             isFromPlatform={deal.is_from_platform}
             pipelineStage={localStage}
           />
-        </div>
 
-        {/* Footer Actions */}
-        <div
-          style={{
-            padding: "14px 24px",
-            borderTop: "1px solid rgba(var(--accent-rgb),0.08)",
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 8,
-            flexShrink: 0,
-            flexWrap: "wrap",
-          }}
-        >
-          {["contracted", "in_progress"].includes(localStage) && (
-            <button
-              type="button"
-              onClick={handleMarkDelivered}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "8px 16px",
-                background: "rgba(6,182,212,0.1)",
-                border: "1px solid rgba(6,182,212,0.2)",
-                borderRadius: 8,
-                color: "#06B6D4",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <CheckCircle2 size={13} />
-              Mark Delivered
-            </button>
-          )}
-          {localStage === "delivered" && (
-            <button
-              type="button"
-              onClick={handleSendInvoice}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "8px 16px",
-                background: "rgba(249,115,22,0.1)",
-                border: "1px solid rgba(249,115,22,0.2)",
-                borderRadius: 8,
-                color: "#F97316",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <Receipt size={13} />
-              Send Invoice
-            </button>
-          )}
-          {localStage === "invoiced" && (
-            <button
-              type="button"
-              onClick={handleMarkPaid}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "8px 16px",
-                background: "rgba(34,197,94,0.1)",
-                border: "1px solid rgba(34,197,94,0.2)",
-                borderRadius: 8,
-                color: "#22C55E",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <DollarSign size={13} />
-              Mark Paid
-            </button>
-          )}
+          {/* Disclaimer */}
+          <div
+            style={{
+              padding: "12px 16px",
+              background: "rgba(255,184,77,0.06)",
+              border: "1px solid rgba(255,184,77,0.15)",
+              borderRadius: 10,
+              marginTop: 16,
+              marginBottom: 16,
+            }}
+          >
+            <span style={{ fontSize: 11, color: "#FFB84D", fontWeight: 700 }}>
+              Disclaimer:
+            </span>{" "}
+            <span style={{ fontSize: 11, color: "var(--color-ink-secondary)" }}>
+              Go Virall facilitates connections only. All payments and financial
+              agreements are handled directly between brand and creator.
+            </span>
+          </div>
+
+          {/* Action buttons (right-aligned, like ProposalView) */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            {["contracted", "in_progress"].includes(localStage) && (
+              <button
+                type="button"
+                onClick={handleMarkDelivered}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "10px 20px",
+                  background: "rgba(6,182,212,0.1)",
+                  border: "1px solid rgba(6,182,212,0.2)",
+                  borderRadius: 8,
+                  color: "#06B6D4",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <CheckCircle2 size={13} />
+                Mark Delivered
+              </button>
+            )}
+            {localStage === "delivered" && (
+              <button
+                type="button"
+                onClick={handleSendInvoice}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "10px 20px",
+                  background: "rgba(249,115,22,0.1)",
+                  border: "1px solid rgba(249,115,22,0.2)",
+                  borderRadius: 8,
+                  color: "#F97316",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <Receipt size={13} />
+                Send Invoice
+              </button>
+            )}
+            {localStage === "invoiced" && (
+              <button
+                type="button"
+                onClick={handleMarkPaid}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "10px 20px",
+                  background: "rgba(34,197,94,0.1)",
+                  border: "1px solid rgba(34,197,94,0.2)",
+                  borderRadius: 8,
+                  color: "#22C55E",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <DollarSign size={13} />
+                Mark Paid
+              </button>
+            )}
+          </div>
+          </div>
         </div>
       </div>
     </>

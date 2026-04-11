@@ -521,9 +521,9 @@ export function ProposalBuilder({
                     type="button"
                     onClick={selectAllPlatforms}
                     style={{
-                      padding: "5px 12px", background: "rgba(75,156,211,0.1)",
-                      border: "1px solid rgba(75,156,211,0.2)", borderRadius: 6,
-                      fontSize: 11, fontWeight: 600, color: "#4B9CD3",
+                      padding: "5px 12px", background: "rgba(var(--accent-rgb),0.1)",
+                      border: "1px solid rgba(var(--accent-rgb),0.2)", borderRadius: 6,
+                      fontSize: 11, fontWeight: 600, color: "var(--color-editorial-blue)",
                       cursor: "pointer", fontFamily: "inherit",
                     }}
                   >
@@ -567,10 +567,10 @@ export function ProposalBuilder({
                           gap: 14,
                           padding: "14px 18px",
                           background: isSelected
-                            ? "rgba(75,156,211,0.1)"
+                            ? "rgba(var(--accent-rgb),0.1)"
                             : "var(--color-surface-inset)",
                           border: isSelected
-                            ? "2px solid rgba(75,156,211,0.5)"
+                            ? "2px solid rgba(var(--accent-rgb),0.5)"
                             : "2px solid rgba(var(--accent-rgb),0.1)",
                           borderRadius: 12,
                           cursor: "pointer",
@@ -587,9 +587,9 @@ export function ProposalBuilder({
                             height: 22,
                             borderRadius: 6,
                             border: isSelected
-                              ? "2px solid #4B9CD3"
+                              ? "2px solid var(--color-editorial-blue)"
                               : "2px solid rgba(var(--accent-rgb),0.25)",
-                            background: isSelected ? "#4B9CD3" : "transparent",
+                            background: isSelected ? "var(--color-editorial-blue)" : "transparent",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -614,7 +614,7 @@ export function ProposalBuilder({
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12 }}>
                             <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--color-ink-secondary)" }}>
-                              <Users size={12} style={{ color: "rgba(75,156,211,0.6)" }} />
+                              <Users size={12} style={{ color: "var(--color-editorial-blue)" }} />
                               <strong style={{ color: "var(--color-ink)", fontWeight: 700 }}>
                                 {formatFollowers(p.followers_count)}
                               </strong>
@@ -671,7 +671,7 @@ export function ProposalBuilder({
               <div
                 style={{
                   padding: "16px 20px",
-                  background: "linear-gradient(135deg, rgba(52,211,153,0.08), rgba(75,156,211,0.08))",
+                  background: "linear-gradient(135deg, rgba(52,211,153,0.08), rgba(var(--accent-rgb),0.08))",
                   border: "1px solid rgba(52,211,153,0.2)",
                   borderRadius: 12,
                   display: "flex",
@@ -760,7 +760,7 @@ export function ProposalBuilder({
                   {[...selectedPlatforms].map((p) => {
                     const info = platformInfoMap.get(p) ?? platformInfoMap.get(p.toLowerCase());
                     return (
-                      <span key={p} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 6, background: "rgba(75,156,211,0.1)", color: "rgba(75,156,211,0.8)", border: "1px solid rgba(75,156,211,0.15)" }}>
+                      <span key={p} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 6, background: "rgba(var(--accent-rgb),0.1)", color: "var(--color-editorial-blue)", border: "1px solid rgba(var(--accent-rgb),0.15)" }}>
                         {p} {info?.handle ? `@${info.handle}` : ""} • {formatFollowers(info?.followers_count ?? 0)}
                       </span>
                     );
@@ -778,7 +778,7 @@ export function ProposalBuilder({
             {deliverables.map((d, idx) => (
               <div key={idx} style={{ ...cardStyle, padding: 16, position: "relative" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#4B9CD3" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-editorial-blue)" }}>
                     Deliverable {idx + 1}
                   </span>
                   {deliverables.length > 1 && (
@@ -846,7 +846,7 @@ export function ProposalBuilder({
             <button
               type="button"
               onClick={addDeliverable}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px", background: "rgba(var(--accent-rgb),0.08)", border: "1px dashed rgba(var(--accent-rgb),0.25)", borderRadius: 10, color: "#4B9CD3", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px", background: "rgba(var(--accent-rgb),0.08)", border: "1px dashed rgba(var(--accent-rgb),0.25)", borderRadius: 10, color: "var(--color-editorial-blue)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
             >
               <Plus size={14} /> Add Deliverable
             </button>
@@ -870,7 +870,7 @@ export function ProposalBuilder({
                     }),
                   );
                 }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px", background: "linear-gradient(135deg, rgba(52,211,153,0.15), rgba(75,156,211,0.15))", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 10, color: "#34D399", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px", background: "linear-gradient(135deg, rgba(52,211,153,0.15), rgba(var(--accent-rgb),0.15))", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 10, color: "#34D399", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
               >
                 <Sparkles size={15} /> Auto-Fill Smart Prices
               </button>
@@ -889,7 +889,7 @@ export function ProposalBuilder({
                       background: paymentType === pt.value ? "rgba(var(--accent-rgb),0.15)" : "var(--color-surface-inset)",
                       border: `1px solid ${paymentType === pt.value ? "rgba(var(--accent-rgb),0.4)" : "rgba(var(--accent-rgb),0.12)"}`,
                       borderRadius: 10,
-                      color: paymentType === pt.value ? "#4B9CD3" : "var(--color-ink-secondary)",
+                      color: paymentType === pt.value ? "var(--color-editorial-blue)" : "var(--color-ink-secondary)",
                       fontSize: 13,
                       fontWeight: paymentType === pt.value ? 700 : 500,
                       cursor: "pointer",
@@ -979,7 +979,7 @@ export function ProposalBuilder({
               {selectedPlatforms.size > 0 && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
                   {[...selectedPlatforms].map((p) => (
-                    <span key={p} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 6, background: "rgba(75,156,211,0.1)", color: "rgba(75,156,211,0.8)", border: "1px solid rgba(75,156,211,0.15)" }}>
+                    <span key={p} style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 6, background: "rgba(var(--accent-rgb),0.1)", color: "var(--color-editorial-blue)", border: "1px solid rgba(var(--accent-rgb),0.15)" }}>
                       {p}
                     </span>
                   ))}
@@ -1059,10 +1059,10 @@ export function ProposalBuilder({
                 style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 10, background: isActive ? "rgba(var(--accent-rgb),0.12)" : "transparent", cursor: isCompleted ? "pointer" : "default" }}
                 onClick={() => isCompleted && setStep(idx)}
               >
-                <div style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: isActive ? "#4B9CD3" : isCompleted ? "rgba(52,211,153,0.2)" : "var(--color-surface-inset)", color: isActive ? "#fff" : isCompleted ? "#34D399" : "var(--color-ink-secondary)" }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: isActive ? "var(--color-editorial-blue)" : isCompleted ? "rgba(52,211,153,0.2)" : "var(--color-surface-inset)", color: isActive ? "#fff" : isCompleted ? "#34D399" : "var(--color-ink-secondary)" }}>
                   {isCompleted ? <CheckCircle2 size={13} /> : <Icon size={13} />}
                 </div>
-                <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? "#4B9CD3" : isCompleted ? "#34D399" : "var(--color-ink-secondary)" }}>
+                <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? "var(--color-editorial-blue)" : isCompleted ? "#34D399" : "var(--color-ink-secondary)" }}>
                   {s.label}
                 </span>
               </div>
@@ -1125,7 +1125,7 @@ export function ProposalBuilder({
               type="button"
               disabled={!canAdvance}
               onClick={goNext}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 24px", background: canAdvance ? "#4B9CD3" : "rgba(var(--accent-rgb),0.2)", border: "none", borderRadius: 10, color: canAdvance ? "#fff" : "var(--color-ink-secondary)", fontSize: 13, fontWeight: 700, cursor: canAdvance ? "pointer" : "not-allowed", fontFamily: "inherit" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 24px", background: canAdvance ? "var(--color-editorial-blue)" : "rgba(var(--accent-rgb),0.2)", border: "none", borderRadius: 10, color: canAdvance ? "#fff" : "var(--color-ink-secondary)", fontSize: 13, fontWeight: 700, cursor: canAdvance ? "pointer" : "not-allowed", fontFamily: "inherit" }}
             >
               Next <ChevronRight size={14} />
             </button>
@@ -1134,7 +1134,7 @@ export function ProposalBuilder({
               type="button"
               disabled={loading}
               onClick={() => submit(false)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 24px", background: loading ? "rgba(var(--accent-rgb),0.2)" : "#4B9CD3", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 24px", background: loading ? "rgba(var(--accent-rgb),0.2)" : "var(--color-editorial-blue)", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
               Send Proposal

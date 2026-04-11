@@ -66,7 +66,7 @@ export default function ProposalsScreen() {
     if (!selectedProposal) return;
     setActionLoading(true);
     const { error } = await mobileApi('/api/mobile/proposals', {
-      method: 'PATCH',
+      method: 'PUT',
       body: { proposalId: selectedProposal.id },
     });
     setActionLoading(false);

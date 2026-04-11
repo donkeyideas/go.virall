@@ -23,7 +23,7 @@ export function DeliverablePreview({ url, platform, oembedData }: Props) {
         gap: 12,
         padding: 10,
         background: "var(--color-surface-card)",
-        border: "1px solid rgba(75,156,211,0.12)",
+        border: "1px solid rgba(var(--accent-rgb),0.12)",
         borderRadius: 10,
         textDecoration: "none",
         marginBottom: 10,
@@ -92,7 +92,7 @@ export function DeliverablePreview({ url, platform, oembedData }: Props) {
           <span
             style={{
               fontSize: 10,
-              color: "rgba(75,156,211,0.7)",
+              color: "var(--color-editorial-blue)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -100,7 +100,7 @@ export function DeliverablePreview({ url, platform, oembedData }: Props) {
           >
             {new URL(url).hostname}
           </span>
-          <ExternalLink size={9} style={{ color: "rgba(75,156,211,0.5)", flexShrink: 0 }} />
+          <ExternalLink size={9} style={{ color: "var(--color-editorial-blue)", flexShrink: 0 }} />
         </div>
       </div>
     </a>

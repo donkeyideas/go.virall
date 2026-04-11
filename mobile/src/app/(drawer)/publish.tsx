@@ -148,7 +148,7 @@ export default function PublishScreen() {
           return (
             <View key={i} style={styles.calCell}>
               {day && (
-                <View style={[styles.calDay, isToday && { backgroundColor: colors.primary + '20' }]}>
+                <View style={[styles.calDay, isToday ? { backgroundColor: colors.primary + '20' } : undefined]}>
                   <Text style={[styles.calDayNum, { color: isToday ? colors.primary : colors.text }]}>{day}</Text>
                   {dayPosts.length > 0 && (
                     <View style={[styles.calDot, { backgroundColor: colors.primary }]} />

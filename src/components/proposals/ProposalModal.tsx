@@ -64,7 +64,7 @@ export function ProposalModal({ open, onClose, proposalId, currentUserId }: Prop
           width: "min(760px, 92vw)",
           maxHeight: "90vh",
           background: "var(--color-surface-card)",
-          border: "1px solid rgba(75,156,211,0.15)",
+          border: "1px solid rgba(var(--accent-rgb),0.15)",
           borderRadius: 16,
           boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
           zIndex: 201,
@@ -81,7 +81,7 @@ export function ProposalModal({ open, onClose, proposalId, currentUserId }: Prop
             alignItems: "center",
             justifyContent: "space-between",
             padding: "14px 20px",
-            borderBottom: "1px solid rgba(75,156,211,0.1)",
+            borderBottom: "1px solid rgba(var(--accent-rgb),0.1)",
           }}
         >
           <h3
@@ -100,7 +100,7 @@ export function ProposalModal({ open, onClose, proposalId, currentUserId }: Prop
               width: 30,
               height: 30,
               borderRadius: 8,
-              background: "rgba(75,156,211,0.08)",
+              background: "rgba(var(--accent-rgb),0.08)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -125,7 +125,7 @@ export function ProposalModal({ open, onClose, proposalId, currentUserId }: Prop
                 gap: 10,
               }}
             >
-              <Loader2 size={20} className="animate-spin" style={{ color: "rgba(75,156,211,0.6)" }} />
+              <Loader2 size={20} className="animate-spin" style={{ color: "var(--color-editorial-blue)" }} />
               <span style={{ fontSize: 13, color: "var(--color-ink-secondary)" }}>
                 Loading proposal...
               </span>

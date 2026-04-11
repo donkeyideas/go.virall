@@ -225,7 +225,7 @@ export default function DealsScreen() {
                 <Text style={{ color: colors.textSecondary }}>{selectedDeal.notes}</Text>
               )}
 
-              <SectionTitle title="Deliverables" />
+              <SectionTitle>Deliverables</SectionTitle>
               {deliverables.length === 0 ? (
                 <Text style={{ color: colors.textMuted }}>No deliverables</Text>
               ) : (
@@ -240,7 +240,7 @@ export default function DealsScreen() {
                 ))
               )}
 
-              <SectionTitle title="Move Stage" />
+              <SectionTitle>Move Stage</SectionTitle>
               <View style={styles.stageGrid}>
                 {STAGES.map(stage => (
                   <Pressable

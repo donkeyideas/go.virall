@@ -130,9 +130,9 @@ export default function ProposalsClient({
           }}
         >
           Tip: To send a proposal to a specific creator or brand, start from their profile on the{" "}
-          <a href="/marketplace" style={{ color: "#4B9CD3", textDecoration: "underline" }}>Marketplace</a>{" "}
+          <a href="/marketplace" style={{ color: "var(--color-editorial-blue)", textDecoration: "underline" }}>Marketplace</a>{" "}
           or{" "}
-          <a href="/dashboard/business?tab=opportunities" style={{ color: "#4B9CD3", textDecoration: "underline" }}>Opportunities</a>{" "}
+          <a href="/dashboard/business?tab=opportunities" style={{ color: "var(--color-editorial-blue)", textDecoration: "underline" }}>Opportunities</a>{" "}
           page.
         </p>
         <ProposalBuilder
@@ -191,7 +191,7 @@ export default function ProposalsClient({
             alignItems: "center",
             gap: 6,
             padding: "10px 20px",
-            background: "#4B9CD3",
+            background: "var(--color-editorial-blue)",
             border: "none",
             borderRadius: 10,
             color: "#fff",
@@ -233,8 +233,8 @@ export default function ProposalsClient({
                 padding: "12px 20px",
                 background: "none",
                 border: "none",
-                borderBottom: `2px solid ${isActive ? "#4B9CD3" : "transparent"}`,
-                color: isActive ? "#4B9CD3" : "var(--color-ink-secondary)",
+                borderBottom: `2px solid ${isActive ? "var(--color-editorial-blue)" : "transparent"}`,
+                color: isActive ? "var(--color-editorial-blue)" : "var(--color-ink-secondary)",
                 fontSize: 13,
                 fontWeight: isActive ? 700 : 500,
                 cursor: "pointer",
@@ -290,7 +290,7 @@ export default function ProposalsClient({
               borderRadius: 8,
               color:
                 statusFilter === f.value
-                  ? "#4B9CD3"
+                  ? "var(--color-editorial-blue)"
                   : "var(--color-ink-secondary)",
               fontSize: 11,
               fontWeight: statusFilter === f.value ? 700 : 500,
@@ -364,7 +364,7 @@ export default function ProposalsClient({
                 alignItems: "center",
                 gap: 6,
                 padding: "10px 20px",
-                background: "#4B9CD3",
+                background: "var(--color-editorial-blue)",
                 border: "none",
                 borderRadius: 10,
                 color: "#fff",

@@ -109,7 +109,7 @@ export function DealClosurePanel({
   if (loadingData) {
     return (
       <div style={{ padding: "20px 0", textAlign: "center" }}>
-        <Loader2 size={16} style={{ color: "rgba(75,156,211,0.5)" }} />
+        <Loader2 size={16} style={{ color: "var(--color-editorial-blue)" }} />
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function DealClosurePanel({
     <div
       style={{
         background: isDisputed ? "rgba(239,68,68,0.06)" : "var(--color-surface-inset)",
-        border: `1px solid ${isDisputed ? "rgba(239,68,68,0.2)" : "rgba(75,156,211,0.12)"}`,
+        border: `1px solid ${isDisputed ? "rgba(239,68,68,0.2)" : "rgba(var(--accent-rgb),0.12)"}`,
         borderRadius: 12,
         padding: "18px 20px",
         marginTop: 16,
@@ -181,7 +181,7 @@ export function DealClosurePanel({
         {isDisputed ? (
           <AlertTriangle size={16} style={{ color: "#EF4444" }} />
         ) : (
-          <CheckCircle2 size={16} style={{ color: "rgba(75,156,211,0.7)" }} />
+          <CheckCircle2 size={16} style={{ color: "var(--color-editorial-blue)" }} />
         )}
         <span style={{ fontSize: 13, fontWeight: 700, color: isDisputed ? "#EF4444" : "var(--color-ink)" }}>
           {isDisputed ? "Deal Outcome Disputed" : "Close This Deal"}
@@ -207,7 +207,7 @@ export function DealClosurePanel({
 
       {/* My submitted outcome (waiting) */}
       {myOutcome && closureStatus === "pending_closure" && (
-        <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginBottom: 12, padding: "8px 12px", background: "rgba(75,156,211,0.06)", borderRadius: 8 }}>
+        <div style={{ fontSize: 11, color: "var(--color-ink-secondary)", marginBottom: 12, padding: "8px 12px", background: "rgba(var(--accent-rgb),0.06)", borderRadius: 8 }}>
           <strong>You reported:</strong>{" "}
           <span style={{ color: OUTCOME_COLORS[myOutcome.outcome], textTransform: "capitalize", fontWeight: 700 }}>
             {myOutcome.outcome.replace(/_/g, " ")}
@@ -272,7 +272,7 @@ export function DealClosurePanel({
               width: "100%",
               padding: "8px 12px",
               background: "var(--color-surface-card)",
-              border: "1px solid rgba(75,156,211,0.15)",
+              border: "1px solid rgba(var(--accent-rgb),0.15)",
               borderRadius: 8,
               color: "var(--color-ink)",
               fontSize: 12,
@@ -295,7 +295,7 @@ export function DealClosurePanel({
               alignItems: "center",
               gap: 6,
               padding: "8px 20px",
-              background: !selectedOutcome ? "rgba(75,156,211,0.3)" : "rgba(75,156,211,0.9)",
+              background: !selectedOutcome ? "rgba(var(--accent-rgb),0.3)" : "var(--color-editorial-blue)",
               border: "none",
               borderRadius: 8,
               fontSize: 12,

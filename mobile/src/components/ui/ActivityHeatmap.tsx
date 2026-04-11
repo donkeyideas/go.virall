@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, Modal } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { FontSize, Spacing, BorderRadius, neuShadow } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, glassCard, glassShadow } from '../../constants/theme';
 
 interface HeatmapData {
   data: Array<{ day: string; hours: number[] }>;
@@ -45,7 +45,7 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
   if (!heatmap?.data || heatmap.data.length === 0) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
+    <View style={[styles.container, glassCard(colors)]}>
       <View style={styles.titleRow}>
         <Text style={[styles.title, { color: colors.text }]}>Activity Heatmap</Text>
         <Text style={[styles.tapHint, { color: colors.textMuted }]}>Tap for details</Text>
@@ -105,7 +105,7 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
       {/* Detail Modal */}
       <Modal visible={!!selectedCell} transparent animationType="fade" onRequestClose={() => setSelectedCell(null)}>
         <Pressable style={styles.modalOverlay} onPress={() => setSelectedCell(null)}>
-          <Pressable style={[styles.tooltipModal, { backgroundColor: colors.surface }, neuShadow(colors)]} onPress={() => {}}>
+          <Pressable style={[styles.tooltipModal, { backgroundColor: colors.surface }, glassShadow(colors)]} onPress={() => {}}>
             {selectedCell && (() => {
               const { day, hour, val } = selectedCell;
               const label = getActivityLabel(val);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useTheme } from '../../contexts/theme-context';
-import { BorderRadius, FontSize, Spacing, neuShadowSm } from '../../constants/theme';
+import { BorderRadius, FontSize, Spacing, glassShadowSm } from '../../constants/theme';
 
 interface ButtonProps {
   title: string;
@@ -18,7 +18,7 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
   const bgColor = {
     primary: colors.primary,
     secondary: colors.accent,
-    outline: colors.surface,
+    outline: 'transparent',
     ghost: 'transparent',
   }[variant];
 
@@ -39,7 +39,8 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
           backgroundColor: bgColor,
           opacity: pressed ? 0.85 : disabled ? 0.5 : 1,
         },
-        variant !== 'ghost' ? neuShadowSm(colors) : undefined,
+        variant === 'outline' && { borderWidth: 1, borderColor: colors.glassBorder },
+        variant !== 'ghost' && glassShadowSm(colors),
         style,
       ]}
     >

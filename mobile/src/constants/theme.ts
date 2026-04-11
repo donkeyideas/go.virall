@@ -1,115 +1,109 @@
 import { Platform, type ViewStyle, type TextStyle } from 'react-native';
 
-/* ─── Color Palette ─── */
+/* ─── Color Palette (matches homepage Modern theme) ─── */
 export const Colors = {
   dark: {
-    background: '#0c1829',
-    surface: '#10203a',
-    surfaceLight: '#1a2d47',
-    primary: '#38bdf8',
-    accent: '#7dd3fc',
-    text: '#e2e8f0',
-    textSecondary: '#8bacc8',
-    textMuted: '#4a6a8a',
-    border: '#162a42',
-    cardBg: '#10203a',
-    success: '#22c55e',
-    error: '#f43f5e',
+    background: '#0B1928',
+    surface: '#112240',
+    surfaceLight: '#1A2F50',
+    primary: '#56A8D8',
+    accent: '#FFB84D',
+    text: '#E8F0FA',
+    textSecondary: '#8BACC8',
+    textMuted: '#5A7D9A',
+    textFaint: '#2D4A63',
+    border: 'rgba(75, 156, 211, 0.12)',
+    cardBg: '#112240',
+    success: '#4ADE80',
+    error: '#ef4444',
     warning: '#f59e0b',
-    tabBar: '#0c1829',
-    inputBg: '#0a1522',
-    // Neumorphic shadow pair
-    shadowDark: '#060e1a',
-    shadowLight: '#1c3a5c',
-    // Gradient stops for neumorphic cards
-    gradientLight: '#142c4a',
-    gradientDark: '#0b1825',
+    tabBar: '#0B1928',
+    inputBg: '#0D1E35',
+    // Glassmorphism tokens
+    glassBg: 'rgba(17, 34, 64, 0.55)',
+    glassBorder: 'rgba(75, 156, 211, 0.18)',
+    glassHighlight: 'rgba(75, 156, 211, 0.08)',
+    // Shadows
+    shadowDark: '#050e1a',
+    shadowLight: '#1A2F50',
   },
   light: {
-    background: '#dfe6ee',
-    surface: '#dfe6ee',
-    surfaceLight: '#cdd6e0',
-    primary: '#2d8ad4',
-    accent: '#4ba3e8',
-    text: '#1a2535',
-    textSecondary: '#4a5c72',
-    textMuted: '#7b8ea5',
-    border: '#c4d0dc',
-    cardBg: '#dfe6ee',
-    success: '#16a34a',
-    error: '#e11d48',
+    background: '#F0F6FB',
+    surface: '#ffffff',
+    surfaceLight: '#E1EDF6',
+    primary: '#3A8AC2',
+    accent: '#e59420',
+    text: '#0D2137',
+    textSecondary: '#3D6A8A',
+    textMuted: '#7A9CB8',
+    textFaint: '#C2D6E5',
+    border: 'rgba(58, 138, 194, 0.10)',
+    cardBg: '#ffffff',
+    success: '#22c55e',
+    error: '#ef4444',
     warning: '#d97706',
-    tabBar: '#dfe6ee',
-    inputBg: '#d2dbe6',
+    tabBar: '#F0F6FB',
+    inputBg: '#E8F0F8',
+    // Glassmorphism tokens
+    glassBg: 'rgba(255, 255, 255, 0.65)',
+    glassBorder: 'rgba(58, 138, 194, 0.15)',
+    glassHighlight: 'rgba(255, 255, 255, 0.8)',
+    // Shadows
     shadowDark: '#b4c0cc',
     shadowLight: '#ffffff',
-    gradientLight: '#eaf0f6',
-    gradientDark: '#d2dae4',
   },
 } as const;
 
 export type ThemeMode = 'dark' | 'light';
 export type ThemeColors = { [K in keyof typeof Colors.dark]: string };
 
-/* ─── Neumorphic Shadow Helpers ─── */
+/* ─── Glass Card Shadow ─── */
+export function glassShadow(colors: ThemeColors): ViewStyle {
+  return Platform.OS === 'ios'
+    ? {
+        shadowColor: colors.shadowDark,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      }
+    : { elevation: 4 };
+}
 
-/** Raised neumorphic effect for cards / containers */
-export function neuShadow(colors: ThemeColors): ViewStyle {
+/* ─── Subtle shadow for small elements ─── */
+export function glassShadowSm(colors: ThemeColors): ViewStyle {
+  return Platform.OS === 'ios'
+    ? {
+        shadowColor: colors.shadowDark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      }
+    : { elevation: 2 };
+}
+
+/* ─── Glass card style (border + bg) ─── */
+export function glassCard(colors: ThemeColors): ViewStyle {
   return {
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderBottomWidth: 1.5,
-    borderRightWidth: 1.5,
-    borderTopColor: colors.shadowLight,
-    borderLeftColor: colors.shadowLight,
-    borderBottomColor: colors.shadowDark,
-    borderRightColor: colors.shadowDark,
-    ...(Platform.OS === 'ios'
-      ? {
-          shadowColor: colors.shadowDark,
-          shadowOffset: { width: 4, height: 4 },
-          shadowOpacity: 0.6,
-          shadowRadius: 8,
-        }
-      : { elevation: 6 }),
+    backgroundColor: colors.glassBg,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    ...glassShadow(colors),
   } as ViewStyle;
 }
 
-/** Subtle raised effect for buttons / pills / small elements */
-export function neuShadowSm(colors: ThemeColors): ViewStyle {
+/* ─── Inset / pressed style for inputs ─── */
+export function glassInset(colors: ThemeColors): TextStyle & ViewStyle {
   return {
-    borderTopWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderBottomWidth: 1,
-    borderRightWidth: 1,
-    borderTopColor: colors.shadowLight,
-    borderLeftColor: colors.shadowLight,
-    borderBottomColor: colors.shadowDark,
-    borderRightColor: colors.shadowDark,
-    ...(Platform.OS === 'ios'
-      ? {
-          shadowColor: colors.shadowDark,
-          shadowOffset: { width: 2, height: 2 },
-          shadowOpacity: 0.45,
-          shadowRadius: 5,
-        }
-      : { elevation: 3 }),
-  } as ViewStyle;
+    backgroundColor: colors.inputBg,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+  } as any;
 }
 
-/** Inset / pressed effect for inputs (TextStyle-safe) */
-export function neuInset(colors: ThemeColors): TextStyle {
-  return {
-    borderTopWidth: 1.5,
-    borderLeftWidth: 1.5,
-    borderBottomWidth: 0.5,
-    borderRightWidth: 0.5,
-    borderTopColor: colors.shadowDark,
-    borderLeftColor: colors.shadowDark,
-    borderBottomColor: colors.shadowLight,
-    borderRightColor: colors.shadowLight,
-  } as TextStyle;
-}
+// Keep old names as aliases for compatibility during migration
+export const neuShadow = glassShadow;
+export const neuShadowSm = glassShadowSm;
+export const neuInset = glassInset;
 
 /* ─── Design Tokens ─── */
 

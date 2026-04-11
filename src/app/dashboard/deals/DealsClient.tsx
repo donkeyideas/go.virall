@@ -215,7 +215,7 @@ export default function DealsClient({ deals, accountType = "creator" }: DealsCli
                     padding: "8px 16px",
                     background: isActive ? "rgba(var(--accent-rgb),0.12)" : "transparent",
                     border: "none",
-                    color: isActive ? "#4B9CD3" : "var(--color-ink-secondary)",
+                    color: isActive ? "var(--color-editorial-blue)" : "var(--color-ink-secondary)",
                     fontSize: 12,
                     fontWeight: isActive ? 700 : 500,
                     cursor: "pointer",
@@ -237,7 +237,7 @@ export default function DealsClient({ deals, accountType = "creator" }: DealsCli
               alignItems: "center",
               gap: 6,
               padding: "8px 20px",
-              background: "#4B9CD3",
+              background: "var(--color-editorial-blue)",
               border: "none",
               borderRadius: 10,
               color: "#fff",
@@ -464,7 +464,7 @@ export default function DealsClient({ deals, accountType = "creator" }: DealsCli
                     background:
                       !newBrandName.trim()
                         ? "rgba(var(--accent-rgb),0.2)"
-                        : "#4B9CD3",
+                        : "var(--color-editorial-blue)",
                     border: "none",
                     borderRadius: 10,
                     color: "#fff",
@@ -520,7 +520,7 @@ export default function DealsClient({ deals, accountType = "creator" }: DealsCli
                 borderRadius: 8,
                 color:
                   stageFilter === "all"
-                    ? "#4B9CD3"
+                    ? "var(--color-editorial-blue)"
                     : "var(--color-ink-secondary)",
                 fontSize: 11,
                 fontWeight: stageFilter === "all" ? 700 : 500,
@@ -628,7 +628,7 @@ export default function DealsClient({ deals, accountType = "creator" }: DealsCli
                   alignItems: "center",
                   gap: 6,
                   padding: "10px 20px",
-                  background: "#4B9CD3",
+                  background: "var(--color-editorial-blue)",
                   border: "none",
                   borderRadius: 10,
                   color: "#fff",

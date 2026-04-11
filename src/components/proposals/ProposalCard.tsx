@@ -20,7 +20,7 @@ const STATUS_CONFIG: Record<
 > = {
   draft: { label: "Draft", color: "#94A3B8", bg: "rgba(148,163,184,0.1)", icon: Edit3 },
   pending: { label: "Pending", color: "#FFB84D", bg: "rgba(255,184,77,0.1)", icon: Clock },
-  negotiating: { label: "Negotiating", color: "#4B9CD3", bg: "rgba(var(--accent-rgb),0.1)", icon: ArrowRightLeft },
+  negotiating: { label: "Negotiating", color: "var(--color-editorial-blue)", bg: "rgba(var(--accent-rgb),0.1)", icon: ArrowRightLeft },
   accepted: { label: "Accepted", color: "#34D399", bg: "rgba(52,211,153,0.1)", icon: CheckCircle2 },
   declined: { label: "Declined", color: "#EF4444", bg: "rgba(239,68,68,0.1)", icon: XCircle },
   expired: { label: "Expired", color: "#6B7280", bg: "rgba(107,114,128,0.1)", icon: Clock },
@@ -88,7 +88,7 @@ export function ProposalCard({ proposal, currentUserId, onClick }: ProposalCardP
               width: 40,
               height: 40,
               borderRadius: 10,
-              background: "linear-gradient(135deg, #4B9CD3, #6D28D9)",
+              background: "linear-gradient(135deg, var(--color-editorial-blue), #6D28D9)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

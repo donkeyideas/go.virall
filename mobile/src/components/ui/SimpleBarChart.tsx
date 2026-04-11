@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../../contexts/theme-context';
-import { FontSize, Spacing, BorderRadius, neuShadow } from '../../constants/theme';
+import { FontSize, Spacing, BorderRadius, glassCard } from '../../constants/theme';
 
 interface BarData {
   label: string;
@@ -26,7 +26,7 @@ export function SimpleBarChart({ data, height = 140, title }: SimpleBarChartProp
   const barWidth = Math.min(28, (width - padding * 2) / data.length - 8);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.cardBg }, neuShadow(colors)]}>
+    <View style={[styles.container, glassCard(colors)]}>
       {title && <Text style={[styles.title, { color: colors.text }]}>{title}</Text>}
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>

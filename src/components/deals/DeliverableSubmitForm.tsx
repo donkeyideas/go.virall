@@ -36,14 +36,14 @@ export function DeliverableSubmitForm({ deliverableId, onSubmitted }: Props) {
     <div
       style={{
         background: "var(--color-surface-inset)",
-        border: "1px solid rgba(75,156,211,0.12)",
+        border: "1px solid rgba(var(--accent-rgb),0.12)",
         borderRadius: 10,
         padding: 14,
         marginTop: 8,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-        <Link2 size={12} style={{ color: "rgba(75,156,211,0.7)" }} />
+        <Link2 size={12} style={{ color: "var(--color-editorial-blue)" }} />
         <span style={{ fontSize: 10, fontWeight: 700, color: "var(--color-ink-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>
           Submit Deliverable Link
         </span>
@@ -58,7 +58,7 @@ export function DeliverableSubmitForm({ deliverableId, onSubmitted }: Props) {
           width: "100%",
           padding: "8px 12px",
           background: "var(--color-surface-card)",
-          border: "1px solid rgba(75,156,211,0.15)",
+          border: "1px solid rgba(var(--accent-rgb),0.15)",
           borderRadius: 8,
           color: "var(--color-ink)",
           fontSize: 12,
@@ -78,7 +78,7 @@ export function DeliverableSubmitForm({ deliverableId, onSubmitted }: Props) {
           width: "100%",
           padding: "8px 12px",
           background: "var(--color-surface-card)",
-          border: "1px solid rgba(75,156,211,0.15)",
+          border: "1px solid rgba(var(--accent-rgb),0.15)",
           borderRadius: 8,
           color: "var(--color-ink)",
           fontSize: 12,
@@ -102,7 +102,7 @@ export function DeliverableSubmitForm({ deliverableId, onSubmitted }: Props) {
           alignItems: "center",
           gap: 6,
           padding: "7px 16px",
-          background: loading || !url.trim() ? "rgba(75,156,211,0.3)" : "rgba(75,156,211,0.9)",
+          background: loading || !url.trim() ? "rgba(var(--accent-rgb),0.3)" : "var(--color-editorial-blue)",
           border: "none",
           borderRadius: 8,
           fontSize: 11,
