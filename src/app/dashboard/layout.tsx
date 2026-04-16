@@ -8,21 +8,15 @@ import { ViewModeToggle } from "@/components/dashboard/ViewModeToggle";
 import { getUnreadCount, getNotifications } from "@/lib/dal/notifications";
 import { getSocialProfileCount } from "@/lib/dal/profiles";
 
-const CREATOR_ONLY_PATHS = new Set(["/dashboard/smo-score", "/dashboard/recommendations", "/dashboard/goals"]);
-
 const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/dashboard" },
   { label: "Profiles", href: "/dashboard/profiles" },
   { label: "Inbox", href: "/dashboard/inbox" },
   { label: "Content", href: "/dashboard/content" },
   { label: "Analytics", href: "/dashboard/analytics" },
-  { label: "Intelligence", href: "/dashboard/intelligence" },
-  { label: "SMO Score", href: "/dashboard/smo-score" },
-  { label: "Trust Score", href: "/dashboard/trust-score" },
-  { label: "Recommendations", href: "/dashboard/recommendations" },
   { label: "Business", href: "/dashboard/business" },
-  { label: "Goals", href: "/dashboard/goals" },
   { label: "Settings", href: "/dashboard/settings" },
+  { label: "Guide", href: "/dashboard/guide" },
 ];
 
 export default async function DashboardLayout({
@@ -85,7 +79,7 @@ export default async function DashboardLayout({
         accentText="Go"
         tagline="Social Intelligence Platform &middot; Growth Analytics &middot; Content Strategy"
       />
-      <PaperNav items={accountType === "brand" ? ALL_NAV_ITEMS.filter(i => !CREATOR_ONLY_PATHS.has(i.href)) : ALL_NAV_ITEMS} />
+      <PaperNav items={ALL_NAV_ITEMS} />
 
       <main className="dashboard-main mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
         {children}

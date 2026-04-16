@@ -8,6 +8,7 @@ import ProposalsClient from "@/app/dashboard/proposals/ProposalsClient";
 import { BrandOpportunities } from "@/components/dashboard/BrandOpportunities";
 import { GroupedAnalysisPage, type TabDef } from "@/components/dashboard/GroupedAnalysisPage";
 import { RevenueClient } from "@/app/dashboard/revenue/RevenueClient";
+import { GoalsClient } from "@/components/dashboard/goals/GoalsClient";
 import { trackEvent } from "@/lib/analytics/track";
 import type { Deal, DealDeliverable, Proposal, SocialProfile, BrandCreatorMatch } from "@/types";
 import type {
@@ -27,6 +28,7 @@ const TABS = [
   { key: "opportunities", label: "Opportunities" },
   { key: "monetization", label: "Monetization" },
   { key: "revenue", label: "Revenue" },
+  { key: "goals", label: "Goals" },
 ];
 
 /* ─── Monetization sub-tabs (rendered via GroupedAnalysisPage) ─── */
@@ -74,6 +76,8 @@ interface BusinessHubClientProps {
   dealRevenue?: DealRevenueRow[];
   payments?: PaymentHistoryRow[];
   revenueForecast?: RevenueForecast;
+  // Goals tab
+  goalsProfiles?: SocialProfile[];
 }
 
 /* ─── Component ─── */
@@ -92,6 +96,7 @@ export function BusinessHubClient({
   dealRevenue,
   payments,
   revenueForecast,
+  goalsProfiles,
   accountType = "creator",
 }: BusinessHubClientProps) {
   const router = useRouter();
@@ -133,6 +138,9 @@ export function BusinessHubClient({
           initialPayments={payments ?? []}
           initialForecast={revenueForecast ?? { contractedRevenue: 0, inProgressRevenue: 0, projectedTotal: 0, dealCount: 0, avgDealValue: 0 }}
         />
+      )}
+      {activeTab === "goals" && (
+        <GoalsClient profiles={goalsProfiles ?? profiles ?? []} />
       )}
     </div>
   );

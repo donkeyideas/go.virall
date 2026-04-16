@@ -40,6 +40,12 @@ export function ModernOverview(props: OverviewProps) {
           Connect your first social media profile in the Profiles tab to unlock
           analytics, growth strategies, and content intelligence.
         </p>
+        <a
+          href="/dashboard/guide"
+          className="mt-5 inline-block rounded-lg bg-yellow-400 px-6 py-2.5 text-[12px] font-bold uppercase tracking-wider text-black transition-opacity hover:opacity-90"
+        >
+          Getting Started Guide
+        </a>
       </div>
     );
   }

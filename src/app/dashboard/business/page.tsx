@@ -133,6 +133,20 @@ export default async function BusinessPage({ searchParams }: PageProps) {
     );
   }
 
+  if (tab === "goals") {
+    const profiles = await getSocialProfiles();
+    return (
+      <Suspense>
+        <BusinessHubClient
+          activeTab="goals"
+          goalsProfiles={profiles}
+          currentUserId={user.id}
+          accountType={accountType}
+        />
+      </Suspense>
+    );
+  }
+
   // Fallback to deals
   const result = await getDeals();
   return (

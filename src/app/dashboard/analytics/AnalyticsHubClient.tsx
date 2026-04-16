@@ -5,15 +5,23 @@ import { useRouter } from "next/navigation";
 import { HubTabBar } from "@/components/dashboard/HubTabBar";
 import { AnalyticsClient } from "./AnalyticsClient";
 import { GroupedAnalysisPage, type TabDef } from "@/components/dashboard/GroupedAnalysisPage";
+import { SmoScoreClient } from "@/app/dashboard/smo-score/SmoScoreClient";
+import { TrustScorePage } from "@/components/dashboard/TrustScorePage";
+import { RecommendationsClient } from "@/components/dashboard/RecommendationsClient";
 import { trackEvent } from "@/lib/analytics/track";
-import type { SocialProfile } from "@/types";
+import type { SocialProfile, TrustScore, TrustScoreHistory } from "@/types";
 import type { PostPerformance, PlatformGrowthComparison } from "@/lib/dal/analytics";
+import type { getAnalysisStatus } from "@/lib/dal/analyses";
 
 /* ─── Hub-level tab definitions ─── */
 
 const TABS = [
-  { key: "analytics", label: "Analytics" },
+  { key: "metrics", label: "Metrics" },
   { key: "strategy", label: "Strategy" },
+  { key: "intelligence", label: "Intelligence" },
+  { key: "smo-score", label: "SMO Score" },
+  { key: "trust-score", label: "Trust Score" },
+  { key: "recommendations", label: "Recommendations" },
 ];
 
 /* ─── Strategy sub-tabs (rendered via GroupedAnalysisPage) ─── */
@@ -57,18 +65,60 @@ const STRATEGY_TABS: TabDef[] = [
   },
 ];
 
+/* ─── Intelligence sub-tabs ─── */
+
+const INTELLIGENCE_TABS: TabDef[] = [
+  {
+    key: "audience",
+    label: "Audience",
+    analysisType: "audience",
+    title: "Audience",
+    description:
+      "Click 'Analyze Audience' to get estimated demographics, audience quality score, interests, and growth potential analysis.",
+    buttonLabel: "Analyze Audience",
+  },
+  {
+    key: "competitors",
+    label: "Competitors",
+    analysisType: "competitors",
+    title: "Competitors",
+    description:
+      "Click 'Analyze Competitors' to get competitive analysis with strengths, weaknesses, opportunities, and industry benchmarks.",
+    buttonLabel: "Analyze Competitors",
+  },
+  {
+    key: "network",
+    label: "Network",
+    analysisType: "network",
+    title: "Network",
+    description:
+      "Click 'Analyze Network' to discover collaboration opportunities, ideal partners, and networking strategies.",
+    buttonLabel: "Analyze Network",
+  },
+];
+
 /* ─── Props (only active tab data provided) ─── */
 
 interface AnalyticsHubClientProps {
   activeTab: string;
   profiles: SocialProfile[];
-  // Analytics tab
+  // Metrics tab
   posts?: PostPerformance[];
   platformGrowth?: PlatformGrowthComparison[];
   earningsResults?: Record<string, Record<string, unknown>>;
   competitorResults?: Record<string, Record<string, unknown>>;
   // Strategy tab
   strategyCache?: Record<string, Record<string, Record<string, unknown>>>;
+  // Intelligence tab
+  intelligenceCache?: Record<string, Record<string, Record<string, unknown>>>;
+  // SMO Score tab
+  smoCache?: Record<string, Record<string, unknown>>;
+  // Trust Score tab
+  trustScore?: TrustScore | null;
+  trustHistory?: TrustScoreHistory[];
+  // Recommendations tab
+  recommendationsCache?: Record<string, Record<string, unknown>>;
+  analysisStatus?: Record<string, Awaited<ReturnType<typeof getAnalysisStatus>>>;
 }
 
 /* ─── Component ─── */
@@ -81,6 +131,12 @@ export function AnalyticsHubClient({
   earningsResults,
   competitorResults,
   strategyCache,
+  intelligenceCache,
+  smoCache,
+  trustScore,
+  trustHistory,
+  recommendationsCache,
+  analysisStatus,
 }: AnalyticsHubClientProps) {
   const router = useRouter();
 
@@ -96,7 +152,7 @@ export function AnalyticsHubClient({
     <div>
       <HubTabBar tabs={TABS} activeKey={activeTab} onSwitch={switchTab} />
 
-      {activeTab === "analytics" && (
+      {activeTab === "metrics" && (
         <AnalyticsClient
           profiles={profiles}
           posts={posts ?? []}
@@ -112,6 +168,35 @@ export function AnalyticsHubClient({
           cachedResultsByTab={strategyCache ?? {}}
           defaultTab="growth"
           paramName="stab"
+        />
+      )}
+      {activeTab === "intelligence" && (
+        <GroupedAnalysisPage
+          profiles={profiles}
+          tabs={INTELLIGENCE_TABS}
+          cachedResultsByTab={intelligenceCache ?? {}}
+          defaultTab="audience"
+          paramName="itab"
+        />
+      )}
+      {activeTab === "smo-score" && (
+        <SmoScoreClient
+          profiles={profiles}
+          cachedResults={smoCache ?? {}}
+        />
+      )}
+      {activeTab === "trust-score" && (
+        <TrustScorePage
+          trustScore={trustScore ?? null}
+          history={trustHistory ?? []}
+          basePath="/dashboard"
+        />
+      )}
+      {activeTab === "recommendations" && (
+        <RecommendationsClient
+          profiles={profiles}
+          cachedResults={recommendationsCache ?? {}}
+          analysisStatus={analysisStatus ?? {}}
         />
       )}
     </div>

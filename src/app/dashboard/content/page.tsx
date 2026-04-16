@@ -23,7 +23,7 @@ export default async function ContentPage({ searchParams }: PageProps) {
   if (!user) redirect("/login");
 
   const params = await searchParams;
-  const tab = params.tab || "publish";
+  const tab = params.tab || "ai-studio";
 
   if (tab === "ai-studio") {
     const profiles = await getSocialProfiles();

@@ -8,18 +8,14 @@ import {
   PenTool,
   BarChart3,
   Briefcase,
-  Crosshair,
   Settings,
+  BookOpen,
   Sun,
   Moon,
   LogOut,
   Bell,
   User,
   CreditCard,
-  Brain,
-  Gauge,
-  Lightbulb,
-  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/lib/contexts/view-mode";
@@ -27,21 +23,15 @@ import { signOut } from "@/lib/actions/auth";
 import { useEffect, useState } from "react";
 import { NotificationModal } from "@/components/dashboard/NotificationModal";
 
-const CREATOR_ONLY_PATHS = new Set(["/dashboard/smo-score", "/dashboard/recommendations", "/dashboard/goals"]);
-
 const ALL_NAV_ITEMS = [
   { label: "Overview", href: "/dashboard", icon: Home },
   { label: "Profiles", href: "/dashboard/profiles", icon: User },
   { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
   { label: "Content", href: "/dashboard/content", icon: PenTool },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Intelligence", href: "/dashboard/intelligence", icon: Brain },
-  { label: "SMO Score", href: "/dashboard/smo-score", icon: Gauge },
-  { label: "Trust Score", href: "/dashboard/trust-score", icon: Shield },
-  { label: "Recommendations", href: "/dashboard/recommendations", icon: Lightbulb },
   { label: "Business", href: "/dashboard/business", icon: Briefcase },
-  { label: "Goals", href: "/dashboard/goals", icon: Crosshair },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Guide", href: "/dashboard/guide", icon: BookOpen },
 ];
 
 interface ModernNavProps {
@@ -341,7 +331,7 @@ export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, no
           gap: 0,
         }}
       >
-        {(accountType === "brand" ? ALL_NAV_ITEMS.filter(i => !CREATOR_ONLY_PATHS.has(i.href)) : ALL_NAV_ITEMS).map((item) => {
+        {ALL_NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"

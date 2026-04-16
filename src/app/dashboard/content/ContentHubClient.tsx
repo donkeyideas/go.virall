@@ -11,8 +11,8 @@ import type { ScheduledPost, SocialProfile, TrendingTopic } from "@/types";
 import type { DealEvent } from "@/components/dashboard/ContentCalendar";
 
 const TABS = [
-  { key: "publish", label: "Publish" },
   { key: "ai-studio", label: "Studio" },
+  { key: "publish", label: "Publish" },
   { key: "hashtags", label: "Hashtags" },
 ];
 

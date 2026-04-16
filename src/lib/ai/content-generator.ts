@@ -16,6 +16,25 @@ export type ContentType =
   | "carousels"
   | "bio";
 
+/** Platform character limits for captions/posts */
+const PLATFORM_CHAR_LIMITS: Record<string, { caption: number; bio: number; label: string }> = {
+  twitter:   { caption: 280,  bio: 160,  label: "Twitter/X" },
+  instagram: { caption: 2200, bio: 150,  label: "Instagram" },
+  tiktok:    { caption: 4000, bio: 80,   label: "TikTok" },
+  youtube:   { caption: 5000, bio: 1000, label: "YouTube" },
+  linkedin:  { caption: 3000, bio: 2600, label: "LinkedIn" },
+  threads:   { caption: 500,  bio: 150,  label: "Threads" },
+  pinterest: { caption: 500,  bio: 160,  label: "Pinterest" },
+  twitch:    { caption: 300,  bio: 300,  label: "Twitch" },
+};
+
+function getCharLimitNote(platform: string, type: "caption" | "bio"): string {
+  const limits = PLATFORM_CHAR_LIMITS[platform];
+  if (!limits) return "";
+  const limit = type === "bio" ? limits.bio : limits.caption;
+  return `\nCHARACTER LIMIT: ${limits.label} allows a maximum of ${limit} characters per ${type}. You MUST keep each ${type} under ${limit} characters. Count carefully.`;
+}
+
 export interface ContentGeneratorInput {
   profile: Record<string, unknown>;
   metrics: Record<string, unknown>[];
@@ -43,6 +62,7 @@ ${metricsSummary(input.metrics)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
+${getCharLimitNote((input.profile.platform as string) || "", "caption")}
 
 Generate exactly ${input.count} post ideas. For each idea include:
 - title: Catchy post title (5-10 words)
@@ -61,9 +81,10 @@ ${profileSummary(input.profile)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
+${getCharLimitNote((input.profile.platform as string) || "", "caption")}
 
 Generate exactly ${input.count} ready-to-post captions. For each caption include:
-- text: The full caption text (engaging, ${input.tone} tone, include line breaks for readability, no emojis)
+- text: The full caption text (engaging, ${input.tone} tone, include line breaks for readability, no emojis). The text + callToAction + hashtags combined must fit within the platform character limit.
 - callToAction: A compelling CTA at the end
 - hashtags: Array of 5-8 relevant hashtags (with #)
 - tone: The tone achieved
@@ -81,6 +102,7 @@ ${metricsSummary(input.metrics)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
+${getCharLimitNote((input.profile.platform as string) || "", "caption")}
 
 Create a 7-day content calendar. For each day include:
 - day: Day name (Monday-Sunday)
@@ -136,9 +158,10 @@ ${profileSummary(input.profile)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
+${getCharLimitNote((input.profile.platform as string) || "", "bio")}
 
 Generate exactly ${input.count} bio variations optimized for discovery and conversion. For each bio include:
-- text: The full bio text (respect platform character limits, use line breaks, no emojis)
+- text: The full bio text (MUST respect the platform character limit above, use line breaks, no emojis)
 - style: The style approach (e.g. "Professional", "Creative", "Minimalist", "Authority", "Approachable")
 - callToAction: The CTA included in the bio (no emojis)
 - keywords: Array of SEO/discovery keywords used

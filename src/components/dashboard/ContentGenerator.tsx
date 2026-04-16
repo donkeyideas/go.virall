@@ -193,7 +193,7 @@ export function ContentGenerator({ profiles, cachedContent }: ContentGeneratorPr
               <button
                 onClick={handleGenerate}
                 disabled={isPending || !selectedId}
-                className="flex w-full items-center justify-center gap-2 bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-widest text-surface-cream transition-colors hover:bg-ink/90 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 bg-editorial-gold px-4 py-2 text-xs font-semibold uppercase tracking-widest text-ink transition-colors hover:bg-editorial-gold/90 disabled:opacity-50"
               >
                 {isPending ? (
                   <>
@@ -229,7 +229,7 @@ export function ContentGenerator({ profiles, cachedContent }: ContentGeneratorPr
             <div className="flex items-center gap-3">
               <Loader2
                 size={20}
-                className="animate-spin text-editorial-red"
+                className="animate-spin text-editorial-gold"
               />
               <div>
                 <h3 className="font-serif text-base font-bold text-ink">
@@ -243,7 +243,7 @@ export function ContentGenerator({ profiles, cachedContent }: ContentGeneratorPr
               </div>
             </div>
             <div className="mt-4 h-1.5 w-full overflow-hidden bg-surface-raised">
-              <div className="h-full animate-pulse bg-editorial-red/60 transition-all" style={{ width: "60%" }} />
+              <div className="h-full animate-pulse bg-editorial-gold/60 transition-all" style={{ width: "60%" }} />
             </div>
           </div>
         )}
@@ -564,7 +564,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="flex shrink-0 items-center gap-1 border border-rule px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-ink-secondary transition-colors hover:border-ink-muted hover:text-ink"
+      className="flex shrink-0 items-center gap-1 border border-editorial-gold/30 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-editorial-gold transition-colors hover:border-editorial-gold hover:bg-editorial-gold/10"
     >
       {copied ? <Check size={10} /> : <Copy size={10} />}
       {copied ? "Copied" : "Copy"}
@@ -579,13 +579,13 @@ function PostIdeasResult({ data }: { data: Record<string, unknown> }) {
 
   function ideaToText(idea: Record<string, unknown>) {
     const hashtags = ((idea.hashtags as string[]) ?? []).join(" ");
-    return `${idea.title}\n\nHook: ${idea.hook}\n\n${idea.angle}\n\nFormat: ${idea.format}\n${hashtags}`;
+    return `${idea.title}\n\n${idea.hook}\n\n${idea.angle}\n\n${hashtags}`;
   }
 
   return (
     <div className="space-y-3">
       <h3 className="font-serif text-lg font-bold text-ink">
-        Generated Post Ideas
+        <span className="text-editorial-gold">Generated</span> Post Ideas
       </h3>
       <div className="grid gap-3 sm:grid-cols-2">
         {ideas.map((idea, i) => (
@@ -601,11 +601,11 @@ function PostIdeasResult({ data }: { data: Record<string, unknown> }) {
                 <span
                   className={cn(
                     "px-2 py-0.5 text-[9px] font-bold uppercase",
-                    (idea.format as string) === "reel"
-                      ? "bg-surface-raised text-editorial-red"
-                      : (idea.format as string) === "carousel"
-                        ? "bg-surface-raised text-editorial-gold"
-                        : "bg-surface-raised text-ink-secondary",
+                    (idea.format as string)?.toLowerCase().includes("reel")
+                      ? "bg-editorial-red/15 text-editorial-red"
+                      : (idea.format as string)?.toLowerCase().includes("carousel")
+                        ? "bg-editorial-gold/15 text-editorial-gold"
+                        : "bg-editorial-gold/10 text-editorial-gold",
                   )}
                 >
                   {idea.format as string}
@@ -613,19 +613,18 @@ function PostIdeasResult({ data }: { data: Record<string, unknown> }) {
                 <CopyButton text={ideaToText(idea)} />
               </div>
             </div>
-            <p className="mb-2 text-xs leading-relaxed text-ink-secondary">
-              <span className="font-semibold text-ink">Hook:</span>{" "}
+            <p className="mb-2 text-xs leading-relaxed text-ink">
               {idea.hook as string}
             </p>
             <p className="mb-3 text-xs text-ink-muted">
               {idea.angle as string}
             </p>
             {(idea.hashtags as string[])?.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 border-t border-editorial-gold/20 pt-2">
                 {(idea.hashtags as string[]).map((tag, j) => (
                   <span
                     key={j}
-                    className="bg-surface-raised px-1.5 py-0.5 text-[10px] text-ink-secondary"
+                    className="bg-editorial-gold/10 px-1.5 py-0.5 text-[10px] text-editorial-gold"
                   >
                     {tag}
                   </span>
@@ -640,6 +639,14 @@ function PostIdeasResult({ data }: { data: Record<string, unknown> }) {
 }
 
 /* ---- Captions ---- */
+function captionToText(cap: Record<string, unknown>) {
+  const parts = [cap.text as string];
+  if (cap.callToAction) parts.push(cap.callToAction as string);
+  const hashtags = (cap.hashtags as string[]) ?? [];
+  if (hashtags.length > 0) parts.push(hashtags.join(" "));
+  return parts.join("\n\n");
+}
+
 function CaptionsResult({ data }: { data: Record<string, unknown> }) {
   const captions = (data.captions as Record<string, unknown>[]) ?? [];
   if (!captions.length) return <RawResult data={data} />;
@@ -647,7 +654,7 @@ function CaptionsResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-3">
       <h3 className="font-serif text-lg font-bold text-ink">
-        Generated Captions
+        <span className="text-editorial-gold">Generated</span> Captions
       </h3>
       <div className="space-y-3">
         {captions.map((cap, i) => (
@@ -656,23 +663,23 @@ function CaptionsResult({ data }: { data: Record<string, unknown> }) {
             className="border border-rule bg-surface-card p-4"
           >
             <div className="mb-3 flex items-start justify-between gap-2">
-              <span className="bg-surface-raised px-2 py-0.5 text-[10px] font-semibold uppercase text-ink-secondary">
+              <span className="bg-editorial-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-editorial-gold">
                 {cap.tone as string}
               </span>
-              <CopyButton text={cap.text as string} />
+              <CopyButton text={captionToText(cap)} />
             </div>
             <p className="mb-2 whitespace-pre-line text-sm leading-relaxed text-ink">
               {cap.text as string}
             </p>
-            <p className="mb-3 text-xs font-medium text-editorial-red">
+            <p className="mb-3 text-xs font-medium text-editorial-gold">
               {cap.callToAction as string}
             </p>
             {(cap.hashtags as string[])?.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 border-t border-editorial-gold/20 pt-2">
                 {(cap.hashtags as string[]).map((tag, j) => (
                   <span
                     key={j}
-                    className="bg-surface-raised px-1.5 py-0.5 text-[10px] text-ink-secondary"
+                    className="bg-editorial-gold/10 px-1.5 py-0.5 text-[10px] text-editorial-gold"
                   >
                     {tag}
                   </span>
@@ -699,7 +706,7 @@ function CalendarResult({ data }: { data: Record<string, unknown> }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="font-serif text-lg font-bold text-ink">
-          7-Day Content Calendar
+          <span className="text-editorial-gold">7-Day</span> Content Calendar
         </h3>
         <CopyButton text={calendarText} />
       </div>
@@ -724,7 +731,7 @@ function CalendarResult({ data }: { data: Record<string, unknown> }) {
                   {day.time as string}
                 </td>
                 <td className="py-2.5 pr-3">
-                  <span className="bg-surface-raised px-1.5 py-0.5 text-[10px] font-medium text-ink-secondary">
+                  <span className="bg-editorial-gold/10 px-1.5 py-0.5 text-[10px] font-medium text-editorial-gold">
                     {day.contentType as string}
                   </span>
                 </td>
@@ -751,7 +758,7 @@ function ScriptsResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-3">
       <h3 className="font-serif text-lg font-bold text-ink">
-        Generated Scripts
+        <span className="text-editorial-gold">Generated</span> Scripts
       </h3>
       <div className="space-y-4">
         {scripts.map((script, i) => (
@@ -770,7 +777,7 @@ function ScriptsResult({ data }: { data: Record<string, unknown> }) {
 
             <div className="space-y-2">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-editorial-red">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-editorial-gold">
                   Hook
                 </span>
                 <p className="mt-0.5 text-xs leading-relaxed text-ink">
@@ -786,7 +793,7 @@ function ScriptsResult({ data }: { data: Record<string, unknown> }) {
                 </p>
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-editorial-green">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-editorial-gold">
                   CTA
                 </span>
                 <p className="mt-0.5 text-xs leading-relaxed text-ink">
@@ -825,7 +832,7 @@ function CarouselsResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-3">
       <h3 className="font-serif text-lg font-bold text-ink">
-        Generated Carousels
+        <span className="text-editorial-gold">Generated</span> Carousels
       </h3>
       <div className="space-y-4">
         {carousels.map((carousel, i) => {
@@ -882,7 +889,7 @@ function BioResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-3">
       <h3 className="font-serif text-lg font-bold text-ink">
-        Generated Bios
+        <span className="text-editorial-gold">Generated</span> Bios
       </h3>
       <div className="grid gap-3 sm:grid-cols-2">
         {bios.map((bio, i) => (
@@ -891,7 +898,7 @@ function BioResult({ data }: { data: Record<string, unknown> }) {
             className="border border-rule bg-surface-card p-4"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="bg-surface-raised px-2.5 py-0.5 text-[10px] font-semibold uppercase text-ink-secondary">
+              <span className="bg-editorial-gold/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase text-editorial-gold">
                 {bio.style as string}
               </span>
               <CopyButton text={bio.text as string} />

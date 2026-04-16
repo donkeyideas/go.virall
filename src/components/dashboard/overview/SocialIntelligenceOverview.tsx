@@ -806,6 +806,12 @@ export function SocialIntelligenceOverview({
           Connect your first social media profile in the Profiles tab to unlock
           analytics, growth strategies, and content intelligence.
         </p>
+        <a
+          href="/dashboard/guide"
+          className="mt-5 inline-block bg-editorial-gold px-6 py-2.5 font-sans text-[12px] font-bold uppercase tracking-wider text-white transition-opacity hover:opacity-90"
+        >
+          Getting Started Guide
+        </a>
       </div>
     );
   }
