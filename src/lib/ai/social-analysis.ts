@@ -569,7 +569,7 @@ export async function analyzeSocialProfile(
   const response = await aiChat(prompt, {
     temperature: 0.7,
     maxTokens: 4096,
-    timeout: 120000, // 2 min — some prompts (smo_score, audience) are large
+    timeout: 60000, // 60s — fail fast instead of stalling up to 2 min on a hung provider
   });
 
   if (!response) {

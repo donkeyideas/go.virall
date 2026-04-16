@@ -224,6 +224,46 @@ export async function runRecommendations(profileId: string) {
 }
 
 export async function runAllAnalyses(profileId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Not authenticated.", results: [], completed: 0, total: 0, success: false };
+  }
+
+  const admin = createAdminClient();
+
+  // ── Hoist all shared reads ONCE (instead of 12x inside each runAnalysis call) ──
+  const [profileRes, metricsRes, competitorsRes, goalRes, primaryGoal] = await Promise.all([
+    admin.from("social_profiles").select("*").eq("id", profileId).single(),
+    admin
+      .from("social_metrics")
+      .select("*")
+      .eq("social_profile_id", profileId)
+      .order("date", { ascending: false })
+      .limit(30),
+    admin.from("social_competitors").select("*").eq("social_profile_id", profileId),
+    admin
+      .from("social_goals")
+      .select("*")
+      .eq("social_profile_id", profileId)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle(),
+    fetchPrimaryGoal(admin, user.id),
+  ]);
+
+  const socialProfile = profileRes.data;
+  if (!socialProfile) {
+    return { error: "Social profile not found.", results: [], completed: 0, total: 0, success: false };
+  }
+
+  const metrics = metricsRes.data ?? [];
+  const competitors = competitorsRes.data ?? [];
+  const goal = goalRes.data ?? null;
+
   const coreTypes: AnalysisType[] = [
     "growth",
     "content_strategy",
@@ -238,70 +278,65 @@ export async function runAllAnalyses(profileId: string) {
     "campaign_ideas",
   ];
 
-  const results: { type: AnalysisType; success: boolean; error?: string }[] = [];
+  // ── Run ALL analyses fully in parallel with a single Promise.allSettled ──
+  const { analyzeSocialProfile } = await import("@/lib/ai/social-analysis");
+  const { generateContentAI } = await import("@/lib/ai/content-generator");
 
-  // ── Phase 1: Run core analyses (batches of 5) + content generator (3 at a time) IN PARALLEL ──
-  const corePromise = (async () => {
-    for (let i = 0; i < coreTypes.length; i += 5) {
-      const batch = coreTypes.slice(i, i + 5);
-      const batchResults = await Promise.allSettled(
-        batch.map((type) => runAnalysis(profileId, type)),
-      );
-      for (let j = 0; j < batch.length; j++) {
-        const r = batchResults[j];
-        if (r.status === "fulfilled" && r.value.success) {
-          results.push({ type: batch[j], success: true });
-        } else {
-          const error = r.status === "fulfilled" ? r.value.error : r.reason?.message;
-          results.push({ type: batch[j], success: false, error });
-        }
-      }
-    }
-  })();
+  const nicheTopic =
+    (socialProfile.niche as string) ||
+    (socialProfile.display_name as string) ||
+    "general";
 
-  const contentPromise = (async () => {
+  const coreTasks = coreTypes.map(async (analysisType) => {
     try {
-      const admin = createAdminClient();
-      const { data: profile } = await admin
-        .from("social_profiles")
-        .select("platform, niche, display_name, handle, organization_id")
-        .eq("id", profileId)
-        .single();
-
-      const niche = (profile?.niche as string) || (profile?.display_name as string) || "general";
-      const { generateContentAI } = await import("@/lib/ai/content-generator");
-
-      const { data: metrics } = await admin
-        .from("social_metrics")
-        .select("*")
-        .eq("social_profile_id", profileId)
-        .order("date", { ascending: false })
-        .limit(10);
-
-      // Fetch the org owner's primary_goal for goal-aware content generation
-      let primaryGoal: PrimaryGoal | null = null;
-      if (profile?.organization_id) {
-        const { data: owner } = await admin
-          .from("profiles")
-          .select("primary_goal")
-          .eq("organization_id", profile.organization_id)
-          .eq("role", "owner")
-          .limit(1)
-          .maybeSingle();
-        primaryGoal = (owner?.primary_goal as PrimaryGoal | null) ?? null;
+      const result = await analyzeSocialProfile({
+        profile: socialProfile,
+        metrics,
+        competitors,
+        goals: goal,
+        primaryGoal,
+        analysisType,
+        userId: user.id,
+      });
+      const { error: insertError } = await admin.from("social_analyses").insert({
+        social_profile_id: profileId,
+        analysis_type: analysisType,
+        result: result.data,
+        ai_provider: result.provider,
+        tokens_used: result.tokensUsed ?? 0,
+        cost_cents: result.costCents ?? 0,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+      if (insertError) {
+        return { type: analysisType, success: false, error: insertError.message };
       }
+      return { type: analysisType, success: true };
+    } catch (err) {
+      return {
+        type: analysisType,
+        success: false,
+        error: err instanceof Error ? err.message : "Analysis failed",
+      };
+    }
+  });
 
-      // Only generate post_ideas in Run All — other types generated on-demand from AI Studio
+  const contentTask = (async () => {
+    try {
       const cgResult = await generateContentAI({
-        profile: profile as Record<string, unknown>,
-        metrics: (metrics ?? []) as Record<string, unknown>[],
+        profile: socialProfile as Record<string, unknown>,
+        metrics: metrics as Record<string, unknown>[],
         contentType: "post_ideas",
-        topic: niche,
+        topic: nicheTopic,
         tone: "Professional",
         count: 5,
         primaryGoal,
       });
-      const resultData = { contentType: "post_ideas", topic: niche, tone: "Professional", ...cgResult.data };
+      const resultData = {
+        contentType: "post_ideas",
+        topic: nicheTopic,
+        tone: "Professional",
+        ...cgResult.data,
+      };
       const { error: cgInsertError } = await admin.from("social_analyses").insert({
         social_profile_id: profileId,
         analysis_type: "content_generator",
@@ -312,20 +347,28 @@ export async function runAllAnalyses(profileId: string) {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
       if (cgInsertError) {
-        console.error("[runAllAnalyses] content_generator DB insert failed:", cgInsertError.message);
+        return {
+          type: "content_generator" as AnalysisType,
+          success: false,
+          error: cgInsertError.message,
+        };
       }
-      results.push({ type: "content_generator", success: true });
+      return { type: "content_generator" as AnalysisType, success: true };
     } catch (err) {
-      results.push({
-        type: "content_generator",
+      return {
+        type: "content_generator" as AnalysisType,
         success: false,
         error: err instanceof Error ? err.message : "Content generation failed",
-      });
+      };
     }
   })();
 
-  // Wait for both core analyses and content generation to finish
-  await Promise.all([corePromise, contentPromise]);
+  const settled = await Promise.allSettled([...coreTasks, contentTask]);
+  const results: { type: AnalysisType; success: boolean; error?: string }[] = settled.map((r) =>
+    r.status === "fulfilled"
+      ? r.value
+      : { type: "growth", success: false, error: r.reason?.message ?? "Task crashed" },
+  );
 
   // Recommendations excluded from Run All — too heavy (reads all analyses, 3-min AI timeout).
   // Users can run it manually from the Recommendations page after all other analyses are done.
