@@ -28,28 +28,35 @@ const ALL_PLATFORMS: Record<string, string> = {
   facebook: 'Facebook',
 };
 
-function platformTag(p: string): string {
+function platformIcon(p: string): keyof typeof Ionicons.glyphMap {
   const k = p.toLowerCase();
-  if (k.startsWith('inst')) return 'IG';
-  if (k.startsWith('tik')) return 'TT';
-  if (k.startsWith('you')) return 'YT';
-  if (k.startsWith('twit') || k === 'x') return 'X';
-  return k.slice(0, 2).toUpperCase();
+  if (k.startsWith('inst')) return 'logo-instagram';
+  if (k.startsWith('tik')) return 'logo-tiktok';
+  if (k.startsWith('you')) return 'logo-youtube';
+  if (k.startsWith('twit') || k === 'x') return 'logo-twitter';
+  if (k.startsWith('lin')) return 'logo-linkedin';
+  if (k.startsWith('fac')) return 'logo-facebook';
+  if (k.startsWith('pin')) return 'logo-pinterest';
+  return 'sparkles';
 }
 
 function platformBg(p: string): string {
   const k = p.toLowerCase();
   if (k.startsWith('inst')) return '#ec4899';
-  if (k.startsWith('tik')) return '#06b6d4';
+  if (k.startsWith('tik')) return '#000000';
   if (k.startsWith('you')) return '#ef4444';
   if (k.startsWith('twit') || k === 'x') return '#1d9bf0';
+  if (k.startsWith('lin')) return '#0a66c2';
+  if (k.startsWith('fac')) return '#1877f2';
+  if (k.startsWith('pin')) return '#e60023';
   return '#64748b';
 }
 
 interface Idea {
   type: string;
   title: string;
-  desc: string;
+  body: string;
+  cta: string;
   tags: string[];
 }
 
@@ -65,6 +72,7 @@ export default function IdeasScreen() {
   const [generating, setGenerating] = useState(false);
   const [idea, setIdea] = useState<Idea | null>(null);
   const [saved, setSaved] = useState<Idea[]>([]);
+  const [expandedSaved, setExpandedSaved] = useState<number | null>(null);
 
   // Derive the platform pill list strictly from connected profiles.
   const connectedPlatforms = useMemo(() => {
@@ -79,30 +87,73 @@ export default function IdeasScreen() {
     return out;
   }, [profiles]);
 
+  // The active profile used for generation + display
+  const activeProfile = useMemo(
+    () => profiles.find((p) => (p.platform || '').toLowerCase() === platform) || null,
+    [profiles, platform],
+  );
+
+  // Only show saved ideas for the currently selected platform.
+  // Twitter and X are treated as the same platform.
+  const filteredSaved = useMemo(() => {
+    if (!platform) return saved;
+    const normalize = (p: string) => {
+      const k = (p || '').toLowerCase();
+      if (k.startsWith('twit') || k === 'x') return 'twitter';
+      return k;
+    };
+    const target = normalize(platform);
+    return saved.filter((s) => normalize(s.type) === target);
+  }, [saved, platform]);
+
+  // Platform caption character limits (matches server-side PLATFORM_CHAR_LIMITS)
+  const platformCharLimit = useMemo(() => {
+    const limits: Record<string, number> = {
+      twitter: 280,
+      x: 280,
+      instagram: 2200,
+      tiktok: 4000,
+      youtube: 5000,
+      linkedin: 3000,
+      threads: 500,
+      pinterest: 500,
+      facebook: 63206,
+    };
+    return limits[platform] ?? null;
+  }, [platform]);
+
   const loadProfiles = useCallback(async () => {
     if (!organization?.id) return;
     const { data } = await supabase
       .from('social_profiles')
-      .select('id, platform, username')
+      .select('id, platform, handle, display_name')
       .eq('organization_id', organization.id);
     setProfiles(data ?? []);
-    // Default the active platform to the first connected profile
+    // Default the active platform to the first connected profile ONLY if
+    // the user hasn't already picked one. Using functional setState so a
+    // re-run of loadProfiles doesn't clobber the user's selection.
     if (data && data[0]?.platform) {
-      setPlatform(data[0].platform.toLowerCase());
+      const first = data[0].platform.toLowerCase();
+      setPlatform((prev) => prev || first);
     }
   }, [organization?.id]);
 
   const loadSaved = useCallback(async () => {
     if (!organization?.id) return;
-    const { data: profIds } = await supabase
+    const { data: profRows } = await supabase
       .from('social_profiles')
-      .select('id')
+      .select('id, platform')
       .eq('organization_id', organization.id);
-    const ids = (profIds ?? []).map((p: any) => p.id);
+    const ids = (profRows ?? []).map((p: any) => p.id);
     if (ids.length === 0) return;
+    // Map profile id → platform so we can tag each saved idea correctly.
+    const platformByProfile: Record<string, string> = {};
+    for (const p of profRows ?? []) {
+      platformByProfile[p.id] = (p.platform || '').toLowerCase();
+    }
     const { data } = await supabase
       .from('social_analyses')
-      .select('result, created_at')
+      .select('result, created_at, social_profile_id')
       .in('social_profile_id', ids)
       .eq('analysis_type', 'content_generator')
       .order('created_at', { ascending: false })
@@ -110,28 +161,33 @@ export default function IdeasScreen() {
     const collected: Idea[] = [];
     for (const s of data ?? []) {
       const items =
+        s.result?.captions ||
         s.result?.ideas ||
         s.result?.post_ideas ||
-        s.result?.captions ||
         s.result?.hooks ||
         [];
+      const rowPlatform =
+        (s.result?.platform || platformByProfile[s.social_profile_id] || '')
+          .toLowerCase();
       for (const raw of items.slice(0, 2)) {
-        const text =
+        const body =
           typeof raw === 'string'
             ? raw
-            : raw.title || raw.caption || raw.hook || raw.idea || '';
-        if (text) {
+            : raw.text || raw.caption || raw.body || raw.title || raw.hook || raw.idea || '';
+        if (body) {
+          const firstLine = body.split('\n')[0].slice(0, 70);
           collected.push({
-            type: s.result?.platform || platform,
-            title: text,
-            desc: '',
-            tags: raw?.tags ?? [],
+            type: rowPlatform,
+            title: typeof raw === 'object' ? raw.title || firstLine : firstLine,
+            body,
+            cta: typeof raw === 'object' ? raw.callToAction || raw.cta || '' : '',
+            tags: typeof raw === 'object' ? raw.hashtags || raw.tags || [] : [],
           });
         }
       }
     }
     setSaved(collected.slice(0, 6));
-  }, [organization?.id, platform]);
+  }, [organization?.id]);
 
   useEffect(() => {
     loadProfiles();
@@ -139,9 +195,7 @@ export default function IdeasScreen() {
   }, [loadProfiles, loadSaved]);
 
   const generate = async () => {
-    const profile = profiles.find(
-      (p) => p.platform?.toLowerCase() === platform,
-    );
+    const profile = activeProfile;
     if (!profile) {
       showModal({
         title: 'No connected profile',
@@ -153,15 +207,31 @@ export default function IdeasScreen() {
       return;
     }
     setGenerating(true);
+    const handleLabel = profile.handle
+      ? `@${String(profile.handle).replace(/^@/, '')}`
+      : profile.display_name || 'my audience';
+    const platformLabel = ALL_PLATFORMS[platform] || platform;
+    // Tone varies by platform — LinkedIn wants authority, Twitter wants punchy,
+    // TikTok/IG want conversational. Server enforces per-platform char limits.
+    const toneByPlatform: Record<string, string> = {
+      linkedin: 'Authoritative and insightful',
+      twitter: 'Punchy and conversational',
+      x: 'Punchy and conversational',
+      instagram: 'Engaging and authentic',
+      tiktok: 'Hook-driven and casual',
+      youtube: 'Curious and informative',
+      threads: 'Casual and thoughtful',
+      facebook: 'Warm and community-focused',
+    };
     const { data, error, planLimitReached } = await mobileApi<any>(
       '/api/mobile/content',
       {
         method: 'POST',
         body: {
           profileId: profile.id,
-          contentType: 'post_ideas',
-          topic: `${platform} content for ${profile.username}`,
-          tone: 'Playful',
+          contentType: 'captions',
+          topic: `Ready-to-post ${platformLabel} post for ${handleLabel}`,
+          tone: toneByPlatform[platform] || 'Engaging',
           count: 1,
         },
       },
@@ -187,27 +257,28 @@ export default function IdeasScreen() {
       return;
     }
     const first = (
+      data?.data?.captions ||
       data?.data?.ideas ||
       data?.data?.post_ideas ||
-      data?.data?.captions ||
       []
     )[0];
-    const text =
+    const body =
       typeof first === 'string'
         ? first
-        : first?.title || first?.caption || first?.idea || '';
+        : first?.text || first?.caption || first?.body || first?.title || '';
     setIdea({
-      type: `${ALL_PLATFORMS[platform] || platform} Post`,
-      title: text || 'Try again — AI returned no content.',
-      desc: typeof first === 'object' ? first?.desc || first?.description || '' : '',
-      tags: typeof first === 'object' ? first?.tags || [] : [],
+      type: `${platformLabel} Post`,
+      title: typeof first === 'object' ? first?.title || '' : '',
+      body: body || 'Try again — AI returned no content.',
+      cta: typeof first === 'object' ? first?.callToAction || first?.cta || '' : '',
+      tags: typeof first === 'object' ? first?.hashtags || first?.tags || [] : [],
     });
     loadSaved();
   };
 
   const copyIdea = async () => {
     if (!idea) return;
-    const text = [idea.title, idea.desc, idea.tags.join(' ')]
+    const text = [idea.body, idea.cta, idea.tags.join(' ')]
       .filter(Boolean)
       .join('\n\n');
     await Clipboard.setStringAsync(text);
@@ -262,36 +333,50 @@ export default function IdeasScreen() {
               </Text>
             </View>
           ) : (
-            <View style={styles.pills}>
-              {connectedPlatforms.map((p) => {
-                const active = platform === p.key;
-                return (
-                  <Pressable
-                    key={p.key}
-                    onPress={() => setPlatform(p.key)}
-                    style={[
-                      styles.pill,
-                      {
-                        backgroundColor: active ? c.goldDim : c.bgElevated,
-                        borderColor: active ? c.gold : c.border,
-                      },
-                    ]}
-                  >
-                    <Text
+            <>
+              <View style={styles.pills}>
+                {connectedPlatforms.map((p) => {
+                  const active = platform === p.key;
+                  return (
+                    <Pressable
+                      key={p.key}
+                      onPress={() => setPlatform(p.key)}
                       style={[
-                        styles.pillText,
+                        styles.pill,
                         {
-                          color: active ? c.gold : c.textSecondary,
-                          fontWeight: active ? '700' : '500',
+                          backgroundColor: active ? c.goldDim : c.bgElevated,
+                          borderColor: active ? c.gold : c.border,
                         },
                       ]}
                     >
-                      {p.label}
+                      <Text
+                        style={[
+                          styles.pillText,
+                          {
+                            color: active ? c.gold : c.textSecondary,
+                            fontWeight: active ? '700' : '500',
+                          },
+                        ]}
+                      >
+                        {p.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              {activeProfile ? (
+                <View style={styles.targetRow}>
+                  <Ionicons name="person-circle-outline" size={13} color={c.textMuted} />
+                  <Text style={[styles.targetText, { color: c.textSecondary }]} numberOfLines={1}>
+                    Generating for{' '}
+                    <Text style={{ color: c.gold, fontWeight: '700' }}>
+                      @{String(activeProfile.handle || activeProfile.display_name || '').replace(/^@/, '') || 'account'}
                     </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+                    {platformCharLimit ? ` · ${platformCharLimit} char max` : ''}
+                  </Text>
+                </View>
+              ) : null}
+            </>
           )}
 
           <Pressable
@@ -323,30 +408,61 @@ export default function IdeasScreen() {
               { backgroundColor: c.bgCard, borderColor: c.goldBorder },
             ]}
           >
-            <Text style={[styles.ideaType, { color: c.gold }]}>{idea.type}</Text>
-            <Text style={[styles.ideaTitle, { color: c.textPrimary }]}>
-              {idea.title}
-            </Text>
-            {idea.desc ? (
-              <Text style={[styles.ideaDesc, { color: c.textSecondary }]}>
-                {idea.desc}
+            <View style={styles.ideaHeaderRow}>
+              <View style={styles.ideaTypeRow}>
+                <View
+                  style={[
+                    styles.ideaLogoBadge,
+                    { backgroundColor: platformBg(platform) },
+                  ]}
+                >
+                  <Ionicons
+                    name={platformIcon(platform)}
+                    size={12}
+                    color="#fff"
+                  />
+                </View>
+                <Text style={[styles.ideaType, { color: c.gold }]}>
+                  {idea.type}
+                </Text>
+              </View>
+              {platformCharLimit ? (
+                <Text style={[styles.ideaCharCount, { color: c.textMuted }]}>
+                  {
+                    (idea.body +
+                      (idea.cta ? '\n\n' + idea.cta : '') +
+                      (idea.tags.length ? '\n' + idea.tags.join(' ') : ''))
+                      .length
+                  }
+                  /{platformCharLimit}
+                </Text>
+              ) : null}
+            </View>
+            {idea.title ? (
+              <Text style={[styles.ideaTitle, { color: c.textPrimary }]}>
+                {idea.title}
               </Text>
             ) : null}
-            {idea.tags.length ? (
-              <View style={styles.tagRow}>
-                {idea.tags.map((t, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.tag,
-                      { backgroundColor: c.goldDim, borderColor: c.goldBorder },
-                    ]}
-                  >
-                    <Text style={[styles.tagText, { color: c.gold }]}>{t}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
+            <View
+              style={[
+                styles.postBody,
+                { backgroundColor: c.bgElevated, borderColor: c.border },
+              ]}
+            >
+              <Text style={[styles.postBodyText, { color: c.textPrimary }]}>
+                {idea.body}
+              </Text>
+              {idea.cta ? (
+                <Text style={[styles.postCtaText, { color: c.gold }]}>
+                  {idea.cta}
+                </Text>
+              ) : null}
+              {idea.tags.length ? (
+                <Text style={[styles.postTagsText, { color: c.teal }]}>
+                  {idea.tags.join(' ')}
+                </Text>
+              ) : null}
+            </View>
             <View style={styles.actions}>
               <Pressable
                 onPress={copyIdea}
@@ -357,7 +473,7 @@ export default function IdeasScreen() {
               >
                 <Ionicons name="copy-outline" size={13} color={c.textSecondary} />
                 <Text style={[styles.actionText, { color: c.textSecondary }]}>
-                  Copy
+                  Copy Post
                 </Text>
               </Pressable>
               <Pressable
@@ -383,45 +499,113 @@ export default function IdeasScreen() {
           </View>
         ) : null}
 
-        {saved.length > 0 ? (
+        {filteredSaved.length > 0 ? (
           <>
             <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
-              Saved ideas
+              Saved {ALL_PLATFORMS[platform] || ''} ideas
             </Text>
             <View style={styles.savedList}>
-              {saved.map((s, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.savedItem,
-                    { backgroundColor: c.bgCard, borderColor: c.border },
-                  ]}
-                >
-                  <View
+              {filteredSaved.map((s, i) => {
+                const expanded = expandedSaved === i;
+                const hasPlatform = !!s.type;
+                const tagBg = hasPlatform ? platformBg(s.type) : c.gold;
+                const icon = platformIcon(s.type);
+                return (
+                  <Pressable
+                    key={i}
+                    onPress={() => setExpandedSaved(expanded ? null : i)}
                     style={[
-                      styles.savedPlatform,
-                      { backgroundColor: platformBg(s.type) },
+                      styles.savedItem,
+                      {
+                        backgroundColor: c.bgCard,
+                        borderColor: expanded ? c.goldBorder : c.border,
+                      },
                     ]}
                   >
-                    <Text style={styles.savedPlatformText}>
-                      {platformTag(s.type)}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[styles.savedText, { color: c.textPrimary }]}
-                    numberOfLines={2}
-                  >
-                    {s.title}
-                  </Text>
-                  <Pressable
-                    onPress={() => copyText(s.title)}
-                    style={[styles.savedCopy, { backgroundColor: c.bgElevated }]}
-                    hitSlop={6}
-                  >
-                    <Ionicons name="copy-outline" size={12} color={c.textSecondary} />
+                    <View style={styles.savedRow}>
+                      <View
+                        style={[
+                          styles.savedPlatform,
+                          { backgroundColor: tagBg },
+                        ]}
+                      >
+                        <Ionicons
+                          name={icon}
+                          size={14}
+                          color={hasPlatform ? '#fff' : c.goldContrast}
+                        />
+                      </View>
+                      <Text
+                        style={[styles.savedText, { color: c.textPrimary }]}
+                        numberOfLines={expanded ? undefined : 3}
+                      >
+                        {s.body || s.title}
+                      </Text>
+                      <Pressable
+                        onPress={() =>
+                          copyText(
+                            [s.body, s.cta, s.tags.join(' ')]
+                              .filter(Boolean)
+                              .join('\n\n'),
+                          )
+                        }
+                        style={[
+                          styles.savedCopy,
+                          { backgroundColor: c.bgElevated },
+                        ]}
+                        hitSlop={6}
+                      >
+                        <Ionicons
+                          name="copy-outline"
+                          size={12}
+                          color={c.textSecondary}
+                        />
+                      </Pressable>
+                    </View>
+                    {expanded ? (
+                      <View
+                        style={[
+                          styles.savedExpandBox,
+                          {
+                            backgroundColor: c.bgElevated,
+                            borderColor: c.border,
+                          },
+                        ]}
+                      >
+                        {s.cta ? (
+                          <Text
+                            style={[styles.postCtaText, { color: c.gold }]}
+                          >
+                            {s.cta}
+                          </Text>
+                        ) : null}
+                        {s.tags.length ? (
+                          <Text
+                            style={[styles.postTagsText, { color: c.teal }]}
+                          >
+                            {s.tags.join(' ')}
+                          </Text>
+                        ) : null}
+                        <View style={styles.savedExpandFooter}>
+                          <Ionicons
+                            name="chevron-up"
+                            size={12}
+                            color={c.textMuted}
+                          />
+                          <Text
+                            style={[
+                              styles.savedExpandHint,
+                              { color: c.textMuted },
+                            ]}
+                          >
+                            Tap to collapse
+                          </Text>
+                        </View>
+                      </View>
+                    ) : null}
                   </Pressable>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </>
         ) : null}
@@ -480,7 +664,24 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    gap: 8,
+    gap: 10,
+  },
+  ideaHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  ideaTypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  ideaLogoBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ideaType: {
     fontSize: 10,
@@ -488,16 +689,21 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  ideaTitle: { fontSize: 14, fontWeight: '700', lineHeight: 19 },
-  ideaDesc: { fontSize: 12.5, lineHeight: 18 },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
-  tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
+  ideaCharCount: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
-  tagText: { fontSize: 10, fontWeight: '600' },
+  ideaTitle: { fontSize: 14, fontWeight: '700', lineHeight: 19 },
+  postBody: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  postBodyText: { fontSize: 13.5, lineHeight: 20 },
+  postCtaText: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
+  postTagsText: { fontSize: 12.5, lineHeight: 18 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 6 },
   actionBtn: {
     flexDirection: 'row',
@@ -518,12 +724,15 @@ const styles = StyleSheet.create({
   },
   savedList: { gap: 8 },
   savedItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
     padding: 11,
     borderRadius: 12,
     borderWidth: 1,
+    gap: 10,
+  },
+  savedRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
   },
   savedPlatform: {
     width: 26,
@@ -546,6 +755,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  savedExpandBox: {
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 6,
+  },
+  savedExpandFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  savedExpandHint: {
+    fontSize: 10,
+    letterSpacing: 0.3,
+  },
   noPlatformBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -558,4 +784,13 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   noPlatformText: { fontSize: 12, flex: 1, lineHeight: 16 },
+  targetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+    alignSelf: 'center',
+    maxWidth: '100%',
+  },
+  targetText: { fontSize: 11, flexShrink: 1 },
 });

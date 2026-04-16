@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     const { data: profiles } = await supabaseAdmin
       .from("profiles")
       .select(
-        "id, full_name, avatar_url, account_type, company_name, brand_logo_url, username",
+        "id, full_name, avatar_url, account_type, company_name, brand_logo_url",
       )
       .in("id", uniqueIds);
     profileMap = new Map(
@@ -91,7 +91,6 @@ export async function GET(req: NextRequest) {
           display_name:
             p.full_name ||
             p.company_name ||
-            (p.username ? `@${p.username}` : null) ||
             (p.account_type === "brand" ? "Brand Partner" : "Creator"),
         },
       ]),

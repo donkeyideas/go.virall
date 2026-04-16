@@ -26,7 +26,7 @@ export function SmoRing({ score, trend, size = 160 }: Props) {
         <Defs>
           <LinearGradient id="smoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor={c.gold} />
-            <Stop offset="100%" stopColor={mode === 'light' ? '#7a5806' : '#b8860b'} />
+            <Stop offset="100%" stopColor={mode === 'light' ? '#b87207' : '#d97706'} />
           </LinearGradient>
         </Defs>
         <Circle

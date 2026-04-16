@@ -34,6 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_del_submissions_submitted_by ON deliverable_submi
 ALTER TABLE deliverable_submissions ENABLE ROW LEVEL SECURITY;
 
 -- Both deal parties can view submissions
+DROP POLICY IF EXISTS "Deal parties can view submissions" ON deliverable_submissions;
 CREATE POLICY "Deal parties can view submissions" ON deliverable_submissions
   FOR SELECT USING (
     EXISTS (
@@ -45,9 +46,11 @@ CREATE POLICY "Deal parties can view submissions" ON deliverable_submissions
     )
   );
 
+DROP POLICY IF EXISTS "Users can submit deliverables" ON deliverable_submissions;
 CREATE POLICY "Users can submit deliverables" ON deliverable_submissions
   FOR INSERT WITH CHECK (submitted_by = auth.uid());
 
+DROP POLICY IF EXISTS "Users can view own submissions" ON deliverable_submissions;
 CREATE POLICY "Users can view own submissions" ON deliverable_submissions
   FOR SELECT USING (submitted_by = auth.uid());
 
@@ -76,6 +79,7 @@ CREATE INDEX IF NOT EXISTS idx_deal_closure_user ON deal_closure_outcomes(user_i
 
 ALTER TABLE deal_closure_outcomes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Deal parties can view closure outcomes" ON deal_closure_outcomes;
 CREATE POLICY "Deal parties can view closure outcomes" ON deal_closure_outcomes
   FOR SELECT USING (
     EXISTS (
@@ -86,9 +90,11 @@ CREATE POLICY "Deal parties can view closure outcomes" ON deal_closure_outcomes
     )
   );
 
+DROP POLICY IF EXISTS "Users can submit own outcome" ON deal_closure_outcomes;
 CREATE POLICY "Users can submit own outcome" ON deal_closure_outcomes
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update own unlocked outcome" ON deal_closure_outcomes;
 CREATE POLICY "Users can update own unlocked outcome" ON deal_closure_outcomes
   FOR UPDATE USING (user_id = auth.uid() AND is_locked = FALSE);
 
@@ -119,6 +125,7 @@ CREATE INDEX IF NOT EXISTS idx_trust_scores_public ON trust_scores(is_public, ov
 ALTER TABLE trust_scores ENABLE ROW LEVEL SECURITY;
 
 -- Public scores visible to everyone; own score always visible
+DROP POLICY IF EXISTS "Anyone can view public trust scores" ON trust_scores;
 CREATE POLICY "Anyone can view public trust scores" ON trust_scores
   FOR SELECT USING (is_public = TRUE OR profile_id = auth.uid());
 
@@ -139,10 +146,12 @@ CREATE INDEX IF NOT EXISTS idx_trust_history_profile ON trust_score_history(prof
 
 ALTER TABLE trust_score_history ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own trust history" ON trust_score_history;
 CREATE POLICY "Users can view own trust history" ON trust_score_history
   FOR SELECT USING (profile_id = auth.uid());
 
 -- Public trust history for viewing other user trends
+DROP POLICY IF EXISTS "Anyone can view public trust history" ON trust_score_history;
 CREATE POLICY "Anyone can view public trust history" ON trust_score_history
   FOR SELECT USING (
     EXISTS (

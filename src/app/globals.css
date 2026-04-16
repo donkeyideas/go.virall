@@ -95,6 +95,9 @@
   --modern-warning: #d97706;
   --modern-error: #ef4444;
   --modern-card-border: rgba(58, 138, 194, 0.10);
+  /* Modern accent: blue in light, yellow in dark (overridden in .dark.modern-view). */
+  --modern-accent: #3A8AC2;
+  --modern-accent-soft: rgba(58, 138, 194, 0.10);
 
   --accent-rgb: 58,138,194;
 
@@ -231,6 +234,9 @@
   --modern-warning: #f59e0b;
   --modern-error: #ef4444;
   --modern-card-border: rgba(75, 156, 211, 0.12);
+  /* Dark modern keeps the original yellow accent. */
+  --modern-accent: #facc15;
+  --modern-accent-soft: rgba(250, 204, 21, 0.10);
 
   --accent-rgb: 75,156,211;
 
@@ -275,6 +281,8 @@
   --color-modern-warning: var(--modern-warning, #d97706);
   --color-modern-error: var(--modern-error, #ef4444);
   --color-modern-card-border: var(--modern-card-border, rgba(124, 58, 237, 0.1));
+  --color-modern-accent: var(--modern-accent, #3A8AC2);
+  --color-modern-accent-soft: var(--modern-accent-soft, rgba(58, 138, 194, 0.10));
 }
 
 /* --- BASE STYLES --- */

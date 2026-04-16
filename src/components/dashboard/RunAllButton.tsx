@@ -189,9 +189,13 @@ export function RunAllButton({ profileId, allProfileIds, className }: RunAllButt
       let totalCompleted = 0;
       let totalCount = 0;
 
-      // Run profiles in batches of 2 to avoid AI rate limits
-      for (let i = 0; i < ids.length; i += 2) {
-        const batch = ids.slice(i, i + 2);
+      // Run profiles in batches of 4. Each profile runs 12 analyses in
+      // parallel, so 4 profiles ≈ 48 concurrent AI calls — enough parallelism
+      // to be fast, conservative enough to avoid per-provider rate limits
+      // that would trigger circuit-breaker (markProviderFailed).
+      const BATCH_SIZE = 4;
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
         const batchResults = await Promise.allSettled(
           batch.map((id) => runAllAnalyses(id)),
         );

@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import { getSocialProfiles, getLatestMetricsBatch, getUserPrimaryGoal } from "@/lib/dal/profiles";
+import { getSocialProfiles, getLatestMetricsBatch } from "@/lib/dal/profiles";
 import { getAllLatestAnalysesBatch } from "@/lib/dal/analyses";
 import { getCompetitorsBatch } from "@/lib/dal/competitors";
 import { getDeals } from "@/lib/dal/deals";
 import { getCampaigns } from "@/lib/dal/campaigns";
 import { getNotifications } from "@/lib/dal/notifications";
 import { getRevenueStats } from "@/lib/dal/revenue";
-import { getOrgGoalProgress } from "@/lib/dal/goals";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { OverviewRouter } from "@/components/dashboard/overview/OverviewRouter";
@@ -19,7 +18,6 @@ export default async function OverviewPage() {
   const profiles = await getSocialProfiles();
 
   if (profiles.length === 0) {
-    const primaryGoal = await getUserPrimaryGoal();
     return (
       <OverviewRouter
         profiles={[]}
@@ -31,8 +29,6 @@ export default async function OverviewPage() {
         metricsMap={{}}
         trustScore={{ id: "", profile_id: user.id, overall_score: 100, completion_rate: 100, response_time_score: 100, dispute_rate: 100, consistency_score: 100, deal_volume_score: 0, total_deals_closed: 0, total_deals_completed: 0, total_deals_disputed: 0, avg_response_hours: null, is_public: false, last_calculated_at: "", created_at: "", updated_at: "" }}
         revenueStats={null}
-        primaryGoal={primaryGoal}
-        goalProgress={[]}
       />
     );
   }
@@ -41,7 +37,7 @@ export default async function OverviewPage() {
 
   // Batch all data in parallel
   const admin = createAdminClient();
-  const [deals, campaigns, notifications, analysisMap, competitorsMap, metricsMap, trustScoreRow, revenueStats, primaryGoal, goalProgress] =
+  const [deals, campaigns, notifications, analysisMap, competitorsMap, metricsMap, trustScoreRow, revenueStats] =
     await Promise.all([
       getDeals(),
       getCampaigns(),
@@ -56,8 +52,6 @@ export default async function OverviewPage() {
         .maybeSingle()
         .then(({ data }) => data as TrustScore | null),
       getRevenueStats().catch(() => null),
-      getUserPrimaryGoal(),
-      getOrgGoalProgress().catch(() => []),
     ]);
   // Default trust score: everyone starts at 100 (same as TrustScorePage)
   const trustScore: TrustScore = trustScoreRow ?? {
@@ -90,8 +84,6 @@ export default async function OverviewPage() {
       metricsMap={metricsMap}
       trustScore={trustScore}
       revenueStats={revenueStats}
-      primaryGoal={primaryGoal}
-      goalProgress={goalProgress}
     />
   );
 }

@@ -23,14 +23,10 @@ import type {
   SocialMetrics,
   RecentPost,
   TrustScore,
-  PrimaryGoal,
 } from "@/types";
 import type { RevenueStats } from "@/lib/dal/revenue";
-import type { GoalProgress } from "@/lib/dal/goals";
 import { PLATFORM_CONFIG } from "@/types";
 import { TrustScoreDetail } from "@/components/deals/TrustScoreDetail";
-import { MissionBadge } from "./MissionBadge";
-import { GoalProgressCard } from "./GoalProgressCard";
 
 // ============================================================
 // Types
@@ -46,8 +42,6 @@ interface OverviewProps {
   metricsMap: Record<string, SocialMetrics[]>;
   trustScore: TrustScore | null;
   revenueStats: RevenueStats | null;
-  primaryGoal: PrimaryGoal | null;
-  goalProgress: GoalProgress[];
 }
 
 interface BriefItem {
@@ -398,8 +392,6 @@ export function SocialIntelligenceOverview({
   metricsMap,
   trustScore,
   revenueStats,
-  primaryGoal,
-  goalProgress,
 }: OverviewProps) {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(
     profiles[0]?.id ?? null,
@@ -807,7 +799,6 @@ export function SocialIntelligenceOverview({
   if (profiles.length === 0) {
     return (
       <div>
-        <MissionBadge primaryGoal={primaryGoal} variant="editorial" />
         <div className="py-20 text-center">
           <h2 className="font-serif text-2xl font-bold text-ink">
             Welcome to <span className="text-editorial-accent">Go</span>Virall
@@ -829,8 +820,6 @@ export function SocialIntelligenceOverview({
 
   return (
     <div>
-      <MissionBadge primaryGoal={primaryGoal} variant="editorial" />
-      <GoalProgressCard goalProgress={goalProgress} variant="editorial" />
       {/* ──── Profile Tabs ──── */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <button

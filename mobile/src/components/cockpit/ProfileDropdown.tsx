@@ -14,7 +14,9 @@ import { cockpit } from '../../lib/cockpit-theme';
 export interface ProfileOption {
   id: string;
   platform: string; // instagram | tiktok | youtube | twitter | ...
-  username: string | null;
+  handle?: string | null;
+  username?: string | null; // legacy alias
+  display_name?: string | null;
 }
 
 function platformName(p: string): string {
@@ -30,7 +32,9 @@ function platformName(p: string): string {
 }
 
 function handleFor(p: ProfileOption): string {
-  if (p.username && p.username.trim()) return `@${p.username.replace(/^@/, '')}`;
+  const raw = (p.handle ?? p.username ?? '').trim();
+  if (raw) return `@${raw.replace(/^@/, '')}`;
+  if (p.display_name && p.display_name.trim()) return p.display_name.trim();
   return platformName(p.platform);
 }
 

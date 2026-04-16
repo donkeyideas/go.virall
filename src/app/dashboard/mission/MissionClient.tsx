@@ -15,13 +15,16 @@ import {
 import { setPrimaryGoal } from "@/lib/actions/account";
 import { GoalsClient } from "@/components/dashboard/goals/GoalsClient";
 import { GoalEffectsPanel } from "@/components/dashboard/mission/GoalEffectsPanel";
+import { GoalProgressCard } from "@/components/dashboard/overview/GoalProgressCard";
 import { trackEvent } from "@/lib/analytics/track";
 import { useViewMode } from "@/lib/contexts/view-mode";
 import type { SocialProfile, PrimaryGoal } from "@/types";
+import type { GoalProgress } from "@/lib/dal/goals";
 
 interface MissionClientProps {
   profiles: SocialProfile[];
   initialPrimaryGoal: PrimaryGoal | null;
+  goalProgress: GoalProgress[];
 }
 
 interface GoalOption {
@@ -58,7 +61,7 @@ const GOAL_OPTIONS: GoalOption[] = [
   },
 ];
 
-export function MissionClient({ profiles, initialPrimaryGoal }: MissionClientProps) {
+export function MissionClient({ profiles, initialPrimaryGoal, goalProgress }: MissionClientProps) {
   const { viewMode } = useViewMode();
   const isEditorial = viewMode === "editorial";
   const accentText = isEditorial ? "text-editorial-red" : "text-editorial-gold";
@@ -217,6 +220,13 @@ export function MissionClient({ profiles, initialPrimaryGoal }: MissionClientPro
           </div>
         ) : null}
       </section>
+
+      {/* Goal Progress (moved from Overview) */}
+      {goalProgress.length > 0 && (
+        <section className="mb-10">
+          <GoalProgressCard goalProgress={goalProgress} variant={isEditorial ? "editorial" : "modern"} />
+        </section>
+      )}
 
       {/* Per-profile goals */}
       <section>

@@ -1,12 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/lib/contexts/view-mode";
 import { AddProfileModal } from "./AddProfileModal";
 import { PlatformIcon } from "@/components/icons/PlatformIcons";
 import { PLATFORM_CONFIG, type SocialProfile } from "@/types";
+
+/** Hardcoded accent colors for modern chips (dark = yellow, light = blue). */
+const ACCENT = { dark: "#facc15", light: "#3A8AC2" } as const;
+
+function useIsDark() {
+  const [dark, setDark] = useState(true);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+    const obs = new MutationObserver(() =>
+      setDark(document.documentElement.classList.contains("dark")),
+    );
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 
 interface ProfileSelectorProps {
   profiles: SocialProfile[];
@@ -27,6 +43,7 @@ export function ProfileSelector({
   const [showDropdown, setShowDropdown] = useState(false);
   const { viewMode } = useViewMode();
   const ed = viewMode === "editorial";
+  const dark = useIsDark();
 
   const selected = profiles.find((p) => p.id === selectedId);
 
@@ -34,6 +51,17 @@ export function ProfileSelector({
     "flex shrink-0 items-center gap-1.5 border px-3.5 py-1.5 text-xs font-semibold transition-all",
     !ed && "rounded-lg",
   );
+
+  // Hardcoded accent for modern chips — CSS vars don't cascade correctly
+  // through Tailwind v4's @theme inline in dark mode.
+  const accent = dark ? ACCENT.dark : ACCENT.light;
+  const accentActive: React.CSSProperties = ed
+    ? {}
+    : {
+        borderColor: accent,
+        backgroundColor: `${accent}1a`,
+        color: accent,
+      };
 
   return (
     <>
@@ -48,11 +76,12 @@ export function ProfileSelector({
                 selectedId === null
                   ? ed
                     ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
-                    : "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                    : ""
                   : ed
                     ? "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink"
-                    : "border-rule bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
+                    : "border-rule bg-surface-card text-ink-secondary",
               )}
+              style={selectedId === null ? accentActive : undefined}
             >
               All
             </button>
@@ -69,11 +98,12 @@ export function ProfileSelector({
                   isActive
                     ? ed
                       ? "border-editorial-red bg-editorial-red/8 text-editorial-red"
-                      : "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                      : ""
                     : ed
                       ? "border-rule bg-surface-card text-ink-secondary hover:border-editorial-red hover:text-ink"
-                      : "border-rule bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
+                      : "border-rule bg-surface-card text-ink-secondary",
                 )}
+                style={isActive ? accentActive : undefined}
               >
                 <PlatformIcon platform={profile.platform} size={14} />
                 <span>@{profile.handle}</span>

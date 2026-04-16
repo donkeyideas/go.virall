@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -167,8 +168,10 @@ export default function MessageThreadScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: c.bgDeep }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
+      behavior="padding"
+      keyboardVerticalOffset={
+        Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight ?? 0)
+      }
     >
       <View
         style={[
@@ -321,7 +324,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Platform.OS === 'ios' ? 56 : 16,
+    paddingTop:
+      Platform.OS === 'ios'
+        ? 56
+        : (StatusBar.currentHeight ?? 24) + 24,
     gap: 12,
     borderBottomWidth: 1,
   },

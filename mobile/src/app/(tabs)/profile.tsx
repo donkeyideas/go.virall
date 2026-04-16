@@ -104,18 +104,16 @@ export default function ProfileScreen() {
 
   const load = useCallback(async () => {
     if (!user?.id) return;
-    // Try organization-scoped first; if the user's `profiles.organization_id`
-    // is not set (or the query is blocked by RLS somehow), fall back to any
-    // row where the current user owns the profile.
     const orgId = organization?.id;
     const [socialsRes, trustRes] = await Promise.all([
       orgId
         ? supabase
             .from('social_profiles')
             .select(
-              'id, platform, username, followers_count, is_connected, profile_image_url',
+              'id, platform, handle, display_name, followers_count, avatar_url, ownership_verified',
             )
             .eq('organization_id', orgId)
+            .order('created_at', { ascending: true })
         : Promise.resolve({ data: null } as any),
       supabase
         .from('trust_scores')
@@ -124,20 +122,8 @@ export default function ProfileScreen() {
         .maybeSingle(),
     ]);
 
-    let rows = socialsRes?.data as any[] | null;
-    if (!rows || rows.length === 0) {
-      // Fallback for profiles not linked via organization_id (older rows, or
-      // personal creator accounts where profile rows live under user id).
-      const { data: fallback } = await supabase
-        .from('social_profiles')
-        .select(
-          'id, platform, username, followers_count, is_connected, profile_image_url',
-        )
-        .eq('user_id', user.id);
-      rows = fallback ?? [];
-    }
-
-    setProfiles(rows ?? []);
+    const rows = (socialsRes?.data as any[] | null) ?? [];
+    setProfiles(rows);
     setTrust(trustRes?.data ?? null);
   }, [organization?.id, user?.id]);
 
@@ -172,10 +158,12 @@ export default function ProfileScreen() {
   const handle = user?.email?.split('@')[0] || 'creator';
   const planLabel = organization?.plan || 'Free';
 
-  const trustScore = typeof trust?.overall_score === 'number' ? trust.overall_score : null;
-  const trustDeals = typeof trust?.total_deals_closed === 'number' ? trust.total_deals_closed : 0;
+  // Match web: new users start with a perfect 100 (Uber-style: maintain it)
+  const trustScore =
+    typeof trust?.overall_score === 'number' ? trust.overall_score : 100;
+  const trustDeals =
+    typeof trust?.total_deals_closed === 'number' ? trust.total_deals_closed : 0;
   const trustLetter = (() => {
-    if (trustScore == null) return '—';
     if (trustScore >= 95) return 'A+';
     if (trustScore >= 90) return 'A';
     if (trustScore >= 80) return 'B';
@@ -235,7 +223,7 @@ export default function ProfileScreen() {
             </Text>
             <View style={styles.trustScoreRow}>
               <Text style={[styles.trustScore, { color: c.textPrimary }]}>
-                {trustScore ?? '—'}
+                {trustScore}
               </Text>
               <View
                 style={[
@@ -304,66 +292,61 @@ export default function ProfileScreen() {
               </Text>
             </Pressable>
           ) : (
-            profiles.map((p) => (
-              <View
-                key={p.id}
-                style={[
-                  styles.platformCard,
-                  { backgroundColor: c.bgCard, borderColor: c.border },
-                ]}
-              >
-                {p.profile_image_url ? (
-                  <Image
-                    source={{ uri: p.profile_image_url }}
-                    style={styles.platformAvatar}
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.platformIcon,
-                      { backgroundColor: platformBg(p.platform) },
-                    ]}
-                  >
-                    <Text style={styles.platformIconText}>
-                      {platformTag(p.platform)}
-                    </Text>
-                  </View>
-                )}
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={[styles.platformLabel, { color: c.textPrimary }]}
-                    numberOfLines={1}
-                  >
-                    {p.username ? `@${p.username.replace(/^@/, '')}` : platformName(p.platform)}
-                  </Text>
-                  <Text
-                    style={[styles.platformSub, { color: c.textSecondary }]}
-                  >
-                    {platformName(p.platform)} · {(p.followers_count || 0).toLocaleString()} followers
-                  </Text>
-                </View>
+            profiles.map((p) => {
+              const handleText = p.handle
+                ? `@${String(p.handle).replace(/^@/, '')}`
+                : p.display_name || platformName(p.platform);
+              return (
                 <View
+                  key={p.id}
                   style={[
-                    styles.statusPill,
-                    {
-                      backgroundColor:
-                        p.is_connected !== false ? c.greenDim : c.redDim,
-                    },
+                    styles.platformCard,
+                    { backgroundColor: c.bgCard, borderColor: c.border },
                   ]}
                 >
-                  <Text
+                  {p.avatar_url ? (
+                    <Image
+                      source={{ uri: p.avatar_url }}
+                      style={styles.platformAvatar}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        styles.platformIcon,
+                        { backgroundColor: platformBg(p.platform) },
+                      ]}
+                    >
+                      <Text style={styles.platformIconText}>
+                        {platformTag(p.platform)}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[styles.platformLabel, { color: c.textPrimary }]}
+                      numberOfLines={1}
+                    >
+                      {handleText}
+                    </Text>
+                    <Text
+                      style={[styles.platformSub, { color: c.textSecondary }]}
+                    >
+                      {platformName(p.platform)} · {(p.followers_count || 0).toLocaleString()} followers
+                    </Text>
+                  </View>
+                  <View
                     style={[
-                      styles.statusText,
-                      {
-                        color: p.is_connected !== false ? c.green : c.red,
-                      },
+                      styles.statusPill,
+                      { backgroundColor: c.greenDim },
                     ]}
                   >
-                    {p.is_connected !== false ? 'Connected' : 'Offline'}
-                  </Text>
+                    <Text style={[styles.statusText, { color: c.green }]}>
+                      Connected
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
 

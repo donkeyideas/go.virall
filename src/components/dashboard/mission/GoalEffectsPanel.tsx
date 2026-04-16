@@ -154,12 +154,7 @@ export function GoalEffectsPanel({ primaryGoal, variant, compact = false }: Goal
       className={
         isEditorial
           ? `border-2 border-ink bg-surface-card ${compact ? "p-4" : "p-5"}`
-          : `rounded-2xl border border-white/10 ${compact ? "p-4" : "p-5"}`
-      }
-      style={
-        isEditorial
-          ? undefined
-          : { background: "rgba(255, 255, 255, 0.03)" }
+          : `rounded-2xl border border-modern-card-border bg-surface-card ${compact ? "p-4" : "p-5"}`
       }
     >
       {!compact && (
@@ -169,7 +164,7 @@ export function GoalEffectsPanel({ primaryGoal, variant, compact = false }: Goal
             className={
               isEditorial
                 ? "font-serif text-[16px] font-black uppercase tracking-tight text-ink"
-                : "text-[14px] font-bold uppercase tracking-[2px] text-white"
+                : "text-[14px] font-bold uppercase tracking-[2px] text-ink"
             }
           >
             What this unlocks
@@ -186,12 +181,7 @@ export function GoalEffectsPanel({ primaryGoal, variant, compact = false }: Goal
                 className={
                   isEditorial
                     ? "group flex h-full flex-col border border-rule bg-surface-raised p-3 transition-colors hover:border-editorial-red hover:bg-editorial-red/5"
-                    : "group flex h-full flex-col rounded-xl border border-white/10 p-3 transition-colors hover:border-editorial-gold/60"
-                }
-                style={
-                  isEditorial
-                    ? undefined
-                    : { background: "rgba(255, 255, 255, 0.02)" }
+                    : "group flex h-full flex-col rounded-xl border border-modern-card-border bg-surface-raised p-3 transition-colors hover:border-editorial-gold/60"
                 }
               >
                 <div className="mb-1.5 flex items-center gap-2">
@@ -200,7 +190,7 @@ export function GoalEffectsPanel({ primaryGoal, variant, compact = false }: Goal
                     className={
                       isEditorial
                         ? "font-sans text-[10px] font-bold uppercase tracking-[2px] text-ink"
-                        : "text-[10px] font-bold uppercase tracking-[2px] text-white"
+                        : "text-[10px] font-bold uppercase tracking-[2px] text-ink"
                     }
                   >
                     {effect.area}
@@ -210,7 +200,7 @@ export function GoalEffectsPanel({ primaryGoal, variant, compact = false }: Goal
                   className={
                     isEditorial
                       ? "font-sans text-[12px] leading-relaxed text-ink-secondary"
-                      : "text-[12px] leading-relaxed text-white/70"
+                      : "text-[12px] leading-relaxed text-ink-secondary"
                   }
                 >
                   {effect.copy}

@@ -45,26 +45,20 @@ export function GoalProgressCard({ goalProgress, variant }: GoalProgressCardProp
       className={
         isEditorial
           ? "mb-6 border-2 border-ink bg-surface-card p-5"
-          : "mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
-      }
-      style={
-        isEditorial
-          ? undefined
-          : { background: "rgba(255, 255, 255, 0.03)" }
+          : "mb-6 rounded-2xl border border-modern-card-border bg-surface-card p-5"
       }
     >
       <div className="mb-4 flex items-center justify-between gap-3 border-b-2 border-ink pb-2">
         <div className="flex items-center gap-2">
           <Target
             size={16}
-            className={isEditorial ? "text-editorial-red" : undefined}
-            style={isEditorial ? undefined : { color: "#facc15" }}
+            className={isEditorial ? "text-editorial-red" : "text-editorial-blue"}
           />
           <h2
             className={
               isEditorial
                 ? "font-serif text-[18px] font-black uppercase tracking-tight text-ink"
-                : "text-[15px] font-bold uppercase tracking-[2px] text-white"
+                : "text-[15px] font-bold uppercase tracking-[2px] text-ink"
             }
           >
             Goal Progress
@@ -100,9 +94,8 @@ export function GoalProgressCard({ goalProgress, variant }: GoalProgressCardProp
               className={
                 isEditorial
                   ? "border border-rule bg-surface-raised p-4"
-                  : "rounded-xl border border-white/10 p-4"
+                  : "rounded-xl border border-modern-card-border bg-surface-raised p-4"
               }
-              style={isEditorial ? undefined : { background: "rgba(255, 255, 255, 0.02)" }}
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="min-w-0">
@@ -140,7 +133,7 @@ export function GoalProgressCard({ goalProgress, variant }: GoalProgressCardProp
                     className={
                       isEditorial
                         ? "h-2 w-full border border-ink bg-surface-card"
-                        : "h-2 w-full rounded-full bg-white/10"
+                        : "h-2 w-full rounded-full bg-modern-card-border"
                     }
                   >
                     <div

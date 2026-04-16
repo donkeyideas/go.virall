@@ -227,8 +227,11 @@ export async function aiChat(
   for (const providerName of availableProviders) {
     const config = configs.find((c) => c.provider === providerName)!;
 
-    // Try up to 2 attempts per provider (retry once on timeout with 50% more time)
-    const attempts = [timeout, Math.round(timeout * 1.5)];
+    // Single attempt per provider — on timeout/error, fail over to the next
+    // provider instead of retrying the same one with a longer timeout. The
+    // provider failover IS our retry, and doubling up explodes total time
+    // when N profiles × M analyses are all running in parallel.
+    const attempts = [timeout];
 
     for (let attempt = 0; attempt < attempts.length; attempt++) {
       const attemptTimeout = attempts[attempt];
@@ -298,11 +301,6 @@ export async function aiChat(
           is_success: false,
           error_message: errMsg,
         });
-
-        if (isTimeout && attempt === 0) {
-          console.warn(`[aiChat] ${providerName} timed out (${attemptTimeout}ms), retrying with ${attempts[1]}ms...`);
-          continue; // Retry with longer timeout
-        }
 
         console.error(`[aiChat] ${providerName} error (attempt ${attempt + 1}):`, errMsg);
         // Only circuit-break on auth/server errors, not timeouts

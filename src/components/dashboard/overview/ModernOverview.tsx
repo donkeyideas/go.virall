@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
   AreaChart,
   Area,
@@ -22,8 +22,22 @@ import {
   bestFormat,
 } from "./overview-helpers";
 import { TrustScoreDetail } from "@/components/deals/TrustScoreDetail";
-import { MissionBadge } from "./MissionBadge";
-import { GoalProgressCard } from "./GoalProgressCard";
+
+/** Hardcoded accent for modern chip highlights (dark=yellow, light=blue). */
+const ACCENT = { dark: "#facc15", light: "#3A8AC2" } as const;
+
+function useIsDark() {
+  const [dark, setDark] = useState(true);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+    const obs = new MutationObserver(() =>
+      setDark(document.documentElement.classList.contains("dark")),
+    );
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 
 // ============================================================
 // Modern Overview Component
@@ -31,11 +45,13 @@ import { GoalProgressCard } from "./GoalProgressCard";
 
 export function ModernOverview(props: OverviewProps) {
   const d = useOverviewData(props);
+  const dark = useIsDark();
+  const accent = dark ? ACCENT.dark : ACCENT.light;
+  const chipActive: React.CSSProperties = { borderColor: accent, backgroundColor: `${accent}1a`, color: accent };
 
   if (d.profiles.length === 0) {
     return (
       <div>
-        <MissionBadge primaryGoal={props.primaryGoal} variant="modern" />
         <div className="py-20 text-center">
           <h2 className="text-2xl font-bold text-ink">
             Welcome to <span className="text-editorial-accent">Go</span>Virall
@@ -46,7 +62,7 @@ export function ModernOverview(props: OverviewProps) {
           </p>
           <a
             href="/dashboard/guide"
-            className="mt-5 inline-block rounded-lg bg-yellow-400 px-6 py-2.5 text-[12px] font-bold uppercase tracking-wider text-black transition-opacity hover:opacity-90"
+            className="mt-5 inline-block rounded-lg bg-editorial-blue px-6 py-2.5 text-[12px] font-bold uppercase tracking-wider text-white transition-opacity hover:opacity-90"
           >
             Getting Started Guide
           </a>
@@ -57,8 +73,6 @@ export function ModernOverview(props: OverviewProps) {
 
   return (
     <div>
-      <MissionBadge primaryGoal={props.primaryGoal} variant="modern" />
-      <GoalProgressCard goalProgress={props.goalProgress} variant="modern" />
       {/* ──── Profile Selector ──── */}
       <div className="flex flex-wrap items-center gap-2 border-b border-modern-card-border pb-3 mb-4">
         <button
@@ -66,22 +80,26 @@ export function ModernOverview(props: OverviewProps) {
           className={cn(
             "flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
             d.isAllProfiles
-              ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
-              : "border-modern-card-border bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
+              ? ""
+              : "border-modern-card-border bg-surface-card text-ink-secondary",
           )}
+          style={d.isAllProfiles ? chipActive : undefined}
         >
           All Profiles
         </button>
-        {d.profiles.map((profile) => (
+        {d.profiles.map((profile) => {
+          const isActive = d.selectedProfileId === profile.id;
+          return (
           <button
             key={profile.id}
             onClick={() => d.setSelectedProfileId(profile.id)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all",
-              d.selectedProfileId === profile.id
-                ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
-                : "border-modern-card-border bg-surface-card text-yellow-400/70 hover:border-yellow-400 hover:text-yellow-400",
+              isActive
+                ? ""
+                : "border-modern-card-border bg-surface-card text-ink-secondary",
             )}
+            style={isActive ? chipActive : undefined}
           >
             <PlatformIcon platform={profile.platform} size={14} />
             @{profile.handle}
@@ -91,7 +109,8 @@ export function ModernOverview(props: OverviewProps) {
               </span>
             )}
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {/* ──── KPI Grid ──── */}

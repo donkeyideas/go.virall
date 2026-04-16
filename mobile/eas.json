@@ -39,9 +39,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "REPLACE_WITH_APPLE_ID",
-        "ascAppId": "REPLACE_WITH_ASC_APP_ID",
-        "appleTeamId": "REPLACE_WITH_TEAM_ID"
+        "appleId": "info@donkeyideas.com",
+        "ascAppId": "6761445990",
+        "appleTeamId": "549N7WX2TL"
       },
       "android": {
         "serviceAccountKeyPath": "./play-service-account.json",

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Go Virall",
-    "slug": "go-virall",
+    "slug": "go-virall-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.govirall.app",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#0C0A14",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,7 +44,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#d4a843"
+          "color": "#ffb84d"
         }
       ],
       "expo-secure-store",
@@ -64,6 +65,13 @@
     },
     "updates": {
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "873cc5e6-943d-45da-9d34-a0876beab334"
+      }
+    },
+    "owner": "donkeyideas"
   }
 }
