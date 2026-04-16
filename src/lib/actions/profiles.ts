@@ -238,24 +238,36 @@ export async function addSocialProfile(formData: FormData) {
     return { error: "Failed to set up your account. Please try again." };
   }
 
-  // Check plan limits
+  // Check user role (superadmins bypass plan limits)
   const admin = createAdminClient();
-  const { data: org } = await admin
-    .from("organizations")
-    .select("max_social_profiles")
-    .eq("id", orgId)
+  const { data: userProfile } = await admin
+    .from("profiles")
+    .select("system_role")
+    .eq("id", user.id)
     .single();
+  const isSuperadmin =
+    userProfile?.system_role === "superadmin" ||
+    userProfile?.system_role === "admin";
 
-  const { count } = await admin
-    .from("social_profiles")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", orgId);
+  // Check plan limits (skip for admins/superadmins)
+  if (!isSuperadmin) {
+    const { data: org } = await admin
+      .from("organizations")
+      .select("max_social_profiles")
+      .eq("id", orgId)
+      .single();
 
-  if (org && (count ?? 0) >= org.max_social_profiles) {
-    return {
-      error: `Your current plan allows ${org.max_social_profiles} connected profile${org.max_social_profiles === 1 ? "" : "s"}. Upgrade your plan to connect more accounts.`,
-      planLimitReached: true,
-    };
+    const { count } = await admin
+      .from("social_profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId);
+
+    if (org && (count ?? 0) >= org.max_social_profiles) {
+      return {
+        error: `Your current plan allows ${org.max_social_profiles} connected profile${org.max_social_profiles === 1 ? "" : "s"}. Upgrade your plan to connect more accounts.`,
+        planLimitReached: true,
+      };
+    }
   }
 
   // Check for duplicate
@@ -270,14 +282,6 @@ export async function addSocialProfile(formData: FormData) {
   if (existing) {
     return { error: `@${cleanHandle} on ${platform} is already added.` };
   }
-
-  // Cross-org duplicate check (skip for superadmins)
-  const { data: userProfile } = await admin
-    .from("profiles")
-    .select("system_role")
-    .eq("id", user.id)
-    .single();
-  const isSuperadmin = userProfile?.system_role === "superadmin";
 
   if (!isSuperadmin) {
     const { data: verifiedElsewhere } = await admin

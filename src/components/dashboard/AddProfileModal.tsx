@@ -168,7 +168,7 @@ export function AddProfileModal({
                 className={cn(
                   "flex flex-col items-center gap-2 border px-3 py-3.5 text-xs font-medium transition-colors",
                   isSelected
-                    ? "border-rule-dark bg-surface-raised text-editorial-red"
+                    ? "border-editorial-gold bg-surface-raised text-editorial-gold"
                     : "border-rule bg-surface-raised text-ink-secondary hover:border-ink-muted hover:text-ink",
                 )}
               >
