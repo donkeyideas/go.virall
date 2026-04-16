@@ -78,15 +78,42 @@ export async function GET(req: NextRequest) {
   if (uniqueIds.length > 0) {
     const { data: profiles } = await supabaseAdmin
       .from("profiles")
-      .select("id, full_name, avatar_url, account_type, company_name")
+      .select(
+        "id, full_name, avatar_url, account_type, company_name, brand_logo_url, username",
+      )
       .in("id", uniqueIds);
-    profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    profileMap = new Map(
+      (profiles ?? []).map((p: any) => [
+        p.id,
+        {
+          ...p,
+          avatar_url: p.avatar_url || p.brand_logo_url || null,
+          display_name:
+            p.full_name ||
+            p.company_name ||
+            (p.username ? `@${p.username}` : null) ||
+            (p.account_type === "brand" ? "Brand Partner" : "Creator"),
+        },
+      ]),
+    );
   }
 
   const enriched = threads.map((t: any) => {
     const otherId = t.participant_1 === userId ? t.participant_2 : t.participant_1;
     const unreadCount = t.participant_1 === userId ? t.unread_count_1 : t.unread_count_2;
-    return { ...t, other_user: profileMap.get(otherId) ?? null, unread_count: unreadCount };
+    return {
+      ...t,
+      other_user:
+        profileMap.get(otherId) ?? {
+          id: otherId,
+          full_name: null,
+          avatar_url: null,
+          account_type: "creator",
+          company_name: null,
+          display_name: "Brand Partner",
+        },
+      unread_count: unreadCount,
+    };
   });
 
   return NextResponse.json({ data: enriched });

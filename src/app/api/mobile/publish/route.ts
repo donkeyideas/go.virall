@@ -1,22 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
-async function authenticateRequest(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(authHeader.slice(7));
-  if (error || !user) {
-    return { error: NextResponse.json({ error: "Invalid token" }, { status: 401 }) };
-  }
-  return { user };
-}
+import {
+  supabaseAdmin,
+  authenticateRequest,
+  getAuthContext,
+} from "../_shared/auth";
 
 async function getOrgId(userId: string): Promise<string | null> {
   const { data } = await supabaseAdmin
@@ -66,11 +53,9 @@ export async function GET(req: NextRequest) {
 
 /** POST — Create a scheduled post */
 export async function POST(req: NextRequest) {
-  const auth = await authenticateRequest(req);
-  if ("error" in auth) return auth.error;
-
-  const orgId = await getOrgId(auth.user.id);
-  if (!orgId) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+  const authResult = await getAuthContext(req);
+  if ("error" in authResult) return authResult.error;
+  const { ctx } = authResult;
 
   const body = await req.json();
   const { platform, content, hashtags, scheduled_at, social_profile_id, status, media_urls } = body;
@@ -78,6 +63,21 @@ export async function POST(req: NextRequest) {
   if (!platform || !content?.trim()) {
     return NextResponse.json({ error: "platform and content are required" }, { status: 400 });
   }
+
+  // B6: Enforce cross_platform_publishing feature flag (superadmins bypass)
+  if (!ctx.isSuperadmin && !ctx.limits.cross_platform_publishing) {
+    return NextResponse.json(
+      {
+        error: `Scheduled publishing is a Business plan feature. Upgrade to continue.`,
+        planLimitReached: true,
+        limit: "cross_platform_publishing",
+        upgradeUrl: "/dashboard/billing",
+      },
+      { status: 403 },
+    );
+  }
+
+  const orgId = ctx.orgId;
 
   const postStatus = status || "draft";
   if (postStatus === "scheduled" && !scheduled_at) {
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   const { data: post, error } = await supabaseAdmin
     .from("scheduled_posts")
     .insert({
-      user_id: auth.user.id,
+      user_id: ctx.user.id,
       organization_id: orgId,
       platform,
       content: content.trim(),

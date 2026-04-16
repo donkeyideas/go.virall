@@ -133,18 +133,9 @@ export default async function BusinessPage({ searchParams }: PageProps) {
     );
   }
 
+  // Legacy redirect: "goals" tab has moved to /dashboard/mission
   if (tab === "goals") {
-    const profiles = await getSocialProfiles();
-    return (
-      <Suspense>
-        <BusinessHubClient
-          activeTab="goals"
-          goalsProfiles={profiles}
-          currentUserId={user.id}
-          accountType={accountType}
-        />
-      </Suspense>
-    );
+    redirect("/dashboard/mission");
   }
 
   // Fallback to deals

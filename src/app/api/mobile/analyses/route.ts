@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import {
+  supabaseAdmin,
+  getAuthContext,
+  getMonthlyUsage,
+  logUsageEvent,
+  planLimitResponse,
+  isWithinLimit,
+} from "../_shared/auth";
 
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const token = authHeader.slice(7);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabaseAdmin.auth.getUser(token);
-  if (authError || !user) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
+  const result = await getAuthContext(req);
+  if ("error" in result) return result.error;
+  const { ctx } = result;
 
   const body = await req.json();
   const { profileId, analysisType } = body;
@@ -31,18 +23,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Verify profile belongs to the user's organization
-  const { data: userProfile } = await supabaseAdmin
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .single();
-
-  if (!userProfile?.organization_id) {
-    return NextResponse.json(
-      { error: "Organization not found" },
-      { status: 404 },
-    );
+  // B6: Enforce ai_insights_per_month limit (superadmins bypass)
+  if (!ctx.isSuperadmin) {
+    const usage = await getMonthlyUsage(ctx.orgId, "ai_insight_generated");
+    if (!isWithinLimit(usage, ctx.limits.ai_insights_per_month)) {
+      return planLimitResponse(
+        "ai_insights_per_month",
+        ctx.plan,
+        usage,
+        ctx.limits.ai_insights_per_month,
+      );
+    }
   }
 
   // Get the social profile — scoped to user's org
@@ -50,7 +41,7 @@ export async function POST(req: NextRequest) {
     .from("social_profiles")
     .select("*")
     .eq("id", profileId)
-    .eq("organization_id", userProfile.organization_id)
+    .eq("organization_id", ctx.orgId)
     .single();
 
   if (!socialProfile) {
@@ -104,13 +95,13 @@ export async function POST(req: NextRequest) {
   try {
     const { analyzeSocialProfile } = await import("@/lib/ai/social-analysis");
 
-    const result = await analyzeSocialProfile({
+    const analysis = await analyzeSocialProfile({
       profile: socialProfile,
       metrics: metrics ?? [],
       competitors,
       goals,
       analysisType,
-      userId: user.id,
+      userId: ctx.user.id,
     });
 
     // Store the result (non-blocking)
@@ -119,10 +110,10 @@ export async function POST(req: NextRequest) {
       .insert({
         social_profile_id: profileId,
         analysis_type: analysisType,
-        result: result.data,
-        ai_provider: result.provider,
-        tokens_used: result.tokensUsed ?? 0,
-        cost_cents: result.costCents ?? 0,
+        result: analysis.data,
+        ai_provider: analysis.provider,
+        tokens_used: analysis.tokensUsed ?? 0,
+        cost_cents: analysis.costCents ?? 0,
         expires_at: new Date(
           Date.now() + 24 * 60 * 60 * 1000,
         ).toISOString(),
@@ -131,7 +122,15 @@ export async function POST(req: NextRequest) {
         if (error) console.error("[analyses/route] DB insert failed:", error.message);
       });
 
-    return NextResponse.json({ success: true, data: result.data });
+    // Log usage event for plan-limit tracking
+    if (!ctx.isSuperadmin) {
+      await logUsageEvent(ctx.orgId, ctx.user.id, "ai_insight_generated", {
+        analysis_type: analysisType,
+        profile_id: profileId,
+      });
+    }
+
+    return NextResponse.json({ success: true, data: analysis.data });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Analysis failed";

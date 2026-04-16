@@ -3,7 +3,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import type { AnalysisType } from "@/types";
+import type { AnalysisType, PrimaryGoal } from "@/types";
+
+/** Fetch the current user's primary_goal (user-level ambition fallback). */
+async function fetchPrimaryGoal(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string,
+): Promise<PrimaryGoal | null> {
+  const { data } = await admin
+    .from("profiles")
+    .select("primary_goal")
+    .eq("id", userId)
+    .single();
+  return (data?.primary_goal as PrimaryGoal | null) ?? null;
+}
 
 export async function runAnalysis(profileId: string, analysisType: AnalysisType) {
   const supabase = await createClient();
@@ -50,26 +63,18 @@ export async function runAnalysis(profileId: string, analysisType: AnalysisType)
     competitors = comps ?? [];
   }
 
-  // Get goals (for relevant analysis types)
-  let goals = null;
-  if (
-    [
-      "growth",
-      "content_strategy",
-      "insights",
-      "earnings_forecast",
-      "thirty_day_plan",
-    ].includes(analysisType)
-  ) {
-    const { data: goal } = await admin
-      .from("social_goals")
-      .select("*")
-      .eq("social_profile_id", profileId)
-      .eq("is_active", true)
-      .limit(1)
-      .single();
-    goals = goal;
-  }
+  // Get goals (per-profile active goal)
+  const { data: goal } = await admin
+    .from("social_goals")
+    .select("*")
+    .eq("social_profile_id", profileId)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+  const goals = goal;
+
+  // User-level ambition fallback — used by prompts when no per-profile goal
+  const primaryGoal = await fetchPrimaryGoal(admin, user.id);
 
   try {
     // Import AI analysis function dynamically
@@ -80,6 +85,7 @@ export async function runAnalysis(profileId: string, analysisType: AnalysisType)
       metrics: metrics ?? [],
       competitors,
       goals,
+      primaryGoal,
       analysisType,
       userId: user.id,
     });
@@ -146,7 +152,10 @@ export async function runRecommendations(profileId: string) {
     .eq("social_profile_id", profileId)
     .eq("is_active", true)
     .limit(1)
-    .single();
+    .maybeSingle();
+
+  // User-level ambition fallback
+  const primaryGoal = await fetchPrimaryGoal(admin, user.id);
 
   // Fetch ALL existing analyses for this profile
   const { data: allAnalyses } = await admin
@@ -178,6 +187,7 @@ export async function runRecommendations(profileId: string) {
       profile: socialProfile,
       metrics: metrics ?? [],
       goals: goal,
+      primaryGoal,
       analyses: analysesRecord as never,
     });
 
@@ -254,7 +264,7 @@ export async function runAllAnalyses(profileId: string) {
       const admin = createAdminClient();
       const { data: profile } = await admin
         .from("social_profiles")
-        .select("platform, niche, display_name, handle")
+        .select("platform, niche, display_name, handle, organization_id")
         .eq("id", profileId)
         .single();
 
@@ -268,6 +278,19 @@ export async function runAllAnalyses(profileId: string) {
         .order("date", { ascending: false })
         .limit(10);
 
+      // Fetch the org owner's primary_goal for goal-aware content generation
+      let primaryGoal: PrimaryGoal | null = null;
+      if (profile?.organization_id) {
+        const { data: owner } = await admin
+          .from("profiles")
+          .select("primary_goal")
+          .eq("organization_id", profile.organization_id)
+          .eq("role", "owner")
+          .limit(1)
+          .maybeSingle();
+        primaryGoal = (owner?.primary_goal as PrimaryGoal | null) ?? null;
+      }
+
       // Only generate post_ideas in Run All — other types generated on-demand from AI Studio
       const cgResult = await generateContentAI({
         profile: profile as Record<string, unknown>,
@@ -276,6 +299,7 @@ export async function runAllAnalyses(profileId: string) {
         topic: niche,
         tone: "Professional",
         count: 5,
+        primaryGoal,
       });
       const resultData = { contentType: "post_ideas", topic: niche, tone: "Professional", ...cgResult.data };
       const { error: cgInsertError } = await admin.from("social_analyses").insert({

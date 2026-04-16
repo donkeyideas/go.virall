@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'react-native';
 import { ThemeProvider, useTheme } from '../contexts/theme-context';
 import { AuthProvider } from '../contexts/auth-context';
+import { ToastProvider } from '../components/cockpit/Toast';
+import { AppModalProvider } from '../components/cockpit/AppModal';
 
 function RootNav() {
   const { colors, mode } = useTheme();
@@ -11,6 +13,7 @@ function RootNav() {
       <Stack initialRouteName="index" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(drawer)" />
       </Stack>
     </>
@@ -21,7 +24,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RootNav />
+        <AppModalProvider>
+          <ToastProvider>
+            <RootNav />
+          </ToastProvider>
+        </AppModalProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { setCachedPosts } from "@/lib/cache/posts-cache";
+import { seedGoalFromPrimary } from "@/lib/goals/seed";
 import type { SocialPlatform } from "@/types";
 
 interface RecentPost {
@@ -356,6 +357,8 @@ export async function addSocialProfile(formData: FormData) {
       if (scraped.recentPosts && scraped.recentPosts.length > 0) {
         setCachedPosts(retry.id, scraped.recentPosts);
       }
+      // Auto-seed a social_goal from the user's primary_goal (Phase 2)
+      await seedGoalFromPrimary(user.id, retry.id, scraped.followersCount || 0);
       revalidatePath("/dashboard");
       return { success: true, profileId: retry.id };
     }
@@ -366,6 +369,9 @@ export async function addSocialProfile(formData: FormData) {
   if (scraped.recentPosts && scraped.recentPosts.length > 0) {
     setCachedPosts(newProfile.id, scraped.recentPosts);
   }
+
+  // Auto-seed a social_goal from the user's primary_goal (Phase 2)
+  await seedGoalFromPrimary(user.id, newProfile.id, scraped.followersCount || 0);
 
   revalidatePath("/dashboard");
   return { success: true, profileId: newProfile.id };

@@ -22,6 +22,8 @@ import {
   bestFormat,
 } from "./overview-helpers";
 import { TrustScoreDetail } from "@/components/deals/TrustScoreDetail";
+import { MissionBadge } from "./MissionBadge";
+import { GoalProgressCard } from "./GoalProgressCard";
 
 // ============================================================
 // Modern Overview Component
@@ -32,26 +34,31 @@ export function ModernOverview(props: OverviewProps) {
 
   if (d.profiles.length === 0) {
     return (
-      <div className="py-20 text-center">
-        <h2 className="text-2xl font-bold text-ink">
-          Welcome to <span className="text-editorial-accent">Go</span>Virall
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
-          Connect your first social media profile in the Profiles tab to unlock
-          analytics, growth strategies, and content intelligence.
-        </p>
-        <a
-          href="/dashboard/guide"
-          className="mt-5 inline-block rounded-lg bg-yellow-400 px-6 py-2.5 text-[12px] font-bold uppercase tracking-wider text-black transition-opacity hover:opacity-90"
-        >
-          Getting Started Guide
-        </a>
+      <div>
+        <MissionBadge primaryGoal={props.primaryGoal} variant="modern" />
+        <div className="py-20 text-center">
+          <h2 className="text-2xl font-bold text-ink">
+            Welcome to <span className="text-editorial-accent">Go</span>Virall
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-sm text-ink-secondary">
+            Connect your first social media profile in the Profiles tab to unlock
+            analytics, growth strategies, and content intelligence.
+          </p>
+          <a
+            href="/dashboard/guide"
+            className="mt-5 inline-block rounded-lg bg-yellow-400 px-6 py-2.5 text-[12px] font-bold uppercase tracking-wider text-black transition-opacity hover:opacity-90"
+          >
+            Getting Started Guide
+          </a>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
+      <MissionBadge primaryGoal={props.primaryGoal} variant="modern" />
+      <GoalProgressCard goalProgress={props.goalProgress} variant="modern" />
       {/* ──── Profile Selector ──── */}
       <div className="flex flex-wrap items-center gap-2 border-b border-modern-card-border pb-3 mb-4">
         <button

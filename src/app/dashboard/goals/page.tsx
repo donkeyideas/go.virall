@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function GoalsPage() {
-  redirect("/dashboard/business?tab=goals");
+  redirect("/dashboard/mission");
 }

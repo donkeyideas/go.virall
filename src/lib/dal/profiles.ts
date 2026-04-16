@@ -1,7 +1,23 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { SocialProfile, SocialMetrics } from "@/types";
+import type { SocialProfile, SocialMetrics, PrimaryGoal } from "@/types";
+
+export async function getUserPrimaryGoal(): Promise<PrimaryGoal | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("primary_goal")
+    .eq("id", user.id)
+    .single();
+
+  return (data?.primary_goal as PrimaryGoal | null) ?? null;
+}
 
 export async function getSocialProfiles(): Promise<SocialProfile[]> {
   const supabase = await createClient();

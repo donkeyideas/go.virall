@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
-async function authenticateRequest(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(authHeader.slice(7));
-  if (error || !user) {
-    return { error: NextResponse.json({ error: "Invalid token" }, { status: 401 }) };
-  }
-  return { user };
-}
+import {
+  supabaseAdmin,
+  authenticateRequest,
+  getAuthContext,
+  getMonthlyUsage,
+  logUsageEvent,
+  planLimitResponse,
+  isWithinLimit,
+} from "../_shared/auth";
 
 // Status transition state machine
 const ALLOWED_TRANSITIONS: Record<string, Record<string, string[]>> = {
@@ -130,8 +121,10 @@ export async function GET(req: NextRequest) {
 
 /** POST — Create a proposal */
 export async function POST(req: NextRequest) {
-  const auth = await authenticateRequest(req);
-  if ("error" in auth) return auth.error;
+  const authResult = await getAuthContext(req);
+  if ("error" in authResult) return authResult.error;
+  const { ctx } = authResult;
+  const auth = { user: ctx.user };
 
   const body = await req.json();
   const {
@@ -141,6 +134,19 @@ export async function POST(req: NextRequest) {
 
   if (!receiver_id || !title) {
     return NextResponse.json({ error: "receiver_id and title are required" }, { status: 400 });
+  }
+
+  // B6: Enforce max_proposals_per_month limit (superadmins bypass)
+  if (!ctx.isSuperadmin) {
+    const usage = await getMonthlyUsage(ctx.orgId, "proposal_created");
+    if (!isWithinLimit(usage, ctx.limits.max_proposals_per_month)) {
+      return planLimitResponse(
+        "max_proposals_per_month",
+        ctx.plan,
+        usage,
+        ctx.limits.max_proposals_per_month,
+      );
+    }
   }
 
   // Validate receiver exists
@@ -206,6 +212,13 @@ export async function POST(req: NextRequest) {
     event_type: proposalStatus === "draft" ? "created_draft" : "sent",
     details: {},
   });
+
+  // B6: Log usage event for plan-limit tracking
+  if (!ctx.isSuperadmin) {
+    await logUsageEvent(ctx.orgId, auth.user.id, "proposal_created", {
+      proposal_id: proposal.id,
+    });
+  }
 
   return NextResponse.json({ success: true, proposalId: proposal.id });
 }

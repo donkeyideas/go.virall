@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import {
+  supabaseAdmin,
+  getAuthContext,
+  getMonthlyUsage,
+  logUsageEvent,
+  planLimitResponse,
+  isWithinLimit,
+} from "../_shared/auth";
 
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const token = authHeader.slice(7);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabaseAdmin.auth.getUser(token);
-  if (authError || !user) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
+  const result = await getAuthContext(req);
+  if ("error" in result) return result.error;
+  const { ctx } = result;
 
   const body = await req.json();
   const { profileId, contentType, topic, tone, count } = body;
@@ -31,18 +23,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Verify profile belongs to the user's organization
-  const { data: userProfile } = await supabaseAdmin
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .single();
-
-  if (!userProfile?.organization_id) {
-    return NextResponse.json(
-      { error: "Organization not found" },
-      { status: 404 },
-    );
+  // B6: Enforce ai_content_per_month limit (superadmins bypass)
+  if (!ctx.isSuperadmin) {
+    const usage = await getMonthlyUsage(ctx.orgId, "ai_content_generated");
+    if (!isWithinLimit(usage, ctx.limits.ai_content_per_month)) {
+      return planLimitResponse(
+        "ai_content_per_month",
+        ctx.plan,
+        usage,
+        ctx.limits.ai_content_per_month,
+      );
+    }
   }
 
   // Get the social profile — scoped to user's org
@@ -50,7 +41,7 @@ export async function POST(req: NextRequest) {
     .from("social_profiles")
     .select("*")
     .eq("id", profileId)
-    .eq("organization_id", userProfile.organization_id)
+    .eq("organization_id", ctx.orgId)
     .single();
 
   if (!socialProfile) {
@@ -68,19 +59,28 @@ export async function POST(req: NextRequest) {
     .order("date", { ascending: false })
     .limit(10);
 
+  // User-level ambition — tunes content hook/CTA/format choices
+  const { data: userProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("primary_goal")
+    .eq("id", ctx.user.id)
+    .single();
+  const primaryGoal = userProfile?.primary_goal ?? null;
+
   try {
     const { generateContentAI } = await import("@/lib/ai/content-generator");
 
-    const result = await generateContentAI({
+    const generated = await generateContentAI({
       profile: socialProfile,
       metrics: metrics ?? [],
       contentType,
       topic,
       tone: tone || "Professional",
       count: count || 5,
+      primaryGoal,
     });
 
-    const resultData = { contentType, topic, tone, ...result.data };
+    const resultData = { contentType, topic, tone, ...generated.data };
 
     // Save to DB (non-blocking)
     supabaseAdmin
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         social_profile_id: profileId,
         analysis_type: "content_generator",
         result: resultData,
-        ai_provider: result.provider,
+        ai_provider: generated.provider,
         tokens_used: 0,
         cost_cents: 0,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
@@ -97,6 +97,14 @@ export async function POST(req: NextRequest) {
       .then(({ error }) => {
         if (error) console.error("[content/route] DB insert failed:", error.message);
       });
+
+    // Log usage event for plan-limit tracking
+    if (!ctx.isSuperadmin) {
+      await logUsageEvent(ctx.orgId, ctx.user.id, "ai_content_generated", {
+        content_type: contentType,
+        profile_id: profileId,
+      });
+    }
 
     return NextResponse.json({ success: true, data: resultData });
   } catch (err) {

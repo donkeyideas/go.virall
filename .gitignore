@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# mobile (Expo/EAS)
+mobile/.expo/
+mobile/dist/
+mobile/ios/
+mobile/android/
+mobile/*.jks
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
+mobile/google-services.json
+mobile/GoogleService-Info.plist
+mobile/play-service-account.json
+

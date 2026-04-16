@@ -12,8 +12,10 @@ import type {
   SocialMetrics,
   RecentPost,
   TrustScore,
+  PrimaryGoal,
 } from "@/types";
 import type { RevenueStats } from "@/lib/dal/revenue";
+import type { GoalProgress } from "@/lib/dal/goals";
 import {
   getResult,
   extractGrowthBrief,
@@ -42,6 +44,8 @@ export interface OverviewProps {
   metricsMap: Record<string, SocialMetrics[]>;
   trustScore: TrustScore | null;
   revenueStats: RevenueStats | null;
+  primaryGoal: PrimaryGoal | null;
+  goalProgress: GoalProgress[];
 }
 
 // ============================================================

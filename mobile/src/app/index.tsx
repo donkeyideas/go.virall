@@ -18,7 +18,7 @@ export default function SplashScreen() {
       useNativeDriver: false,
     }).start(() => {
       if (!loading) {
-        router.replace(user ? '/(drawer)' : '/(auth)/login');
+        router.replace(user ? '/(tabs)' : '/(auth)/login');
       }
     });
   }, [loading, user]);

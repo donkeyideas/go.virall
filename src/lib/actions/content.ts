@@ -42,6 +42,14 @@ export async function generateContentAction(
     .order("date", { ascending: false })
     .limit(10);
 
+  // User-level ambition — tunes content hook/CTA/format choices
+  const { data: userProfile } = await admin
+    .from("profiles")
+    .select("primary_goal")
+    .eq("id", user.id)
+    .single();
+  const primaryGoal = userProfile?.primary_goal ?? null;
+
   let resultData: Record<string, unknown>;
   let provider: string;
   let tokensUsed = 0;
@@ -57,6 +65,7 @@ export async function generateContentAction(
       topic,
       tone,
       count,
+      primaryGoal,
     });
 
     resultData = { contentType, topic, tone, ...result.data } as Record<string, unknown>;

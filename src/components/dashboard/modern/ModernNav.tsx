@@ -16,6 +16,7 @@ import {
   Bell,
   User,
   CreditCard,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/lib/contexts/view-mode";
@@ -25,6 +26,7 @@ import { NotificationModal } from "@/components/dashboard/NotificationModal";
 
 const ALL_NAV_ITEMS = [
   { label: "Overview", href: "/dashboard", icon: Home },
+  { label: "Mission", href: "/dashboard/mission", icon: Target },
   { label: "Profiles", href: "/dashboard/profiles", icon: User },
   { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
   { label: "Content", href: "/dashboard/content", icon: PenTool },
@@ -350,7 +352,7 @@ export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, no
                 fontSize: 12,
                 fontWeight: isActive ? 700 : 600,
                 color: isActive
-                  ? "var(--color-editorial-red)"
+                  ? "#facc15"
                   : "var(--color-ink-secondary)",
                 textDecoration: "none",
                 cursor: "pointer",
@@ -372,7 +374,7 @@ export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, no
                     left: 8,
                     right: 8,
                     height: 2,
-                    background: "var(--color-editorial-red)",
+                    background: "#facc15",
                     borderRadius: "2px 2px 0 0",
                   }}
                 />

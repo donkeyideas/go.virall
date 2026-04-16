@@ -21,6 +21,8 @@ export interface Organization {
 
 export type AccountType = "creator" | "brand";
 
+export type PrimaryGoal = "grow_audience" | "make_money" | "build_brand" | "drive_traffic";
+
 export interface Profile {
   id: string;
   organization_id: string | null;
@@ -34,6 +36,7 @@ export interface Profile {
   system_role: string;
   timezone: string;
   account_type: AccountType;
+  primary_goal: PrimaryGoal | null;
   company_name: string | null;
   company_website: string | null;
   company_size: string | null;

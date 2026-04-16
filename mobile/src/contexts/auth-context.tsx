@@ -1,10 +1,41 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as Linking from 'expo-linking';
-import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
-WebBrowser.maybeCompleteAuthSession();
+// Native modules (Google Sign-In, Apple Auth) are NOT available in Expo Go.
+// They're lazy-loaded inside the sign-in handlers so the app can still boot in
+// Expo Go for day-to-day testing of everything else.
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+
+let googleConfigured = false;
+function loadGoogleSignin(): any | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require('@react-native-google-signin/google-signin');
+    if (!googleConfigured && GOOGLE_WEB_CLIENT_ID) {
+      mod.GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        iosClientId: GOOGLE_IOS_CLIENT_ID,
+        offlineAccess: false,
+      });
+      googleConfigured = true;
+    }
+    return mod;
+  } catch {
+    return null;
+  }
+}
+
+function loadAppleAuth(): any | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('expo-apple-authentication');
+  } catch {
+    return null;
+  }
+}
 
 interface Profile {
   id: string;
@@ -116,41 +147,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signInWithProvider = async (provider: 'google' | 'apple') => {
+  const signInWithApple = async (): Promise<{ error: string | null }> => {
+    const AppleAuthentication = loadAppleAuth();
+    if (!AppleAuthentication) {
+      return { error: 'Apple Sign-In requires a dev build (not available in Expo Go).' };
+    }
     try {
-      const redirectTo = Linking.createURL('/');
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo, skipBrowserRedirect: true },
-      });
-      if (error) return { error: error.message };
-      if (!data?.url) return { error: 'Could not get auth URL.' };
-
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-      if (result.type !== 'success') return { error: null }; // user cancelled
-
-      // Parse tokens from redirect URL
-      const url = result.url;
-      const hashPart = url.includes('#') ? url.split('#')[1] : '';
-      const searchPart = url.includes('?') ? url.split('?')[1]?.split('#')[0] : '';
-      const combined = [searchPart, hashPart].filter(Boolean).join('&');
-      const params = Object.fromEntries(new URLSearchParams(combined));
-
-      if (params.error_code || params.error) {
-        return { error: params.error_description || params.error || 'OAuth error' };
+      const available = await AppleAuthentication.isAvailableAsync();
+      if (!available) {
+        return { error: 'Apple Sign-In is not available on this device.' };
       }
 
-      const { access_token, refresh_token } = params;
-      if (!access_token) return { error: 'No access token returned.' };
-
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
       });
-      return { error: sessionError?.message ?? null };
+
+      if (!credential.identityToken) {
+        return { error: 'No identity token returned by Apple.' };
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+      return { error: error?.message ?? null };
     } catch (e: any) {
-      return { error: e.message || 'OAuth sign-in failed.' };
+      // user cancelled — treat as non-error
+      if (e?.code === 'ERR_REQUEST_CANCELED') return { error: null };
+      return { error: e?.message || 'Apple Sign-In failed.' };
     }
+  };
+
+  const signInWithGoogle = async (): Promise<{ error: string | null }> => {
+    const mod = loadGoogleSignin();
+    if (!mod) {
+      return { error: 'Google Sign-In requires a dev build (not available in Expo Go).' };
+    }
+    const { GoogleSignin, statusCodes } = mod;
+    try {
+      if (!GOOGLE_WEB_CLIENT_ID) {
+        return { error: 'Google Sign-In is not configured.' };
+      }
+
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+      // v16 returns { type: 'success', data: { idToken, user } } or { type: 'cancelled' }
+      if (response.type === 'cancelled') return { error: null };
+
+      const idToken = response.data?.idToken;
+      if (!idToken) return { error: 'No idToken returned by Google.' };
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+      return { error: error?.message ?? null };
+    } catch (e: any) {
+      if (
+        e?.code === statusCodes.SIGN_IN_CANCELLED ||
+        e?.code === statusCodes.IN_PROGRESS
+      ) {
+        return { error: null };
+      }
+      if (e?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        return { error: 'Google Play Services unavailable.' };
+      }
+      return { error: e?.message || 'Google Sign-In failed.' };
+    }
+  };
+
+  const signInWithProvider = async (provider: 'google' | 'apple') => {
+    if (provider === 'apple') {
+      if (Platform.OS !== 'ios') {
+        return { error: 'Apple Sign-In is only available on iOS.' };
+      }
+      return signInWithApple();
+    }
+    return signInWithGoogle();
   };
 
   const signOut = async () => {

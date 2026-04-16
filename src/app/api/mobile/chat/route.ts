@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { aiChat, aiChatWithBYOK } from "@/lib/ai/provider";
 import { buildChatContext } from "@/lib/ai/chat-context";
+import {
+  getAuthContext,
+  getDailyUsage,
+  logUsageEvent,
+  planLimitResponse,
+  isWithinLimit,
+} from "../_shared/auth";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,20 +16,10 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  // Authenticate via Bearer token (Supabase JWT)
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const token = authHeader.slice(7);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabaseAdmin.auth.getUser(token);
-  if (authError || !user) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
+  const authResult = await getAuthContext(req);
+  if ("error" in authResult) return authResult.error;
+  const { ctx } = authResult;
+  const user = ctx.user;
 
   let body: any;
   try {
@@ -41,25 +38,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Message too long (max 10,000 characters)" }, { status: 400 });
   }
 
-  // Get user profile for personalization
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("full_name, organization_id")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.organization_id) {
-    return NextResponse.json({ error: "No organization found" }, { status: 400 });
+  // B6: Enforce chat_messages_per_day (superadmins bypass)
+  if (!ctx.isSuperadmin) {
+    const dailyUsage = await getDailyUsage(user.id, "chat_message_sent");
+    if (!isWithinLimit(dailyUsage, ctx.limits.chat_messages_per_day)) {
+      return planLimitResponse(
+        "chat_messages_per_day",
+        ctx.plan,
+        dailyUsage,
+        ctx.limits.chat_messages_per_day,
+      );
+    }
   }
 
   // Resolve or create conversation
   let activeConversationId = conversationId;
   if (!activeConversationId) {
+    // B6: Enforce max_conversations on new conversation creation
+    if (!ctx.isSuperadmin && ctx.limits.max_conversations !== -1) {
+      const { count: convCount } = await supabaseAdmin
+        .from("chat_conversations")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", ctx.orgId)
+        .eq("user_id", user.id);
+
+      if (!isWithinLimit(convCount ?? 0, ctx.limits.max_conversations)) {
+        return planLimitResponse(
+          "max_conversations",
+          ctx.plan,
+          convCount ?? 0,
+          ctx.limits.max_conversations,
+        );
+      }
+    }
+
     const title = message.slice(0, 80) + (message.length > 80 ? "..." : "");
     const { data: newConv, error: convError } = await supabaseAdmin
       .from("chat_conversations")
       .insert({
-        organization_id: profile.organization_id,
+        organization_id: ctx.orgId,
         user_id: user.id,
         title,
       })
@@ -92,10 +109,16 @@ export async function POST(req: NextRequest) {
     });
 
   // Build rich context from user's data
+  const { data: userProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+
   const chatContext = await buildChatContext(
     user.id,
-    profile.organization_id,
-    profile.full_name,
+    ctx.orgId,
+    userProfile?.full_name ?? null,
   );
 
   // Get conversation history (last 20 messages)
@@ -187,7 +210,7 @@ export async function POST(req: NextRequest) {
   supabaseAdmin
     .from("ai_interactions")
     .insert({
-      organization_id: profile.organization_id,
+      organization_id: ctx.orgId,
       user_id: user.id,
       feature: "chat",
       sub_type: "conversation",
@@ -201,6 +224,15 @@ export async function POST(req: NextRequest) {
     .then(({ error }) => {
       if (error) console.error("[chat/route] AI interaction log failed:", error.message);
     });
+
+  // B6: Log chat message for daily-limit tracking (non-blocking)
+  if (!ctx.isSuperadmin) {
+    logUsageEvent(ctx.orgId, user.id, "chat_message_sent", {
+      conversation_id: activeConversationId,
+    }).catch((err) =>
+      console.error("[chat/route] Usage event log failed:", err),
+    );
+  }
 
   return NextResponse.json({
     text: response.text,

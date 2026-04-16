@@ -32,6 +32,7 @@ import {
   Bell,
   Palette,
   UserPlus,
+  Pencil,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics/track";
 import { useViewMode } from "@/lib/contexts/view-mode";
@@ -83,6 +84,36 @@ const SECTIONS: Section[] = [
         description:
           "Your platform reputation score based on deal completion rate, response time, and consistency.",
         href: "/dashboard",
+      },
+    ],
+  },
+  {
+    key: "mission",
+    icon: <Target size={18} />,
+    title: "Mission",
+    subtitle:
+      "Your default ambition. Chosen at signup, editable here. Every AI analysis, recommendation, and content suggestion is tailored to this goal.",
+    cards: [
+      {
+        icon: <Target size={16} />,
+        title: "Primary Goal",
+        description:
+          "The ambition you chose at onboarding — Grow Audience, Make Money, Build Brand, or Drive Traffic. The platform uses this to personalize everything.",
+        href: "/dashboard/mission",
+      },
+      {
+        icon: <Pencil size={16} />,
+        title: "Per-Profile Goals",
+        description:
+          "Detailed goals for each connected social profile — target follower count, timeframe, monetization channel, posting cadence. Feeds directly into Growth Tips, Content Strategy, and 30-Day Plans.",
+        href: "/dashboard/mission",
+      },
+      {
+        icon: <Sparkles size={16} />,
+        title: "AI-Suggested Goals",
+        description:
+          "Let the AI suggest realistic goals based on your current metrics, niche, and audience data. Hit the Sparkles button on any per-profile goal.",
+        href: "/dashboard/mission",
       },
     ],
   },
@@ -247,13 +278,6 @@ const SECTIONS: Section[] = [
         description:
           "Track actual earnings by source, view monthly revenue trends, payment history, and forecasted income.",
         href: "/dashboard/business?tab=revenue",
-      },
-      {
-        icon: <Target size={16} />,
-        title: "Goals",
-        description:
-          "Set follower, engagement, or revenue targets and track progress over time. Pair with Strategy for a 30-day plan.",
-        href: "/dashboard/business?tab=goals",
       },
     ],
   },

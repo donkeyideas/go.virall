@@ -192,54 +192,23 @@ export async function getBillingEvents(orgId: string) {
 }
 
 // ── Messages ───────────────────────────────────────────────────────
-export async function getThreadsForUser(userId: string) {
-  // Query both participant positions separately, then merge
-  const [{ data: asP1 }, { data: asP2 }] = await Promise.all([
-    supabase
-      .from('message_threads')
-      .select('*')
-      .eq('participant_1', userId)
-      .eq('is_archived_1', false)
-      .order('last_message_at', { ascending: false }),
-    supabase
-      .from('message_threads')
-      .select('*')
-      .eq('participant_2', userId)
-      .eq('is_archived_2', false)
-      .order('last_message_at', { ascending: false }),
-  ]);
+// Go through the Next.js API route (which uses the service role admin
+// client) so we can read other participants' profile rows that RLS
+// would otherwise block. This mirrors the web DAL in
+// src/lib/dal/messages.ts that uses createAdminClient().
+import { mobileApi } from './api';
 
-  const threads = [...(asP1 ?? []), ...(asP2 ?? [])].sort(
-    (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime(),
-  );
-
-  // Fetch other-user profiles
-  const otherIds = threads.map((t) =>
-    t.participant_1 === userId ? t.participant_2 : t.participant_1,
-  );
-  const uniqueIds = [...new Set(otherIds)];
-  if (uniqueIds.length === 0) return threads.map((t: any) => ({ ...t, other_user: null }));
-
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, full_name, avatar_url, account_type, company_name')
-    .in('id', uniqueIds);
-
-  const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-  return threads.map((t: any) => {
-    const otherId = t.participant_1 === userId ? t.participant_2 : t.participant_1;
-    return { ...t, other_user: profileMap.get(otherId) ?? null };
-  });
+export async function getThreadsForUser(_userId: string) {
+  const { data } = await mobileApi<{ data: any[] }>('/api/mobile/messages');
+  // API route returns `{ data: [...] }`; mobileApi wraps that again under `data`.
+  return data?.data ?? [];
 }
 
 export async function getMessagesForThread(threadId: string, limit = 50) {
-  const { data } = await supabase
-    .from('direct_messages')
-    .select('*')
-    .eq('thread_id', threadId)
-    .order('created_at', { ascending: true })
-    .limit(limit);
-  return data ?? [];
+  const { data } = await mobileApi<{ data: any[] }>(
+    `/api/mobile/messages?threadId=${encodeURIComponent(threadId)}&limit=${limit}`,
+  );
+  return data?.data ?? [];
 }
 
 export async function getUnreadCount(userId: string) {
@@ -317,21 +286,41 @@ export async function getBrandMatches(userId: string) {
 }
 
 // ── Trust Score ──────────────────────────────────────────────────
+// Mirrors web DAL at src/lib/dal/trust.ts — respects is_public flag
+// for non-owners. Own profile always returns full data.
 export async function getTrustScore(profileId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data } = await supabase
     .from('trust_scores')
     .select('*')
     .eq('profile_id', profileId)
-    .single();
+    .maybeSingle();
+
+  if (!data) return null;
+  if (user?.id === profileId) return data;
+  if (!data.is_public) return null;
   return data;
 }
 
 export async function getTrustScoreHistory(profileId: string, limit = 30) {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Non-owners: only return if public
+  if (user?.id !== profileId) {
+    const { data: ts } = await supabase
+      .from('trust_scores')
+      .select('is_public')
+      .eq('profile_id', profileId)
+      .maybeSingle();
+    if (!ts?.is_public) return [];
+  }
+
   const { data } = await supabase
     .from('trust_score_history')
     .select('*')
     .eq('profile_id', profileId)
-    .order('recorded_at', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(limit);
   return data ?? [];
 }

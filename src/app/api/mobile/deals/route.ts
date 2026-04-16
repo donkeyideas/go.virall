@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
-async function authenticateRequest(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-  const token = authHeader.slice(7);
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-  if (error || !user) {
-    return { error: NextResponse.json({ error: "Invalid token" }, { status: 401 }) };
-  }
-  return { user };
-}
+import {
+  supabaseAdmin,
+  authenticateRequest,
+  getAuthContext,
+  planLimitResponse,
+  isWithinLimit,
+} from "../_shared/auth";
 
 async function getOrgId(userId: string): Promise<string | null> {
   const { data } = await supabaseAdmin
@@ -81,11 +69,9 @@ export async function GET(req: NextRequest) {
 
 /** POST — Create a new deal */
 export async function POST(req: NextRequest) {
-  const auth = await authenticateRequest(req);
-  if ("error" in auth) return auth.error;
-
-  const orgId = await getOrgId(auth.user.id);
-  if (!orgId) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+  const authResult = await getAuthContext(req);
+  if ("error" in authResult) return authResult.error;
+  const { ctx } = authResult;
 
   const body = await req.json();
   const { brand_name, contact_email, total_value, pipeline_stage, notes } = body;
@@ -94,11 +80,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "brand_name is required" }, { status: 400 });
   }
 
+  // B6: Enforce max_deals limit (superadmins bypass)
+  if (!ctx.isSuperadmin && ctx.limits.max_deals !== -1) {
+    const { count: dealCount } = await supabaseAdmin
+      .from("deals")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", ctx.orgId);
+
+    if (!isWithinLimit(dealCount ?? 0, ctx.limits.max_deals)) {
+      return planLimitResponse(
+        "max_deals",
+        ctx.plan,
+        dealCount ?? 0,
+        ctx.limits.max_deals,
+      );
+    }
+  }
+
   const stage = pipeline_stage || "lead";
   const { data: deal, error } = await supabaseAdmin
     .from("deals")
     .insert({
-      organization_id: orgId,
+      organization_id: ctx.orgId,
       brand_name,
       contact_email: contact_email || null,
       total_value: total_value || 0,

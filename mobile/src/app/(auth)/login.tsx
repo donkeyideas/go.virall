@@ -1,16 +1,31 @@
 import { useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Pressable, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { TextInput } from '../../components/ui/TextInput';
 import { FontSize, Spacing, BorderRadius, glassShadowSm } from '../../constants/theme';
+import { useToast } from '../../components/cockpit/Toast';
+import { useAppModal } from '../../components/cockpit/AppModal';
+
+// Lazy-load so Expo Go doesn't crash on native module lookup.
+const AppleAuth: any = (() => {
+  if (Platform.OS !== 'ios') return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('expo-apple-authentication');
+  } catch {
+    return null;
+  }
+})();
 
 export default function LoginScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { signIn, signInWithProvider } = useAuth();
+  const { showToast } = useToast();
+  const { showModal } = useAppModal();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,16 +33,16 @@ export default function LoginScreen() {
 
   const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter your email and password.');
+      showToast('Please enter your email and password', 'error');
       return;
     }
     setLoading(true);
     const { error } = await signIn(email.trim(), password);
     setLoading(false);
     if (error) {
-      Alert.alert('Sign In Failed', error);
+      showModal({ title: 'Sign in failed', message: error, kind: 'danger' });
     } else {
-      router.replace('/(drawer)');
+      router.replace('/(tabs)');
     }
   };
 
@@ -36,9 +51,9 @@ export default function LoginScreen() {
     const { error } = await signInWithProvider(provider);
     setOauthLoading(null);
     if (error) {
-      Alert.alert('Sign In Failed', error);
+      showModal({ title: 'Sign in failed', message: error, kind: 'danger' });
     } else {
-      router.replace('/(drawer)');
+      router.replace('/(tabs)');
     }
   };
 
@@ -60,7 +75,7 @@ export default function LoginScreen() {
           </Text>
         </View>
 
-        <View style={styles.socialRow}>
+        <View style={styles.socialCol}>
           <Pressable
             onPress={() => handleOAuth('google')}
             disabled={oauthLoading !== null}
@@ -71,24 +86,23 @@ export default function LoginScreen() {
             ) : (
               <View style={styles.socialInner}>
                 <Ionicons name="logo-google" size={18} color={colors.text} />
-                <Text style={[styles.socialText, { color: colors.text }]}>Google</Text>
+                <Text style={[styles.socialText, { color: colors.text }]}>Continue with Google</Text>
               </View>
             )}
           </Pressable>
-          <Pressable
-            onPress={() => handleOAuth('apple')}
-            disabled={oauthLoading !== null}
-            style={[styles.socialBtn, { backgroundColor: colors.surface, opacity: oauthLoading === 'google' ? 0.5 : 1 }, glassShadowSm(colors), { borderWidth: 1, borderColor: colors.glassBorder }]}
-          >
-            {oauthLoading === 'apple' ? (
-              <ActivityIndicator size="small" color={colors.text} />
-            ) : (
-              <View style={styles.socialInner}>
-                <Ionicons name="logo-apple" size={20} color={colors.text} />
-                <Text style={[styles.socialText, { color: colors.text }]}>Apple</Text>
-              </View>
-            )}
-          </Pressable>
+          {AppleAuth && (
+            <AppleAuth.AppleAuthenticationButton
+              buttonType={AppleAuth.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={
+                colors.background === '#FFFFFF'
+                  ? AppleAuth.AppleAuthenticationButtonStyle.BLACK
+                  : AppleAuth.AppleAuthenticationButtonStyle.WHITE
+              }
+              cornerRadius={BorderRadius.md}
+              style={styles.appleBtn}
+              onPress={() => handleOAuth('apple')}
+            />
+          )}
         </View>
 
         <View style={styles.dividerRow}>
@@ -161,10 +175,13 @@ const styles = StyleSheet.create({
   form: {
     gap: Spacing.lg,
   },
-  socialRow: {
-    flexDirection: 'row',
+  socialCol: {
     gap: Spacing.md,
     marginBottom: Spacing.lg,
+  },
+  appleBtn: {
+    width: '100%',
+    minHeight: 48,
   },
   socialBtn: {
     flex: 1,

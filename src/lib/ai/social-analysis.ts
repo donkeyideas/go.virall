@@ -5,16 +5,26 @@
 
 import { aiChat } from "./provider";
 import { getAlgorithmContext } from "./platform-algorithms";
-import type { AnalysisType, SocialPlatform } from "@/types";
+import type { AnalysisType, PrimaryGoal, SocialPlatform } from "@/types";
 
 interface AnalysisInput {
   profile: Record<string, unknown>;
   metrics: Record<string, unknown>[];
   competitors: unknown[];
   goals: Record<string, unknown> | null;
+  /** User-level ambition fallback when no per-profile goal exists */
+  primaryGoal?: PrimaryGoal | null;
   analysisType: AnalysisType;
   userId: string;
 }
+
+/** Human-readable label for each PrimaryGoal value */
+const PRIMARY_GOAL_LABELS: Record<PrimaryGoal, string> = {
+  grow_audience: "Grow audience (increase followers & reach)",
+  make_money: "Make money (monetize audience, brand deals, revenue)",
+  build_brand: "Build brand (establish authority & identity)",
+  drive_traffic: "Drive traffic / conversions (funnel to sales, signups)",
+};
 
 interface AnalysisResult {
   data: Record<string, unknown>;
@@ -69,14 +79,23 @@ export function metricsSummary(metrics: Record<string, unknown>[]): string {
     .join("\n");
 }
 
-function goalsSummary(goals: Record<string, unknown> | null): string {
-  if (!goals) return "No goals set.";
-  return `Primary Objective: ${goals.primary_objective || "N/A"}
+function goalsSummary(
+  goals: Record<string, unknown> | null,
+  primaryGoal?: PrimaryGoal | null,
+): string {
+  if (goals) {
+    return `Primary Objective: ${goals.primary_objective || "N/A"}
 Target: ${goals.target_value || "N/A"} in ${goals.target_days || "N/A"} days
 Content Niche: ${goals.content_niche || "N/A"}
 Monetization Goal: ${goals.monetization_goal || "N/A"}
 Posting Commitment: ${goals.posting_commitment || "N/A"}
 Target Audience: ${goals.target_audience || "N/A"}`;
+  }
+  if (primaryGoal) {
+    return `Primary Objective (user-level ambition, no per-profile goal yet): ${PRIMARY_GOAL_LABELS[primaryGoal]}
+IMPORTANT: Weight every recommendation, tip, and insight toward this objective. If the user has not yet set a detailed per-profile goal, infer reasonable defaults from the profile data and align recommendations with the primary ambition above.`;
+  }
+  return "No goals set.";
 }
 
 function competitorsSummary(competitors: unknown[]): string {
@@ -102,7 +121,7 @@ RECENT METRICS:
 ${metricsSummary(input.metrics)}
 
 GOALS:
-${goalsSummary(input.goals)}
+${goalsSummary(input.goals, input.primaryGoal)}
 
 COMPETITORS:
 ${competitorsSummary(input.competitors)}
@@ -125,7 +144,7 @@ RECENT METRICS:
 ${metricsSummary(input.metrics)}
 
 GOALS:
-${goalsSummary(input.goals)}
+${goalsSummary(input.goals, input.primaryGoal)}
 
 Create a content strategy with:
 - postingFrequency: Object with { headline: string (e.g. "5-7 posts per week + daily stories"), subtitle: string (e.g. "Optimal for lifestyle/fashion niche in the 200-500K follower tier") }
@@ -188,7 +207,7 @@ RECENT METRICS:
 ${metricsSummary(input.metrics)}
 
 GOALS:
-${goalsSummary(input.goals)}
+${goalsSummary(input.goals, input.primaryGoal)}
 
 Provide 6 strategic insights. Each should include:
 - title: Clear insight heading
@@ -207,7 +226,7 @@ RECENT METRICS:
 ${metricsSummary(input.metrics)}
 
 GOALS:
-${goalsSummary(input.goals)}
+${goalsSummary(input.goals, input.primaryGoal)}
 
 Return this JSON structure:
 {
@@ -272,7 +291,7 @@ RECENT METRICS:
 ${metricsSummary(input.metrics)}
 
 GOALS:
-${goalsSummary(input.goals)}
+${goalsSummary(input.goals, input.primaryGoal)}
 
 Create a 30-day plan organized by week (4 weeks). For each week include:
 - week: week number (1-4)
@@ -475,7 +494,7 @@ RECENT METRICS:
 ${metricsSummary(input.metrics)}
 
 GOALS:
-${goalsSummary(input.goals)}
+${goalsSummary(input.goals, input.primaryGoal)}
 
 Return this JSON structure:
 {

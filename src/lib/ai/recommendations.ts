@@ -6,7 +6,27 @@
 import { aiChat } from "./provider";
 import { profileSummary, metricsSummary } from "./social-analysis";
 import { getFullAlgorithmBlock } from "./platform-algorithms";
-import type { AnalysisType, SocialAnalysis, SocialPlatform } from "@/types";
+import type {
+  AnalysisType,
+  PrimaryGoal,
+  SocialAnalysis,
+  SocialPlatform,
+} from "@/types";
+
+const PRIMARY_GOAL_LABELS: Record<PrimaryGoal, string> = {
+  grow_audience: "Grow audience (increase followers & reach)",
+  make_money: "Make money (monetize audience, brand deals, revenue)",
+  build_brand: "Build brand (establish authority & identity)",
+  drive_traffic: "Drive traffic / conversions (funnel to sales, signups)",
+};
+
+/** Which recommendation categories are most relevant to each primary_goal. */
+const GOAL_CATEGORY_PRIORITY: Record<PrimaryGoal, string[]> = {
+  grow_audience: ["growth", "content", "engagement", "optimization", "monetization"],
+  make_money: ["monetization", "growth", "engagement", "content", "optimization"],
+  build_brand: ["content", "engagement", "optimization", "growth", "monetization"],
+  drive_traffic: ["optimization", "content", "growth", "engagement", "monetization"],
+};
 
 /** Analysis types that feed into recommendations (exclude content_generator + recommendations) */
 const INPUT_TYPES: AnalysisType[] = [
@@ -41,6 +61,8 @@ export interface RecommendationsInput {
   profile: Record<string, unknown>;
   metrics: Record<string, unknown>[];
   goals: Record<string, unknown> | null;
+  /** User-level ambition fallback when no per-profile goal exists */
+  primaryGoal?: PrimaryGoal | null;
   analyses: Record<AnalysisType, SocialAnalysis | null>;
 }
 
@@ -93,6 +115,27 @@ function buildPrompt(input: RecommendationsInput): string {
   const platform = (input.profile.platform as string) || "instagram";
   const { available, missing } = analysisCoverage(input.analyses);
 
+  // Build a goal section that prefers per-profile goal, falls back to primary_goal
+  const goalSection = input.goals
+    ? JSON.stringify(input.goals, null, 2)
+    : input.primaryGoal
+      ? `Primary Ambition (user-level): ${PRIMARY_GOAL_LABELS[input.primaryGoal]}`
+      : "No goals set.";
+
+  const categoryOrder = input.primaryGoal
+    ? GOAL_CATEGORY_PRIORITY[input.primaryGoal]
+    : ["content", "growth", "engagement", "monetization", "optimization"];
+
+  const goalDirective = input.primaryGoal
+    ? `\n\nGOAL ALIGNMENT RULES:
+- The creator's PRIMARY AMBITION is: "${PRIMARY_GOAL_LABELS[input.primaryGoal]}"
+- EVERY recommendation must move the creator toward this ambition. Tag each detailedRecommendation with a "goalAlignment" score (0-100) reflecting how much it advances this ambition.
+- Sort topPriorities STRICTLY by impact on the primary ambition, not general best practice.
+- Order the detailedRecommendations categories in this exact sequence based on relevance to the ambition: ${categoryOrder.join(", ")}.
+- For topPriorities, only include items with goalAlignment ≥ 70.
+- healthScore.breakdown should weight the category most aligned with the ambition higher — a strong score there means the creator is on track to hit their ambition.`
+    : "";
+
   return `You are a world-class social media strategist and algorithm expert. You synthesize data from multiple analysis sources into unified, actionable recommendations. You NEVER simply repeat what individual analyses say — you cross-reference, resolve conflicts, and prioritize by impact.
 
 ## PLATFORM ALGORITHM KNOWLEDGE (2026)
@@ -106,7 +149,7 @@ ${profileSummary(input.profile)}
 ${metricsSummary(input.metrics)}
 
 ## GOALS
-${input.goals ? JSON.stringify(input.goals, null, 2) : "No goals set."}
+${goalSection}
 
 ## EXISTING ANALYSES DATA (${available.length} of ${INPUT_TYPES.length} available)
 ${summarizeAnalyses(input.analyses)}
@@ -115,7 +158,7 @@ ${missing.length > 0 ? `MISSING ANALYSES (not yet generated): ${missing.join(", 
 
 ## YOUR TASK
 
-Synthesize ALL the data above into a comprehensive recommendations report for this ${platform} creator. Cross-reference findings across all analyses to identify the MOST impactful actions. Apply ${platform.toUpperCase()}-specific algorithm knowledge. Provide SPECIFIC expected outcomes with realistic percentage ranges and timeframes.
+Synthesize ALL the data above into a comprehensive recommendations report for this ${platform} creator. Cross-reference findings across all analyses to identify the MOST impactful actions. Apply ${platform.toUpperCase()}-specific algorithm knowledge. Provide SPECIFIC expected outcomes with realistic percentage ranges and timeframes.${goalDirective}
 
 Generate this exact JSON structure:
 {
@@ -146,7 +189,8 @@ Generate this exact JSON structure:
         "effort": "low" | "medium" | "high",
         "impact": "high" | "critical",
         "timeframe": "(e.g. 2-4 weeks)",
-        "category": "content" | "growth" | "engagement" | "monetization" | "optimization"
+        "category": "content" | "growth" | "engagement" | "monetization" | "optimization",
+        "goalAlignment": (number 0-100, how strongly this action advances the creator's primary ambition)
       }
     ],
     "detailedRecommendations": [
@@ -162,6 +206,7 @@ Generate this exact JSON structure:
             "impact": "low" | "medium" | "high",
             "timeframe": "(e.g. 1-2 weeks)",
             "algorithmTip": "(platform-specific insight for this action)",
+            "goalAlignment": (number 0-100, how strongly this item advances the creator's primary ambition),
             "steps": ["(step 1)", "(step 2)", "(step 3)"]
           }
         ]

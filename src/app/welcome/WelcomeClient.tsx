@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setAccountType } from "@/lib/actions/account";
+import { setAccountType, setPrimaryGoal } from "@/lib/actions/account";
+import type { PrimaryGoal } from "@/types";
 
 const C = {
   bg: "#0B1928",
@@ -481,14 +482,103 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 /*  Main client component                                              */
 /* ------------------------------------------------------------------ */
 
+const GOAL_OPTIONS: {
+  value: PrimaryGoal;
+  title: string;
+  description: string;
+  features: string[];
+  accent: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    value: "grow_audience",
+    title: "Grow my audience",
+    description: "Focus on follower count, reach, and building a bigger community across platforms.",
+    features: [
+      "Audience growth tips",
+      "Reach optimization",
+      "Follower milestone tracking",
+      "Viral content ideas",
+    ],
+    accent: "#4B9CD3",
+    icon: (
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4B9CD3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+        <polyline points="16 7 22 7 22 13" />
+      </svg>
+    ),
+  },
+  {
+    value: "make_money",
+    title: "Make money",
+    description: "Turn your audience into revenue via brand deals, affiliate links, and monetization.",
+    features: [
+      "Brand deal matching",
+      "Revenue forecasting",
+      "Rate card builder",
+      "Affiliate tracking",
+    ],
+    accent: "#34D399",
+    icon: (
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+  },
+  {
+    value: "build_brand",
+    title: "Build my brand",
+    description: "Establish authority and a recognizable identity through high-quality engagement.",
+    features: [
+      "Engagement quality coaching",
+      "Content pillars",
+      "Authority positioning",
+      "Brand voice analysis",
+    ],
+    accent: "#FFB84D",
+    icon: (
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#FFB84D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="6" />
+        <circle cx="12" cy="12" r="2" />
+      </svg>
+    ),
+  },
+  {
+    value: "drive_traffic",
+    title: "Drive traffic / conversions",
+    description: "Funnel followers to sales, signups, newsletters, or your own product or service.",
+    features: [
+      "Link-in-bio optimization",
+      "Conversion-focused content",
+      "Funnel analytics",
+      "Landing page tests",
+    ],
+    accent: "#F472B6",
+    icon: (
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#F472B6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="3 11 22 2 13 21 11 13 3 11" />
+      </svg>
+    ),
+  },
+];
+
 export default function WelcomeClient() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [accountType, setAccountTypeState] = useState<"creator" | "brand" | null>(null);
+  const [goal, setGoalState] = useState<PrimaryGoal | null>(null);
 
   const handleAccountTypeSelect = (type: "creator" | "brand") => {
     setAccountTypeState(type);
     setStep(2);
+  };
+
+  const handleGoalSelect = async (g: PrimaryGoal) => {
+    setGoalState(g);
+    await setPrimaryGoal(g);
+    setStep(3);
   };
 
   const selectView = async (mode: "modern" | "editorial") => {
@@ -537,7 +627,7 @@ export default function WelcomeClient() {
       </div>
 
       {/* Step indicator */}
-      <StepIndicator current={step - 1} total={2} />
+      <StepIndicator current={step - 1} total={3} />
 
       {/* -------- STEP 1: Account Type -------- */}
       {step === 1 && (
@@ -605,8 +695,179 @@ export default function WelcomeClient() {
         </>
       )}
 
-      {/* -------- STEP 2: View Mode -------- */}
+      {/* -------- STEP 2: Primary Goal -------- */}
       {step === 2 && (
+        <>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h1
+              style={{
+                fontSize: 32,
+                fontWeight: 800,
+                color: C.text,
+                marginBottom: 12,
+              }}
+            >
+              What do you want Go Virall to help you achieve?
+            </h1>
+            <p
+              style={{
+                fontSize: 16,
+                color: C.textSecondary,
+                maxWidth: 560,
+                margin: "0 auto",
+                lineHeight: 1.6,
+              }}
+            >
+              Your mission powers the whole platform &mdash; AI, analytics, and
+              recommendations will adapt to focus on this outcome. You can
+              change it anytime.
+            </p>
+            <div
+              style={{
+                marginTop: 20,
+                display: "inline-flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: 10,
+                maxWidth: 620,
+              }}
+            >
+              {[
+                "AI content tuned to this goal",
+                "Recommendations re-ranked",
+                "Analyses weighted accordingly",
+                "New profiles auto-start aligned",
+              ].map((item) => (
+                <span
+                  key={item}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: C.textSecondary,
+                    background: "rgba(75,156,211,0.08)",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 999,
+                    padding: "4px 10px",
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  &#10003; {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 16,
+              maxWidth: 900,
+              width: "100%",
+            }}
+          >
+            {GOAL_OPTIONS.map((opt) => {
+              const isSelected = goal === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => handleGoalSelect(opt.value)}
+                  style={{
+                    background: C.card,
+                    border: `1px solid ${isSelected ? opt.accent : C.border}`,
+                    borderRadius: 16,
+                    padding: 24,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontFamily: font,
+                    transition: "transform 0.2s, border-color 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.borderColor = opt.accent;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.borderColor = isSelected
+                      ? opt.accent
+                      : "rgba(75,156,211,0.15)";
+                  }}
+                >
+                  <div style={{ marginBottom: 14 }}>{opt.icon}</div>
+                  <h3
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 800,
+                      color: C.text,
+                      marginBottom: 6,
+                    }}
+                  >
+                    {opt.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: C.textSecondary,
+                      lineHeight: 1.55,
+                      marginBottom: 14,
+                    }}
+                  >
+                    {opt.description}
+                  </p>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                    {opt.features.map((f) => (
+                      <li
+                        key={f}
+                        style={{
+                          fontSize: 12,
+                          color: C.textSecondary,
+                          padding: "3px 0",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <span style={{ color: opt.accent, fontSize: 13 }}>&#10003;</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Back button */}
+          <button
+            onClick={() => setStep(1)}
+            style={{
+              marginTop: 24,
+              background: "transparent",
+              border: `1px solid ${C.border}`,
+              borderRadius: 10,
+              padding: "10px 24px",
+              color: C.textSecondary,
+              fontSize: 14,
+              fontFamily: font,
+              cursor: "pointer",
+              transition: "border-color 0.2s, color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = C.purple;
+              e.currentTarget.style.color = C.text;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "rgba(75,156,211,0.15)";
+              e.currentTarget.style.color = C.textSecondary;
+            }}
+          >
+            &larr; Back to account type
+          </button>
+        </>
+      )}
+
+      {/* -------- STEP 3: View Mode -------- */}
+      {step === 3 && (
         <>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <h1
@@ -671,7 +932,7 @@ export default function WelcomeClient() {
 
           {/* Back button */}
           <button
-            onClick={() => setStep(1)}
+            onClick={() => setStep(2)}
             style={{
               marginTop: 24,
               background: "transparent",
@@ -693,7 +954,7 @@ export default function WelcomeClient() {
               e.currentTarget.style.color = C.textSecondary;
             }}
           >
-            &larr; Back to account type
+            &larr; Back to mission
           </button>
         </>
       )}
@@ -708,6 +969,8 @@ export default function WelcomeClient() {
       >
         {step === 1
           ? "You can change your account type anytime from settings."
+          : step === 2
+          ? "You can refine your mission anytime from the Mission tab."
           : "You can change your view anytime from the dashboard settings."}
       </p>
     </div>

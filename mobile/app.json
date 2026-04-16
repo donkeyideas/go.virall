@@ -8,7 +8,12 @@
     "scheme": "govirall",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.govirall.app"
+      "bundleIdentifier": "com.govirall.app",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Go Virall sends alerts for viral posts, brand messages, and deal updates.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.govirall.app",
@@ -38,13 +43,27 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#6366F1"
+          "color": "#d4a843"
+        }
+      ],
+      "expo-secure-store",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_REVERSED_CLIENT_ID"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
     }
   }
 }

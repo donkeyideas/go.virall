@@ -196,23 +196,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to set up your account." }, { status: 500 });
   }
 
-  // Check plan limits
-  const { data: org } = await supabaseAdmin
-    .from("organizations")
-    .select("max_social_profiles")
-    .eq("id", orgId)
+  // Check role (superadmins/admins bypass plan limits and cross-org verified check)
+  const { data: userProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("system_role")
+    .eq("id", auth.user.id)
     .single();
+  const isSuperadmin =
+    userProfile?.system_role === "superadmin" ||
+    userProfile?.system_role === "admin";
 
-  const { count } = await supabaseAdmin
-    .from("social_profiles")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", orgId);
+  // Check plan limits (skip for admins/superadmins) — mirrors src/lib/actions/profiles.ts
+  if (!isSuperadmin) {
+    const { data: org } = await supabaseAdmin
+      .from("organizations")
+      .select("max_social_profiles")
+      .eq("id", orgId)
+      .single();
 
-  if (org && (count ?? 0) >= org.max_social_profiles) {
-    return NextResponse.json({
-      error: `Your plan allows ${org.max_social_profiles} profile${org.max_social_profiles === 1 ? "" : "s"}. Upgrade to connect more.`,
-      planLimitReached: true,
-    }, { status: 403 });
+    const { count } = await supabaseAdmin
+      .from("social_profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId);
+
+    if (org && (count ?? 0) >= org.max_social_profiles) {
+      return NextResponse.json({
+        error: `Your plan allows ${org.max_social_profiles} profile${org.max_social_profiles === 1 ? "" : "s"}. Upgrade to connect more.`,
+        planLimitReached: true,
+      }, { status: 403 });
+    }
   }
 
   // Check duplicate
@@ -226,6 +238,25 @@ export async function POST(req: NextRequest) {
 
   if (existing) {
     return NextResponse.json({ error: `@${cleanHandle} on ${platform} is already connected.` }, { status: 409 });
+  }
+
+  // Check if handle is verified by another org (skip for admins/superadmins) — B3 parity with web
+  if (!isSuperadmin) {
+    const { data: verifiedElsewhere } = await supabaseAdmin
+      .from("social_profiles")
+      .select("id")
+      .eq("platform", platform)
+      .eq("handle", cleanHandle)
+      .eq("ownership_verified", true)
+      .neq("organization_id", orgId)
+      .limit(1);
+
+    if (verifiedElsewhere && verifiedElsewhere.length > 0) {
+      return NextResponse.json({
+        error: `@${cleanHandle} on ${platform} has been verified by another account. If this is your profile, contact support.`,
+        verifiedElsewhere: true,
+      }, { status: 409 });
+    }
   }
 
   // Scrape
@@ -249,6 +280,11 @@ export async function POST(req: NextRequest) {
 
   if (scraped.platformData && Object.keys(scraped.platformData).length > 0) {
     insertData.platform_data = scraped.platformData;
+  }
+
+  // B4: persist recent_posts JSON (parity with web scrapeProfile action)
+  if (scraped.recentPosts && scraped.recentPosts.length > 0) {
+    insertData.recent_posts = scraped.recentPosts;
   }
 
   const { data: newProfile, error: insertError } = await supabaseAdmin
@@ -308,6 +344,11 @@ export async function PUT(req: NextRequest) {
   if (engagementRate !== null) updateData.engagement_rate = engagementRate;
   if (scraped.platformData && Object.keys(scraped.platformData).length > 0) {
     updateData.platform_data = scraped.platformData;
+  }
+
+  // B4: persist recent_posts JSON on sync (parity with web)
+  if (scraped.recentPosts && scraped.recentPosts.length > 0) {
+    updateData.recent_posts = scraped.recentPosts;
   }
 
   await supabaseAdmin.from("social_profiles").update(updateData).eq("id", profileId);

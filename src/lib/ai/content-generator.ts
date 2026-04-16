@@ -6,7 +6,24 @@
 import { aiChat } from "./provider";
 import { profileSummary, metricsSummary } from "./social-analysis";
 import { PLATFORM_ALGORITHMS } from "./platform-algorithms";
-import type { SocialPlatform } from "@/types";
+import type { PrimaryGoal, SocialPlatform } from "@/types";
+
+/** Content-generation directive tuned to each user-level ambition. */
+const PRIMARY_GOAL_DIRECTIVES: Record<PrimaryGoal, string> = {
+  grow_audience:
+    "GOAL — GROW AUDIENCE: Prioritize hooks that maximize reach, shareability, and discovery. Favor formats the algorithm pushes to non-followers (Reels/TikToks, trending audio, broad relatability). Captions should end with discovery-friendly CTAs like 'follow for more' or questions that drive comments.",
+  make_money:
+    "GOAL — MAKE MONEY: Prioritize content that builds commercial trust and positions the creator for brand deals, affiliate drops, and product launches. Include clear CTAs to a link-in-bio, product, or offer. Favor angles that demonstrate authority, product expertise, or buying-intent audiences. Avoid 'just for laughs' filler.",
+  build_brand:
+    "GOAL — BUILD BRAND: Prioritize content that expresses a distinctive POV, consistent aesthetic, and expertise in the niche. Captions should reinforce identity, values, and signature phrases. Favor depth over virality — thought leadership, case studies, long-form hooks.",
+  drive_traffic:
+    "GOAL — DRIVE TRAFFIC / CONVERSIONS: Every piece must push viewers off-platform (link in bio, newsletter, product page, course). Hooks must create curiosity that only the off-platform destination resolves. CTAs should be direct and benefit-led ('join 12K readers', 'grab the free guide').",
+};
+
+function goalDirective(primaryGoal?: PrimaryGoal | null): string {
+  if (!primaryGoal) return "";
+  return `\n\n${PRIMARY_GOAL_DIRECTIVES[primaryGoal]}`;
+}
 
 export type ContentType =
   | "post_ideas"
@@ -42,6 +59,8 @@ export interface ContentGeneratorInput {
   topic: string;
   tone: string;
   count: number;
+  /** User-level ambition — tunes hook, CTA, and format choices */
+  primaryGoal?: PrimaryGoal | null;
 }
 
 interface ContentResult {
@@ -62,7 +81,7 @@ ${metricsSummary(input.metrics)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
-${getCharLimitNote((input.profile.platform as string) || "", "caption")}
+${getCharLimitNote((input.profile.platform as string) || "", "caption")}${goalDirective(input.primaryGoal)}
 
 Generate exactly ${input.count} post ideas. For each idea include:
 - title: Catchy post title (5-10 words)
@@ -81,7 +100,7 @@ ${profileSummary(input.profile)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
-${getCharLimitNote((input.profile.platform as string) || "", "caption")}
+${getCharLimitNote((input.profile.platform as string) || "", "caption")}${goalDirective(input.primaryGoal)}
 
 Generate exactly ${input.count} ready-to-post captions. For each caption include:
 - text: The full caption text (engaging, ${input.tone} tone, include line breaks for readability, no emojis). The text + callToAction + hashtags combined must fit within the platform character limit.
@@ -102,7 +121,7 @@ ${metricsSummary(input.metrics)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
-${getCharLimitNote((input.profile.platform as string) || "", "caption")}
+${getCharLimitNote((input.profile.platform as string) || "", "caption")}${goalDirective(input.primaryGoal)}
 
 Create a 7-day content calendar. For each day include:
 - day: Day name (Monday-Sunday)
@@ -120,7 +139,7 @@ PROFILE:
 ${profileSummary(input.profile)}
 
 TOPIC/THEME: ${input.topic}
-TONE: ${input.tone}
+TONE: ${input.tone}${goalDirective(input.primaryGoal)}
 
 Generate exactly ${input.count} content scripts optimized for ${(input.profile.platform as string) || "social media"}. For each script include:
 - title: Script title
@@ -138,7 +157,7 @@ PROFILE:
 ${profileSummary(input.profile)}
 
 TOPIC/THEME: ${input.topic}
-TONE: ${input.tone}
+TONE: ${input.tone}${goalDirective(input.primaryGoal)}
 
 Generate exactly ${input.count} carousel concepts. For each carousel include:
 - title: Carousel title/hook for slide 1
@@ -158,7 +177,7 @@ ${profileSummary(input.profile)}
 
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
-${getCharLimitNote((input.profile.platform as string) || "", "bio")}
+${getCharLimitNote((input.profile.platform as string) || "", "bio")}${goalDirective(input.primaryGoal)}
 
 Generate exactly ${input.count} bio variations optimized for discovery and conversion. For each bio include:
 - text: The full bio text (MUST respect the platform character limit above, use line breaks, no emojis)

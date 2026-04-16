@@ -10,6 +10,7 @@ import { getSocialProfileCount } from "@/lib/dal/profiles";
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/dashboard" },
+  { label: "Mission", href: "/dashboard/mission" },
   { label: "Profiles", href: "/dashboard/profiles" },
   { label: "Inbox", href: "/dashboard/inbox" },
   { label: "Content", href: "/dashboard/content" },

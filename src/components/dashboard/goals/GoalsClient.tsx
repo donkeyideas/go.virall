@@ -425,10 +425,10 @@ export function GoalsClient({ profiles }: GoalsClientProps) {
                 <span className="editorial-overline col-span-2">Objective</span>
                 <span className="editorial-overline col-span-1">Target</span>
                 <span className="editorial-overline col-span-1">Days</span>
+                <span className="editorial-overline col-span-1">Ends</span>
                 <span className="editorial-overline col-span-2">Niche</span>
                 <span className="editorial-overline col-span-2">Monetization</span>
                 <span className="editorial-overline col-span-1">Status</span>
-                <span className="editorial-overline col-span-1">Created</span>
                 <span className="editorial-overline col-span-2 text-right">Actions</span>
               </div>
 
@@ -461,6 +461,19 @@ export function GoalsClient({ profiles }: GoalsClientProps) {
                     <span className="text-sm text-ink font-mono">{goal.target_days ?? "—"}</span>
                   </div>
 
+                  {/* End Date (created_at + target_days) */}
+                  <div className="sm:col-span-1">
+                    <span className="sm:hidden editorial-overline mr-2">Ends:</span>
+                    <span className="text-sm text-ink font-mono">
+                      {goal.target_days
+                        ? new Date(
+                            new Date(goal.created_at).getTime() +
+                              goal.target_days * 24 * 60 * 60 * 1000,
+                          ).toLocaleDateString()
+                        : "—"}
+                    </span>
+                  </div>
+
                   {/* Niche */}
                   <div className="sm:col-span-2 min-w-0">
                     <span className="sm:hidden editorial-overline mr-2">Niche:</span>
@@ -484,14 +497,6 @@ export function GoalsClient({ profiles }: GoalsClientProps) {
                         : "bg-surface-raised text-ink-muted"
                     }`}>
                       {goal.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-
-                  {/* Created */}
-                  <div className="sm:col-span-1">
-                    <span className="sm:hidden editorial-overline mr-2">Created:</span>
-                    <span className="text-[10px] text-ink-muted font-mono">
-                      {new Date(goal.created_at).toLocaleDateString()}
                     </span>
                   </div>
 
