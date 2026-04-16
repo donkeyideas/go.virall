@@ -39,4 +39,10 @@ jobs:
         run: npm ci
 
       - name: EAS Build (iOS)
-        run: eas build --profile ${{ inputs.profile || 'preview' }} --platform ios --non-interactive --no-wait
+        run: eas build --profile ${{ inputs.profile || 'preview' }} --platform ios --non-interactive
+
+      - name: Submit to App Store
+        if: ${{ inputs.profile == 'production' }}
+        run: eas submit --profile production --platform ios --latest --non-interactive
+        env:
+          EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}

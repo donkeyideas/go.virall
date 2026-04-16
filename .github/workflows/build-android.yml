@@ -13,7 +13,7 @@ on:
           - production
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,4 +39,26 @@ jobs:
         run: npm ci
 
       - name: EAS Build (Android)
-        run: eas build --profile ${{ inputs.profile || 'preview' }} --platform android --non-interactive --no-wait
+        run: eas build --profile ${{ inputs.profile || 'preview' }} --platform android --non-interactive
+
+      - name: Download .aab from EAS
+        run: |
+          BUILD_URL=$(eas build:list --platform android --limit 1 --json --non-interactive | npx -y node -e "
+            let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+              const b=JSON.parse(d);
+              console.log(b[0]?.artifacts?.buildUrl||'');
+            })
+          ")
+          if [ -n "$BUILD_URL" ]; then
+            curl -L -o go-virall.aab "$BUILD_URL"
+          else
+            echo "No build URL found"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-virall-android
+          path: mobile/go-virall.aab
+          retention-days: 90
