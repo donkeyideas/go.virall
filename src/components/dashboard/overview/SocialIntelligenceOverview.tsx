@@ -694,8 +694,10 @@ export function SocialIntelligenceOverview({
   const ab = extractAudienceBrief(audienceData);
   if (ab) briefItems.push(ab);
 
-  const mp = extractMultiPlatformBrief(profiles);
-  if (mp) briefItems.push(mp);
+  if (isAllProfiles) {
+    const mp = extractMultiPlatformBrief(profiles);
+    if (mp) briefItems.push(mp);
+  }
 
   const sb = extractSMOBrief(smoData);
   if (sb) briefItems.push(sb);
