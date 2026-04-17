@@ -18,6 +18,9 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
       "ios": {
         "simulator": true
       },
@@ -29,6 +32,9 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://govirall.com",
         "EXPO_PUBLIC_SUPABASE_URL": "https://qrtbfhhhilcoeovdubqb.supabase.co"
