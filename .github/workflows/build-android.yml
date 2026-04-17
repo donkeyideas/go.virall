@@ -47,12 +47,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Android locally
-        run: eas build --local --profile ${{ inputs.profile || 'preview' }} --platform android --non-interactive --output ./go-virall.aab
+      - name: Build Android (production → AAB)
+        if: ${{ inputs.profile == 'production' }}
+        run: eas build --local --profile production --platform android --non-interactive --output ./go-virall.aab
+
+      - name: Build Android (preview/dev → APK)
+        if: ${{ inputs.profile != 'production' }}
+        run: eas build --local --profile ${{ inputs.profile || 'preview' }} --platform android --non-interactive --output ./go-virall.apk
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: go-virall-android
-          path: mobile/go-virall.aab
+          path: |
+            mobile/go-virall.aab
+            mobile/go-virall.apk
           retention-days: 90
