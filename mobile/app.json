@@ -54,7 +54,7 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_REVERSED_CLIENT_ID"
+          "iosUrlScheme": "com.googleusercontent.apps.301763143637-dsuq7ltbl2okvehg8m1nrhvd2oi5tg52"
         }
       ],
       "expo-image",

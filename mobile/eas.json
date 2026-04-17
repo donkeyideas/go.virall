@@ -37,7 +37,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://govirall.com",
-        "EXPO_PUBLIC_SUPABASE_URL": "https://qrtbfhhhilcoeovdubqb.supabase.co"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qrtbfhhhilcoeovdubqb.supabase.co",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "301763143637-dsuq7ltbl2okvehg8m1nrhvd2oi5tg52.apps.googleusercontent.com"
       }
     }
   },
