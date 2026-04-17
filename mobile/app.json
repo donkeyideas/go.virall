@@ -60,12 +60,6 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
     "extra": {
       "router": {},
       "eas": {
