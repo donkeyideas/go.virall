@@ -126,7 +126,7 @@ export function MarketingFooter({ content }: { content?: FooterContent }) {
           <p style={{ fontSize: 13, color: C.textSecondary }}>{f.copyright}</p>
           <p>
             <a
-              href="#"
+              href="/privacy"
               style={{
                 color: C.textSecondary,
                 textDecoration: "none",
@@ -137,7 +137,7 @@ export function MarketingFooter({ content }: { content?: FooterContent }) {
             </a>
             &nbsp;&nbsp;
             <a
-              href="#"
+              href="/terms"
               style={{
                 color: C.textSecondary,
                 textDecoration: "none",
