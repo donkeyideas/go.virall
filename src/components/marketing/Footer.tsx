@@ -146,6 +146,17 @@ export function MarketingFooter({ content }: { content?: FooterContent }) {
             >
               Terms
             </a>
+            &nbsp;&nbsp;
+            <a
+              href="/child-safety"
+              style={{
+                color: C.textSecondary,
+                textDecoration: "none",
+                fontSize: 13,
+              }}
+            >
+              Child Safety
+            </a>
           </p>
         </div>
       </div>
