@@ -35,15 +35,14 @@ export function Masthead({
         {actions}
         <ThemeToggle className="h-7 w-7 border-surface-cream/20 bg-transparent text-surface-cream/70 hover:bg-surface-cream/10 hover:text-surface-cream" />
         {showLogout && (
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-surface-cream/70 transition-colors hover:text-surface-cream"
-            >
-              <LogOut size={12} strokeWidth={2} />
-              Sign Out
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={() => signOut()}
+            className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-surface-cream/70 transition-colors hover:text-surface-cream"
+          >
+            <LogOut size={12} strokeWidth={2} />
+            Sign Out
+          </button>
         )}
       </div>
     </div>

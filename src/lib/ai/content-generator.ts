@@ -5,7 +5,7 @@
 
 import { aiChat } from "./provider";
 import { profileSummary, metricsSummary } from "./social-analysis";
-import { PLATFORM_ALGORITHMS } from "./platform-algorithms";
+import { getEffectiveAlgorithm } from "./platform-algorithms";
 import type { PrimaryGoal, SocialPlatform } from "@/types";
 
 /** Content-generation directive tuned to each user-level ambition. */
@@ -87,7 +87,7 @@ Generate exactly ${input.count} post ideas. For each idea include:
 - title: Catchy post title (5-10 words)
 - hook: Opening hook line that grabs attention
 - angle: The unique perspective or angle
-- format: Recommended format — choose from: ${PLATFORM_ALGORITHMS[(input.profile.platform as SocialPlatform) || "instagram"]?.contentFormats.join(", ") || "carousel, reel, story, static, thread"}
+- format: Recommended format — choose from: ${getEffectiveAlgorithm((input.profile.platform as SocialPlatform) || "instagram")?.contentFormats.join(", ") || "carousel, reel, story, static, thread"}
 - hashtags: Array of 5 relevant hashtags (with #)
 - estimatedEngagement: "high", "medium", or "low"
 
@@ -126,7 +126,7 @@ ${getCharLimitNote((input.profile.platform as string) || "", "caption")}${goalDi
 Create a 7-day content calendar. For each day include:
 - day: Day name (Monday-Sunday)
 - time: Optimal posting time (e.g. "9:00 AM", "6:30 PM")
-- contentType: Type of content — choose from: ${PLATFORM_ALGORITHMS[(input.profile.platform as SocialPlatform) || "instagram"]?.contentFormats.join(", ") || "reel, carousel, story, static post, live, thread"}
+- contentType: Type of content — choose from: ${getEffectiveAlgorithm((input.profile.platform as SocialPlatform) || "instagram")?.contentFormats.join(", ") || "reel, carousel, story, static post, live, thread"}
 - topic: Specific topic for that day
 - caption: A brief caption idea (1-2 sentences, no emojis)
 - hashtags: Array of 3-5 hashtags

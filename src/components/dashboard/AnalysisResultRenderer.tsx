@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { cn, formatCompact } from "@/lib/utils";
-import { PLATFORM_ALGORITHMS } from "@/lib/ai/platform-algorithms";
+import { getEffectiveAlgorithm } from "@/lib/ai/platform-algorithms";
 import type { AnalysisType, SocialProfile, SocialPlatform } from "@/types";
 
 interface AnalysisResultRendererProps {
@@ -1392,7 +1392,7 @@ function AudienceResult({ data, platform }: { data: Record<string, unknown>; pla
   const bestFormat = (di: number, h: number) => {
     const defaultFormats = ["Reels", "Carousels", "Stories", "Single Posts", "Live"];
     const formats = platform
-      ? PLATFORM_ALGORITHMS[platform as SocialPlatform]?.contentFormats ?? defaultFormats
+      ? getEffectiveAlgorithm(platform as SocialPlatform)?.contentFormats ?? defaultFormats
       : defaultFormats;
     return formats[((di * 137 + (h + 7) * 311 + 42) % 100) % formats.length];
   };

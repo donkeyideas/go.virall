@@ -482,6 +482,96 @@ export async function syncSocialProfile(profileId: string) {
 // Keep old name as alias
 export const lookupSocialProfile = syncSocialProfile;
 
+/**
+ * Admin-only sync for cron jobs. No auth check, no revalidatePath.
+ * Not callable from client — used only by the cron route.
+ */
+export async function syncProfileAdmin(
+  profileId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const admin = createAdminClient();
+  const { data: socialProfile } = await admin
+    .from("social_profiles")
+    .select("*")
+    .eq("id", profileId)
+    .single();
+
+  if (!socialProfile) return { success: false, error: "Profile not found" };
+
+  const scraped = await scrapeProfile(
+    socialProfile.platform,
+    socialProfile.handle,
+  );
+
+  const followers =
+    scraped.followersCount ?? socialProfile.followers_count ?? 0;
+  const { engagementRate, avgLikes, avgComments } = calcEngagement(
+    scraped.recentPosts || [],
+    followers,
+  );
+
+  const updateData: Record<string, unknown> = {
+    last_synced_at: new Date().toISOString(),
+  };
+
+  if (scraped.displayName !== undefined)
+    updateData.display_name = scraped.displayName;
+  if (scraped.bio !== undefined) updateData.bio = scraped.bio;
+  if (scraped.avatarUrl !== undefined)
+    updateData.avatar_url = scraped.avatarUrl;
+  if (scraped.followersCount !== undefined)
+    updateData.followers_count = scraped.followersCount;
+  if (scraped.followingCount !== undefined)
+    updateData.following_count = scraped.followingCount;
+  if (scraped.postsCount !== undefined)
+    updateData.posts_count = scraped.postsCount;
+  if (scraped.verified !== undefined) updateData.verified = scraped.verified;
+  if (engagementRate !== null) updateData.engagement_rate = engagementRate;
+
+  if (scraped.platformData && Object.keys(scraped.platformData).length > 0) {
+    updateData.platform_data = scraped.platformData;
+  }
+  if (scraped.recentPosts && scraped.recentPosts.length > 0) {
+    updateData.recent_posts = scraped.recentPosts;
+  }
+
+  const { error: updateError } = await admin
+    .from("social_profiles")
+    .update(updateData)
+    .eq("id", profileId);
+
+  if (updateError?.message?.includes("recent_posts")) {
+    delete updateData.recent_posts;
+    await admin
+      .from("social_profiles")
+      .update(updateData)
+      .eq("id", profileId);
+  }
+
+  if (scraped.recentPosts && scraped.recentPosts.length > 0) {
+    setCachedPosts(profileId, scraped.recentPosts);
+  }
+
+  if (scraped.followersCount && scraped.followersCount > 0) {
+    const metricsData: Record<string, unknown> = {
+      social_profile_id: profileId,
+      date: new Date().toISOString().split("T")[0],
+      followers: scraped.followersCount,
+      following: scraped.followingCount || 0,
+      posts_count: scraped.postsCount || 0,
+    };
+    if (avgLikes !== null) metricsData.avg_likes = avgLikes;
+    if (avgComments !== null) metricsData.avg_comments = avgComments;
+    if (engagementRate !== null) metricsData.engagement_rate = engagementRate;
+
+    await admin.from("social_metrics").upsert(metricsData, {
+      onConflict: "social_profile_id,date",
+    });
+  }
+
+  return { success: true };
+}
+
 export async function deleteSocialProfile(profileId: string) {
   const supabase = await createClient();
   const {

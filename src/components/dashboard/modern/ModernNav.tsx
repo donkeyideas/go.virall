@@ -302,16 +302,15 @@ export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, no
                     }}
                   />
                   {showLogout && (
-                    <form action={signOut}>
-                      <button
-                        type="submit"
-                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-editorial-blue/8"
-                        style={{ color: "var(--color-modern-error, #EF4444)" }}
-                      >
-                        <LogOut size={14} />
-                        Sign Out
-                      </button>
-                    </form>
+                    <button
+                      type="button"
+                      onClick={() => { setAvatarOpen(false); signOut(); }}
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-editorial-blue/8"
+                      style={{ color: "var(--color-modern-error, #EF4444)" }}
+                    >
+                      <LogOut size={14} />
+                      Sign Out
+                    </button>
                   )}
                 </div>
               </>

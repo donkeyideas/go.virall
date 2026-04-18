@@ -10,6 +10,7 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/theme-context';
 import { useAuth } from '../../contexts/auth-context';
 import { cockpit } from '../../lib/cockpit-theme';
@@ -98,6 +99,7 @@ export default function ProfileScreen() {
   const { profile, organization, user, signOut } = useAuth();
   const { showToast } = useToast();
   const { showModal } = useAppModal();
+  const router = useRouter();
 
   const [profiles, setProfiles] = useState<any[]>([]);
   const [trust, setTrust] = useState<any | null>(null);
@@ -148,7 +150,14 @@ export default function ProfileScreen() {
       kind: 'warning',
       buttons: [
         { label: 'Cancel', variant: 'secondary' },
-        { label: 'Sign out', variant: 'danger', onPress: () => signOut() },
+        {
+          label: 'Sign out',
+          variant: 'danger',
+          onPress: async () => {
+            await signOut();
+            router.replace('/(auth)/login');
+          },
+        },
       ],
     });
   };

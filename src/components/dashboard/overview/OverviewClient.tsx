@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ProfileSelector } from "../ProfileSelector";
 import { AddProfileModal } from "../AddProfileModal";
@@ -113,6 +113,33 @@ export function OverviewClient({
 
   const isAllSelected = selectedId === null;
   const selected = profiles.find((p) => p.id === selectedId) ?? null;
+
+  // --- Sync freshness ---
+  const isStale = profiles.some((p) => {
+    if (!p.last_synced_at) return true;
+    return Date.now() - new Date(p.last_synced_at).getTime() > 24 * 60 * 60 * 1000;
+  });
+
+  const globalLastSynced = useMemo(() => {
+    const times = profiles
+      .map((p) => p.last_synced_at)
+      .filter(Boolean)
+      .map((t) => new Date(t!).getTime());
+    if (times.length === 0) return null;
+    return new Date(Math.max(...times));
+  }, [profiles]);
+
+  function timeAgo(date: Date): string {
+    const diff = Date.now() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return `${days}d ago`;
+    return `${Math.floor(days / 30)}mo ago`;
+  }
 
   // --- Aggregate KPIs (all profiles) ---
   const allAudience = profiles.reduce((sum, p) => sum + (p.followers_count || 0), 0);
@@ -296,15 +323,30 @@ export function OverviewClient({
         ) : isAllSelected ? (
           <div className="mt-6 space-y-6">
             {/* ─── Sync All Button ─── */}
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-3">
+              {(syncedAll || globalLastSynced) && (
+                <p className="text-[10px] uppercase tracking-widest text-ink-muted">
+                  Last synced:{" "}
+                  <span className="font-mono">
+                    {syncedAll ? "just now" : globalLastSynced ? timeAgo(globalLastSynced) : "never"}
+                  </span>
+                </p>
+              )}
               <button
                 onClick={handleSyncAll}
                 disabled={isSyncingAll}
-                className={`inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest transition-all disabled:opacity-50 ${
+                className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[10px] font-semibold uppercase tracking-widest transition-all disabled:opacity-50 ${
                   syncedAll
                     ? "border border-green-600/50 text-green-500"
-                    : "border border-rule text-ink-secondary hover:border-ink-muted hover:text-ink"
+                    : isStale && !isSyncingAll
+                      ? "animate-sync-pulse text-white"
+                      : "border border-rule text-ink-secondary hover:border-ink-muted hover:text-ink"
                 }`}
+                style={
+                  isStale && !syncedAll && !isSyncingAll
+                    ? { background: "var(--color-editorial-gold)" }
+                    : undefined
+                }
               >
                 {isSyncingAll ? (
                   <Loader2 size={12} className="animate-spin" />

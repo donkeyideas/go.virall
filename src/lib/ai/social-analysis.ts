@@ -4,7 +4,7 @@
  */
 
 import { aiChat } from "./provider";
-import { getAlgorithmContext } from "./platform-algorithms";
+import { getAlgorithmContext, warmAlgorithmCacheIfNeeded } from "./platform-algorithms";
 import type { AnalysisType, PrimaryGoal, SocialPlatform } from "@/types";
 
 interface AnalysisInput {
@@ -60,6 +60,9 @@ Bio: ${profile.bio || "N/A"}`;
     extras.push(`Job Title: ${pd.jobTitle}`);
 
   const result = extras.length ? base + "\n" + extras.join("\n") : base;
+
+  // Warm the algorithm cache in background if stale (non-blocking)
+  warmAlgorithmCacheIfNeeded();
 
   // Append platform algorithm intelligence (2026) — propagates to all 17+ prompts
   const algoContext = getAlgorithmContext(

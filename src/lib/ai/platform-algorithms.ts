@@ -278,15 +278,145 @@ export const PLATFORM_ALGORITHMS: Record<SocialPlatform, PlatformAlgorithm> = {
 };
 
 // ---------------------------------------------------------------------------
+// Dynamic Algorithm Cache — merges DB-applied adjustments on top of base data
+// ---------------------------------------------------------------------------
+
+interface AlgorithmAdjustmentRow {
+  adjustment_type: string;
+  platform: string;
+  suggested_value: Record<string, unknown>;
+}
+
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+let effectiveCache: Map<SocialPlatform, PlatformAlgorithm> | null = null;
+let cacheTimestamp = 0;
+let refreshInFlight = false;
+
+/**
+ * Returns the effective algorithm for a platform — base data merged with
+ * any admin-applied adjustments from the DB. Falls back to the hardcoded
+ * base if cache hasn't been populated yet.
+ */
+export function getEffectiveAlgorithm(platform: SocialPlatform): PlatformAlgorithm {
+  if (effectiveCache?.has(platform)) {
+    return effectiveCache.get(platform)!;
+  }
+  return PLATFORM_ALGORITHMS[platform];
+}
+
+/**
+ * Triggers a non-blocking cache refresh if the cache is stale or empty.
+ * Safe to call from sync code — fires and forgets.
+ */
+export function warmAlgorithmCacheIfNeeded(): void {
+  if (refreshInFlight) return;
+  if (effectiveCache && Date.now() - cacheTimestamp < CACHE_TTL) return;
+  refreshInFlight = true;
+  refreshAlgorithmCache()
+    .catch((err) => console.error("Algorithm cache refresh failed:", err))
+    .finally(() => {
+      refreshInFlight = false;
+    });
+}
+
+/**
+ * Fetches applied adjustments from DB and merges them into the base
+ * PLATFORM_ALGORITHMS to produce the effective algorithm config.
+ */
+export async function refreshAlgorithmCache(): Promise<void> {
+  try {
+    const { getAppliedAdjustments } = await import(
+      "@/lib/dal/algorithm-monitor"
+    );
+    const applied = await getAppliedAdjustments();
+
+    const merged = new Map<SocialPlatform, PlatformAlgorithm>();
+
+    // Start with base data for all platforms
+    const platforms = Object.keys(PLATFORM_ALGORITHMS) as SocialPlatform[];
+    for (const p of platforms) {
+      merged.set(p, { ...PLATFORM_ALGORITHMS[p] });
+    }
+
+    // Apply adjustments on top
+    for (const adj of applied) {
+      const platform = adj.platform as SocialPlatform;
+      if (!merged.has(platform)) continue;
+
+      const current = merged.get(platform)!;
+      merged.set(platform, mergeAdjustment(current, adj as AlgorithmAdjustmentRow));
+    }
+
+    effectiveCache = merged;
+    cacheTimestamp = Date.now();
+  } catch (err) {
+    console.error("Failed to refresh algorithm cache:", err);
+  }
+}
+
+/**
+ * Clears the cache so the next read triggers a fresh DB fetch.
+ * Called when an admin applies or reverts an adjustment.
+ */
+export function invalidateAlgorithmCache(): void {
+  effectiveCache = null;
+  cacheTimestamp = 0;
+}
+
+/**
+ * Merges a single applied adjustment into a PlatformAlgorithm.
+ * Adjustments are prefixed with [AI-adjusted] so the AI model
+ * understands these are recent updates that take priority.
+ */
+function mergeAdjustment(
+  base: PlatformAlgorithm,
+  adj: AlgorithmAdjustmentRow,
+): PlatformAlgorithm {
+  const suggestion = (adj.suggested_value as Record<string, unknown>)
+    ?.suggestion;
+  if (!suggestion || typeof suggestion !== "string") return base;
+
+  switch (adj.adjustment_type) {
+    case "content_strategy":
+      return {
+        ...base,
+        keyTactics: [...base.keyTactics, `[AI-adjusted] ${suggestion}`],
+      };
+    case "smo_weight":
+      return {
+        ...base,
+        rankingFactors: [
+          ...base.rankingFactors,
+          `[AI-adjusted] ${suggestion}`,
+        ],
+      };
+    case "posting_time":
+      return {
+        ...base,
+        postingCadence: `${base.postingCadence} — AI update: ${suggestion}`,
+      };
+    case "engagement_benchmark":
+      return {
+        ...base,
+        primarySignal: `${base.primarySignal} — Benchmark update: ${suggestion}`,
+      };
+    default:
+      return base;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Rendering functions for AI prompts
 // ---------------------------------------------------------------------------
 
 /**
  * Compact algorithm context block (~250 tokens) for profileSummary() injection.
  * Propagates to 17 of 19 AI prompts automatically.
+ * Reads from the effective cache (base + applied adjustments).
  */
 export function getAlgorithmContext(platform: SocialPlatform): string {
-  const algo = PLATFORM_ALGORITHMS[platform];
+  const algo = getEffectiveAlgorithm(platform);
   if (!algo) return "";
 
   return `
@@ -303,9 +433,10 @@ Avoid: ${algo.avoidances.join(" | ")}`;
 /**
  * Detailed algorithm block (~350 tokens) for the recommendations engine.
  * Richer than getAlgorithmContext() — used only once per recommendation generation.
+ * Reads from the effective cache (base + applied adjustments).
  */
 export function getFullAlgorithmBlock(platform: SocialPlatform): string {
-  const algo = PLATFORM_ALGORITHMS[platform];
+  const algo = getEffectiveAlgorithm(platform);
   if (!algo) return "";
 
   const label = platform.charAt(0).toUpperCase() + platform.slice(1);

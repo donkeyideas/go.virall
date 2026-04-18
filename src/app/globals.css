@@ -589,6 +589,13 @@ details summary::-webkit-details-marker { display: none; }
   50% { opacity: 1; transform: translateY(-3px); }
 }
 
+/* Sync All button pulse glow */
+@keyframes sync-pulse {
+  0%,100% { box-shadow: 0 0 6px rgba(212, 160, 23, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(212, 160, 23, 0.6); }
+}
+.animate-sync-pulse { animation: sync-pulse 2s ease-in-out infinite; }
+
 /* Responsive: stack phones vertically */
 @media (max-width: 960px) {
   .lp-phones-container {

@@ -97,7 +97,7 @@ function UserExpandedRow({
 }) {
   return (
     <tr>
-      <td colSpan={10} className="border-b border-rule bg-surface-raised px-6 py-4">
+      <td colSpan={9} className="border-b border-rule bg-surface-raised px-6 py-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {/* User Info */}
           <div>
@@ -348,9 +348,6 @@ export function UsersClient({ users }: { users: UserRow[] }) {
                 Email
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
-                Org
-              </th>
-              <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Plan
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
@@ -374,7 +371,7 @@ export function UsersClient({ users }: { users: UserRow[] }) {
             {filtered.length === 0 ? (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={9}
                   className="px-4 py-8 text-center text-sm text-ink-muted"
                 >
                   {search ? "No users match your search." : "No users found."}
@@ -403,9 +400,6 @@ export function UsersClient({ users }: { users: UserRow[] }) {
                       </td>
                       <td className="px-4 py-2.5 font-mono text-sm text-ink-secondary whitespace-nowrap">
                         {user.email ?? "--"}
-                      </td>
-                      <td className="px-4 py-2.5 text-sm text-ink-secondary whitespace-nowrap">
-                        {user.org_name ?? "--"}
                       </td>
                       <td className="px-4 py-2.5 whitespace-nowrap">
                         <PlanBadge plan={user.org_plan} />
