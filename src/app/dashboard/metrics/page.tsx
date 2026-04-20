@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getSocialProfiles } from "@/lib/dal/profiles";
 import { getPostsPerformance, getPlatformGrowthComparison } from "@/lib/dal/analytics";
 import { getCachedResultsBatch } from "@/lib/dal/analyses";
-import { getUserPreferences } from "@/lib/dal/settings";
 import { AnalyticsClient } from "@/app/dashboard/analytics/AnalyticsClient";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +16,7 @@ export default async function MetricsPage() {
 
   if (!user) redirect("/login");
 
-  const [profiles, userPrefs] = await Promise.all([
-    getSocialProfiles(),
-    getUserPreferences(),
-  ]);
+  const profiles = await getSocialProfiles();
   const ids = profiles.map((p) => p.id);
   const [posts, platformGrowth, batch] = await Promise.all([
     getPostsPerformance(),
@@ -36,8 +32,6 @@ export default async function MetricsPage() {
         platformGrowth={platformGrowth}
         earningsResults={batch.earnings_forecast}
         competitorResults={batch.competitors}
-        featureGrowth={userPrefs?.feature_growth ?? false}
-        featureRevenue={userPrefs?.feature_revenue ?? false}
       />
     </Suspense>
   );

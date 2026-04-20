@@ -28,8 +28,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
     getSocialProfiles(),
     getUserPreferences(),
   ]);
-  const featureGrowth = userPrefs?.feature_growth ?? false;
-  const featureRevenue = userPrefs?.feature_revenue ?? false;
   const ids = profiles.map((p) => p.id);
 
   /* ── Strategy ── */
@@ -140,8 +138,6 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
       <AnalyticsHubClient
         activeTab="metrics"
         profiles={profiles}
-        featureGrowth={featureGrowth}
-        featureRevenue={featureRevenue}
         posts={posts}
         platformGrowth={platformGrowth}
         earningsResults={batch.earnings_forecast}

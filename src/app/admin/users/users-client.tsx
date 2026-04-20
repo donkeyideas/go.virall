@@ -1,9 +1,28 @@
 "use client";
 
-import React, { useState, useTransition, useMemo } from "react";
-import { Search, ChevronDown, ChevronRight, Loader2, Trash2 } from "lucide-react";
-import { updateUserRole, deleteUser } from "@/lib/actions/admin";
+import React, { useState, useTransition, useMemo, useCallback } from "react";
+import {
+  Search,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Trash2,
+  X,
+  Mail,
+  Users,
+  BarChart3,
+  Briefcase,
+  Shield,
+  Calendar,
+  Clock,
+  Globe,
+  CreditCard,
+  Star,
+} from "lucide-react";
+import { updateUserRole, deleteUser, getUserDetails, toggleCompAccount } from "@/lib/actions/admin";
 import type { UserRow } from "@/types";
+
+/* ─── Helpers ─── */
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -25,6 +44,18 @@ function formatDate(dateStr: string): string {
     day: "numeric",
   });
 }
+
+function formatDateTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/* ─── Sub-components ─── */
 
 function ProviderIcon({ provider }: { provider: string | null }) {
   if (provider === "google") {
@@ -84,122 +115,6 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-function UserExpandedRow({
-  user,
-  onRoleChange,
-  onDelete,
-  isPending,
-}: {
-  user: UserRow;
-  onRoleChange: (userId: string, role: string) => void;
-  onDelete: (userId: string) => void;
-  isPending: boolean;
-}) {
-  return (
-    <tr>
-      <td colSpan={9} className="border-b border-rule bg-surface-raised px-6 py-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {/* User Info */}
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-2">
-              User Details
-            </p>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                {user.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt=""
-                    className="h-8 w-8 object-cover"
-                  />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center bg-surface-inset text-xs font-bold text-ink-muted">
-                    {(user.full_name ?? "?")[0]?.toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-ink">
-                    {user.full_name ?? "Unknown"}
-                  </p>
-                  <p className="font-mono text-sm text-ink-muted">
-                    {user.email ?? "No email"}
-                  </p>
-                </div>
-              </div>
-              <p className="font-mono text-sm text-ink-muted">
-                ID: {user.id.slice(0, 8)}...
-              </p>
-              <p className="text-sm text-ink-secondary">
-                Provider: <span className="font-mono">{user.provider ?? "email"}</span>
-              </p>
-              <p className="text-sm text-ink-secondary">
-                Joined: <span className="font-mono">{formatDate(user.created_at)}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Organization Info */}
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-2">
-              Organization
-            </p>
-            <div className="space-y-1.5">
-              <p className="text-sm text-ink">
-                {user.org_name ?? "No organization"}
-              </p>
-              {user.org_plan && <PlanBadge plan={user.org_plan} />}
-              <p className="text-sm text-ink-secondary">
-                Role: <span className="font-mono">{user.role}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-2">
-              Actions
-            </p>
-            <div className="space-y-2">
-              <div>
-                <label className="text-[11px] font-bold uppercase tracking-widest text-ink-muted block mb-1">
-                  System Role
-                </label>
-                <div className="flex items-center gap-2">
-                  <select
-                    defaultValue={user.system_role}
-                    onChange={(e) => onRoleChange(user.id, e.target.value)}
-                    disabled={isPending}
-                    className="border border-rule bg-surface-card px-2 py-1 text-xs font-mono text-ink focus:outline-none focus:border-ink disabled:opacity-50 [&>option]:bg-surface-card [&>option]:text-ink"
-                  >
-                    <option value="user">user</option>
-                    <option value="admin">admin</option>
-                    <option value="superadmin">superadmin</option>
-                  </select>
-                  {isPending && (
-                    <Loader2 size={20} className="animate-spin text-ink-muted" />
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  if (confirm(`Delete user "${user.full_name ?? user.email}"? This cannot be undone.`)) {
-                    onDelete(user.id);
-                  }
-                }}
-                disabled={isPending}
-                className="mt-3 flex items-center gap-1.5 border border-editorial-red/30 bg-editorial-red/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-editorial-red hover:bg-editorial-red/20 transition-colors disabled:opacity-50"
-              >
-                <Trash2 size={12} />
-                Delete User
-              </button>
-            </div>
-          </div>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
 function AccountTypeBadge({ type }: { type: "creator" | "brand" }) {
   return (
     <span
@@ -212,14 +127,405 @@ function AccountTypeBadge({ type }: { type: "creator" | "brand" }) {
   );
 }
 
+function StatusBadge({ status }: { status: string | null }) {
+  if (!status) return <span className="text-ink-muted">--</span>;
+  const color =
+    status === "active"
+      ? "text-editorial-green"
+      : status === "trialing"
+        ? "text-editorial-blue"
+        : status === "past_due" || status === "canceled"
+          ? "text-editorial-red"
+          : "text-ink-muted";
+  return (
+    <span className={`text-[11px] font-bold uppercase tracking-widest ${color}`}>
+      {status}
+    </span>
+  );
+}
+
+function SectionCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <div className="border border-rule bg-surface-card">
+      <div className="flex items-center gap-2 border-b border-rule px-4 py-2.5">
+        <Icon size={14} className="text-ink-muted" />
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{title}</h3>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
+  return (
+    <div className="flex items-start justify-between py-1.5 border-b border-rule/50 last:border-0">
+      <span className="text-xs text-ink-muted">{label}</span>
+      <span className={`text-xs text-ink text-right ${mono ? "font-mono" : ""}`}>{value}</span>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, icon: Icon }: { label: string; value: number | string; icon: React.ElementType }) {
+  return (
+    <div className="border border-rule bg-surface-card p-3 text-center">
+      <Icon size={16} className="mx-auto mb-1 text-ink-muted" />
+      <div className="font-mono text-xl font-bold text-ink">{typeof value === "number" ? value.toLocaleString() : value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-ink-muted mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function PlatformIcon({ platform }: { platform: string }) {
+  const colors: Record<string, string> = {
+    instagram: "text-pink-500",
+    tiktok: "text-ink",
+    youtube: "text-red-500",
+    twitter: "text-blue-400",
+    linkedin: "text-blue-600",
+    facebook: "text-blue-500",
+  };
+  return (
+    <span className={`text-[11px] font-bold uppercase tracking-widest ${colors[platform] ?? "text-ink-muted"}`}>
+      {platform}
+    </span>
+  );
+}
+
+/* ─── User Details Modal ─── */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function UserDetailsModal({ details, onClose }: { details: any; onClose: () => void }) {
+  const [isPending, startTransition] = useTransition();
+  const [compAccount, setCompAccount] = useState(details.profile.comp_account ?? false);
+
+  const profile = details.profile;
+  const org = details.organization;
+  const usage = details.usage;
+
+  function handleCompToggle(enabled: boolean) {
+    setCompAccount(enabled);
+    startTransition(async () => {
+      const result = await toggleCompAccount(profile.id, enabled);
+      if (result.error) {
+        setCompAccount(!enabled); // revert
+      }
+    });
+  }
+
+  return (
+    <>
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-rule bg-surface-cream px-5 py-4">
+          <h2 className="font-serif text-xl font-bold text-ink">User Details</h2>
+          <button onClick={onClose} className="text-ink-muted hover:text-ink transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-4 p-5">
+          {/* Profile Header */}
+          <div className="flex items-start gap-4">
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="h-14 w-14 object-cover border border-rule"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center border border-rule bg-surface-inset text-lg font-bold text-ink-muted">
+                {(profile.full_name ?? "?")[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-serif text-lg font-bold text-ink">{profile.full_name ?? "Unknown"}</h3>
+                <RoleBadge role={profile.system_role} />
+                <AccountTypeBadge type={profile.account_type ?? "creator"} />
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Mail size={12} className="text-ink-muted" />
+                <span className="font-mono text-xs text-ink-secondary">{profile.email ?? "No email"}</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Globe size={12} className="text-ink-muted" />
+                <span className="text-xs text-ink-secondary">
+                  <ProviderIcon provider={profile.provider} />
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI Grid */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <KpiCard label="Social Profiles" value={usage.socialProfiles} icon={Users} />
+            <KpiCard label="Analyses" value={usage.analyses} icon={BarChart3} />
+            <KpiCard label="Team Members" value={usage.members} icon={Users} />
+            <KpiCard label="Deals" value={usage.deals} icon={Briefcase} />
+          </div>
+
+          {/* Social Profiles */}
+          {details.socialProfiles.length > 0 && (
+            <SectionCard title="Connected Profiles" icon={Users}>
+              <div className="space-y-2">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {details.socialProfiles.map((sp: any) => (
+                  <div key={sp.id} className="flex items-center justify-between border-b border-rule/50 pb-2 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-2">
+                      <PlatformIcon platform={sp.platform} />
+                      <span className="font-mono text-xs text-ink">@{sp.handle}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-ink-muted">
+                      <span className="font-mono">{(sp.followers_count ?? 0).toLocaleString()} followers</span>
+                      {sp.engagement_rate != null && (
+                        <span className="font-mono">{(sp.engagement_rate * 100).toFixed(1)}% eng</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Organization */}
+          {org && (
+            <SectionCard title="Organization" icon={Briefcase}>
+              <div className="space-y-0">
+                <InfoRow label="Name" value={org.name} />
+                <InfoRow label="Slug" value={org.slug} mono />
+                <InfoRow label="Plan" value={<PlanBadge plan={org.plan} />} />
+                <InfoRow label="Status" value={<StatusBadge status={org.subscription_status} />} />
+                <InfoRow label="Max Profiles" value={org.max_social_profiles ?? "--"} mono />
+                {org.stripe_customer_id && (
+                  <InfoRow label="Stripe Customer" value={org.stripe_customer_id.slice(0, 16) + "..."} mono />
+                )}
+                {org.stripe_subscription_id && (
+                  <InfoRow label="Stripe Sub" value={org.stripe_subscription_id.slice(0, 16) + "..."} mono />
+                )}
+                <InfoRow label="Created" value={formatDate(org.created_at)} />
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Account Info */}
+          <SectionCard title="Account Info" icon={Shield}>
+            <div className="space-y-0">
+              <InfoRow label="Role" value={profile.role} mono />
+              <InfoRow label="System Role" value={<RoleBadge role={profile.system_role} />} />
+              <InfoRow label="Account Type" value={<AccountTypeBadge type={profile.account_type ?? "creator"} />} />
+              <InfoRow label="Created" value={formatDate(profile.created_at)} />
+              <InfoRow
+                label="Last Sign In"
+                value={profile.lastSignIn ? timeAgo(profile.lastSignIn) : "Never"}
+              />
+              <InfoRow label="Timezone" value={profile.timezone ?? "--"} mono />
+              <InfoRow
+                label="Onboarding"
+                value={
+                  <span className={profile.onboarding_completed ? "text-editorial-green" : "text-editorial-red"}>
+                    {profile.onboarding_completed ? "Complete" : "Incomplete"}
+                  </span>
+                }
+              />
+              <InfoRow label="User ID" value={profile.id.slice(0, 12) + "..."} mono />
+            </div>
+          </SectionCard>
+
+          {/* Billing & Subscription */}
+          {org && (
+            <SectionCard title="Billing & Subscription" icon={CreditCard}>
+              <div className="space-y-0 mb-3">
+                <InfoRow label="Plan" value={<PlanBadge plan={org.plan} />} />
+                <InfoRow label="Status" value={<StatusBadge status={org.subscription_status} />} />
+                {org.stripe_customer_id && (
+                  <InfoRow label="Stripe Customer" value={org.stripe_customer_id.slice(0, 20) + "..."} mono />
+                )}
+              </div>
+              {details.billingEvents.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-ink-muted mb-2">Payment History</p>
+                  <div className="space-y-1.5">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {details.billingEvents.map((e: any) => (
+                      <div key={e.id} className="flex items-center justify-between text-xs">
+                        <span className="text-ink-secondary">{e.event_type.replace(/[._]/g, " ")}</span>
+                        <div className="flex items-center gap-2">
+                          {e.amount_cents != null && (
+                            <span className="font-mono text-ink font-medium">
+                              ${(e.amount_cents / 100).toFixed(2)}
+                            </span>
+                          )}
+                          <span className="text-ink-muted font-mono text-[10px]">{timeAgo(e.created_at)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </SectionCard>
+          )}
+
+          {/* Complimentary Account */}
+          <SectionCard title="Complimentary Account" icon={Star}>
+            <div className="flex items-start gap-3">
+              <button
+                onClick={() => handleCompToggle(!compAccount)}
+                disabled={isPending}
+                className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors ${
+                  compAccount
+                    ? "border-editorial-green bg-editorial-green"
+                    : "border-rule bg-surface-inset"
+                } ${isPending ? "opacity-50" : ""}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                    compAccount ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
+              <div>
+                <p className="text-xs font-medium text-ink">
+                  {compAccount ? "ACTIVE" : "Disabled"} — Unlimited plan access
+                </p>
+                <p className="text-[10px] text-ink-muted mt-0.5">
+                  {compAccount
+                    ? "This user has complimentary access. No billing required."
+                    : "Enable to grant unlimited plan access at no charge."}
+                </p>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Recent Analyses */}
+          {details.recentAnalyses.length > 0 && (
+            <SectionCard title="Recent Analyses" icon={BarChart3}>
+              <div className="space-y-1.5">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {details.recentAnalyses.map((a: any) => (
+                  <div key={a.id} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">
+                        {a.analysis_type?.replace(/_/g, " ")}
+                      </span>
+                      {a.ai_provider && (
+                        <span className="font-mono text-[10px] text-ink-muted">{a.ai_provider}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {a.tokens_used != null && a.tokens_used > 0 && (
+                        <span className="font-mono text-[10px] text-ink-muted">{a.tokens_used.toLocaleString()} tok</span>
+                      )}
+                      <span className="font-mono text-[10px] text-ink-muted">{timeAgo(a.created_at)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Recent Activity (Audit Log) */}
+          {details.recentActivity.length > 0 && (
+            <SectionCard title="Recent Activity" icon={Clock}>
+              <div className="space-y-1.5">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {details.recentActivity.map((a: any) => (
+                  <div key={a.id} className="flex items-center justify-between text-xs">
+                    <span className="text-ink-secondary">
+                      {a.action?.replace(/_/g, " ")}
+                      {a.resource_type && (
+                        <span className="text-ink-muted"> ({a.resource_type.replace(/_/g, " ")})</span>
+                      )}
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-muted">{timeAgo(a.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Deals */}
+          {details.deals.length > 0 && (
+            <SectionCard title="Recent Deals" icon={Briefcase}>
+              <div className="space-y-1.5">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {details.deals.map((d: any) => (
+                  <div key={d.id} className="flex items-center justify-between text-xs">
+                    <span className="text-ink">{d.brand_name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${
+                        d.status === "completed" ? "text-editorial-green"
+                          : d.status === "active" ? "text-editorial-blue"
+                          : "text-ink-muted"
+                      }`}>{d.status}</span>
+                      {d.total_value != null && (
+                        <span className="font-mono text-ink">${d.total_value.toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Actions */}
+          <SectionCard title="Actions" icon={Shield}>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-widest text-ink-muted block mb-1">
+                  System Role
+                </label>
+                <select
+                  defaultValue={profile.system_role}
+                  onChange={(e) => {
+                    startTransition(async () => {
+                      await updateUserRole(profile.id, e.target.value);
+                    });
+                  }}
+                  disabled={isPending}
+                  className="border border-rule bg-surface-card px-2 py-1 text-xs font-mono text-ink focus:outline-none focus:border-ink disabled:opacity-50 [&>option]:bg-surface-card [&>option]:text-ink"
+                >
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                  <option value="superadmin">superadmin</option>
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  if (confirm(`Delete user "${profile.full_name ?? profile.email}"? This cannot be undone.`)) {
+                    startTransition(async () => {
+                      await deleteUser(profile.id);
+                      onClose();
+                    });
+                  }
+                }}
+                disabled={isPending}
+                className="flex items-center gap-1.5 border border-editorial-red/30 bg-editorial-red/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-editorial-red hover:bg-editorial-red/20 transition-colors disabled:opacity-50"
+              >
+                <Trash2 size={12} />
+                Delete User
+              </button>
+            </div>
+          </SectionCard>
+        </div>
+    </>
+  );
+}
+
+/* ─── Main Component ─── */
+
 type AccountFilter = "all" | "creator" | "brand";
 
 export function UsersClient({ users }: { users: UserRow[] }) {
   const [search, setSearch] = useState("");
   const [accountFilter, setAccountFilter] = useState<AccountFilter>("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // User details modal state
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [userDetails, setUserDetails] = useState<any>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   const filtered = useMemo(() => {
     let result = users;
@@ -238,27 +544,22 @@ export function UsersClient({ users }: { users: UserRow[] }) {
     );
   }, [users, search, accountFilter]);
 
-  function handleRoleChange(userId: string, role: string) {
-    setActionError(null);
-    startTransition(async () => {
-      const result = await updateUserRole(userId, role);
-      if (result.error) {
-        setActionError(result.error);
-      }
-    });
-  }
-
-  function handleDelete(userId: string) {
-    setActionError(null);
-    startTransition(async () => {
-      const result = await deleteUser(userId);
-      if (result.error) {
-        setActionError(result.error);
+  const handleUserClick = useCallback(async (userId: string) => {
+    setSelectedUserId(userId);
+    setUserDetails(null);
+    setDetailsLoading(true);
+    try {
+      const result = await getUserDetails(userId);
+      if ("data" in result) {
+        setUserDetails(result.data);
       } else {
-        setExpandedId(null);
+        setActionError((result as { error: string }).error ?? "Failed to load user details");
       }
-    });
-  }
+    } catch {
+      setActionError("Failed to load user details");
+    }
+    setDetailsLoading(false);
+  }, []);
 
   return (
     <div>
@@ -332,6 +633,7 @@ export function UsersClient({ users }: { users: UserRow[] }) {
       {actionError && (
         <div className="mb-4 border border-editorial-red bg-editorial-red/5 px-4 py-2 text-xs text-editorial-red">
           {actionError}
+          <button onClick={() => setActionError(null)} className="ml-2 underline">dismiss</button>
         </div>
       )}
 
@@ -340,7 +642,6 @@ export function UsersClient({ users }: { users: UserRow[] }) {
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-rule">
-              <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted w-8" />
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Name
               </th>
@@ -352,9 +653,6 @@ export function UsersClient({ users }: { users: UserRow[] }) {
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 Type
-              </th>
-              <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
-                Role
               </th>
               <th className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted">
                 System Role
@@ -371,92 +669,85 @@ export function UsersClient({ users }: { users: UserRow[] }) {
             {filtered.length === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={7}
                   className="px-4 py-8 text-center text-sm text-ink-muted"
                 >
                   {search ? "No users match your search." : "No users found."}
                 </td>
               </tr>
             ) : (
-              filtered.map((user) => {
-                const isExpanded = expandedId === user.id;
-                return (
-                  <React.Fragment key={user.id}>
-                    <tr
-                      onClick={() =>
-                        setExpandedId(isExpanded ? null : user.id)
-                      }
-                      className="border-b border-rule hover:bg-surface-raised/50 cursor-pointer transition-colors"
-                    >
-                      <td className="px-4 py-2.5 text-ink-muted">
-                        {isExpanded ? (
-                          <ChevronDown size={14} />
-                        ) : (
-                          <ChevronRight size={14} />
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5 text-sm font-medium text-ink whitespace-nowrap">
-                        {user.full_name ?? "Unknown"}
-                      </td>
-                      <td className="px-4 py-2.5 font-mono text-sm text-ink-secondary whitespace-nowrap">
-                        {user.email ?? "--"}
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <PlanBadge plan={user.org_plan} />
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <AccountTypeBadge type={user.account_type} />
-                      </td>
-                      <td className="px-4 py-2.5 font-mono text-sm text-ink-secondary whitespace-nowrap">
-                        {user.role}
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <RoleBadge role={user.system_role} />
-                      </td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-ink-muted whitespace-nowrap">
-                        <ProviderIcon provider={user.provider} />
-                      </td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-ink-muted whitespace-nowrap">
-                        {timeAgo(user.created_at)}
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <UserExpandedRow
-                        key={`${user.id}-detail`}
-                        user={user}
-                        onRoleChange={handleRoleChange}
-                        onDelete={handleDelete}
-                        isPending={isPending}
-                      />
-                    )}
-                  </React.Fragment>
-                );
-              })
+              filtered.map((user) => (
+                <tr
+                  key={user.id}
+                  onClick={() => handleUserClick(user.id)}
+                  className="border-b border-rule hover:bg-surface-raised/50 cursor-pointer transition-colors"
+                >
+                  <td className="px-4 py-2.5 text-sm font-medium text-ink whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="" className="h-6 w-6 object-cover border border-rule" />
+                      ) : (
+                        <div className="flex h-6 w-6 items-center justify-center bg-surface-inset text-[10px] font-bold text-ink-muted border border-rule">
+                          {(user.full_name ?? "?")[0]?.toUpperCase()}
+                        </div>
+                      )}
+                      {user.full_name ?? "Unknown"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-sm text-ink-secondary whitespace-nowrap">
+                    {user.email ?? "--"}
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <PlanBadge plan={user.org_plan} />
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <AccountTypeBadge type={user.account_type} />
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <RoleBadge role={user.system_role} />
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-ink-muted whitespace-nowrap">
+                    <ProviderIcon provider={user.provider} />
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-ink-muted whitespace-nowrap">
+                    {timeAgo(user.created_at)}
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination placeholder */}
+      {/* Pagination */}
       <div className="mt-4 flex items-center justify-between">
         <p className="text-xs text-ink-muted font-mono">
           Showing {filtered.length} of {users.length} users
         </p>
-        <div className="flex items-center gap-2">
-          <button
-            disabled
-            className="border border-rule px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted disabled:opacity-40"
-          >
-            Previous
-          </button>
-          <button
-            disabled
-            className="border border-rule px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink-muted disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
       </div>
+
+      {/* User Details Modal */}
+      {selectedUserId && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-8 pb-8" onClick={() => { setSelectedUserId(null); setUserDetails(null); }}>
+          <div className="relative w-full max-w-2xl border border-rule bg-surface-cream" onClick={(e) => e.stopPropagation()}>
+            {detailsLoading ? (
+              <div className="flex items-center justify-center p-16">
+                <Loader2 size={32} className="animate-spin text-ink-muted" />
+              </div>
+            ) : userDetails ? (
+              <UserDetailsModal
+                details={userDetails}
+                onClose={() => { setSelectedUserId(null); setUserDetails(null); }}
+              />
+            ) : (
+              <div className="p-8 text-center text-sm text-ink-muted">
+                Failed to load user details.
+                <button onClick={() => { setSelectedUserId(null); setUserDetails(null); }} className="mt-2 block mx-auto underline">Close</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

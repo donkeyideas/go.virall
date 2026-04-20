@@ -12,74 +12,141 @@ export async function getUserDetails(userId: string) {
   await requireAdmin();
   const admin = createAdminClient();
 
-  const [profile, socialProfiles, analyses, auditLog] = await Promise.all([
-    admin
-      .from("profiles")
-      .select("*, organizations(name, plan, slug)")
-      .eq("id", userId)
-      .single(),
-    admin
-      .from("social_profiles")
-      .select("id, platform, handle, followers_count, engagement_rate")
-      .eq(
-        "organization_id",
-        (
-          await admin
-            .from("profiles")
-            .select("organization_id")
-            .eq("id", userId)
-            .single()
-        ).data?.organization_id ?? "",
-      )
-      .limit(20),
-    admin
-      .from("social_analyses")
-      .select("id, analysis_type, created_at")
-      .eq(
-        "social_profile_id",
-        (
-          await admin
-            .from("social_profiles")
-            .select("id")
-            .eq(
-              "organization_id",
-              (
-                await admin
-                  .from("profiles")
-                  .select("organization_id")
-                  .eq("id", userId)
-                  .single()
-              ).data?.organization_id ?? "",
-            )
-            .limit(1)
-        ).data?.[0]?.id ?? "",
-      )
-      .order("created_at", { ascending: false })
-      .limit(10),
-    admin
-      .from("audit_log")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  // 1. Fetch profile with org join
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
 
-  // Get email from auth
+  if (!profile) return { error: "User not found" };
+
+  // 2. Fetch auth data (email, provider, last sign-in)
   let email: string | null = null;
+  let provider = "email";
+  let lastSignIn: string | null = null;
   try {
-    const { data } = await admin.auth.admin.getUserById(userId);
-    email = data?.user?.email ?? null;
+    const { data: authData } = await admin.auth.admin.getUserById(userId);
+    email = authData?.user?.email ?? null;
+    provider = authData?.user?.app_metadata?.provider ?? "email";
+    lastSignIn = authData?.user?.last_sign_in_at ?? null;
   } catch {
     /* fallback */
   }
 
+  // 3. Fetch organization (if exists)
+  let organization = null;
+  if (profile.organization_id) {
+    const { data: orgData } = await admin
+      .from("organizations")
+      .select("*")
+      .eq("id", profile.organization_id)
+      .single();
+    organization = orgData;
+  }
+
+  // 4. Fetch related data in parallel
+  const orgId = profile.organization_id ?? "";
+  const [
+    socialProfiles,
+    analysesResult,
+    auditLog,
+    userPrefs,
+    membersResult,
+    dealsResult,
+    billingEvents,
+  ] = await Promise.all([
+    admin
+      .from("social_profiles")
+      .select("id, platform, handle, followers_count, engagement_rate, verified, created_at")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    admin
+      .from("social_analyses")
+      .select("id, analysis_type, ai_provider, tokens_used, cost_cents, created_at, social_profile_id")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false })
+      .limit(15),
+    admin
+      .from("audit_log")
+      .select("id, action, resource_type, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    admin
+      .from("user_preferences")
+      .select("*")
+      .eq("user_id", userId)
+      .single(),
+    orgId
+      ? admin
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("organization_id", orgId)
+      : Promise.resolve({ count: 0 }),
+    orgId
+      ? admin
+          .from("deals")
+          .select("id, brand_name, status, total_value, created_at")
+          .eq("organization_id", orgId)
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [] }),
+    orgId
+      ? admin
+          .from("billing_events")
+          .select("id, event_type, amount_cents, created_at")
+          .eq("organization_id", orgId)
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  // 5. Compute usage stats
+  const profileCount = socialProfiles.data?.length ?? 0;
+  const analysisCount = analysesResult.data?.length ?? 0;
+  const memberCount = membersResult.count ?? 0;
+  const dealCount = dealsResult.data?.length ?? 0;
+
   return {
-    profile: profile.data,
-    email,
-    socialProfiles: socialProfiles.data ?? [],
-    recentAnalyses: analyses.data ?? [],
-    recentActivity: auditLog.data ?? [],
+    data: {
+      profile: {
+        ...profile,
+        email,
+        provider,
+        lastSignIn,
+      },
+      organization,
+      usage: {
+        socialProfiles: profileCount,
+        analyses: analysisCount,
+        members: memberCount,
+        deals: dealCount,
+      },
+      socialProfiles: socialProfiles.data ?? [],
+      recentAnalyses: analysesResult.data ?? [],
+      recentActivity: auditLog.data ?? [],
+      billingEvents: billingEvents.data ?? [],
+      deals: dealsResult.data ?? [],
+      userPreferences: userPrefs.data,
+    },
   };
+}
+
+export async function toggleCompAccount(userId: string, enabled: boolean) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("profiles")
+    .update({ comp_account: enabled })
+    .eq("id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/users");
+  return { success: true };
 }
 
 export async function getOrgDetails(orgId: string) {
