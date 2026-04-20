@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.govirall.app",
+      "versionCode": 3,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#0C0A14",
