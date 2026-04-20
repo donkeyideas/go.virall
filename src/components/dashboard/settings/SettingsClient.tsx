@@ -11,17 +11,23 @@ import { NotificationsTab } from "./NotificationsTab";
 import { MediaKitTab } from "./MediaKitTab";
 import { TeamTab } from "./TeamTab";
 import { ApiKeysTab } from "./ApiKeysTab";
+import { FeaturesTab } from "./FeaturesTab";
 import type { Profile, Organization, SocialProfile, UserPreferences, SubscriptionData, BillingInvoice } from "@/types";
 import type { MediaKitData } from "@/lib/dal/media-kit";
 
-const ALL_SETTINGS_TABS = [
+const BASE_SETTINGS_TABS = [
   { key: "account", label: "Account" },
   { key: "connected", label: "Connected Accounts" },
   { key: "billing", label: "Subscription & Billing" },
   { key: "notifications", label: "Notifications" },
-  { key: "media-kit", label: "Media Kit", creatorOnly: true },
-  { key: "team", label: "Team" },
-  { key: "api-keys", label: "API Keys" },
+  { key: "features", label: "Features" },
+] as const;
+
+// Tabs that require feature flags to be enabled
+const OPTIONAL_SETTINGS_TABS = [
+  { key: "media-kit", label: "Media Kit", featureFlag: "feature_media_kit" as const, creatorOnly: true },
+  { key: "team", label: "Team", featureFlag: "feature_team" as const },
+  { key: "api-keys", label: "API Keys", featureFlag: "feature_api_keys" as const },
 ] as const;
 
 interface SettingsClientProps {
@@ -50,10 +56,13 @@ export function SettingsClient({
   const pathname = usePathname();
 
   const accountType = profile?.account_type ?? "creator";
-  const SETTINGS_TABS = useMemo(
-    () => ALL_SETTINGS_TABS.filter((t) => !("creatorOnly" in t && t.creatorOnly) || accountType === "creator"),
-    [accountType],
-  );
+  const SETTINGS_TABS = useMemo(() => {
+    const enabledOptional = OPTIONAL_SETTINGS_TABS.filter((t) => {
+      if ("creatorOnly" in t && t.creatorOnly && accountType !== "creator") return false;
+      return (userPreferences as unknown as Record<string, boolean>)?.[t.featureFlag] === true;
+    });
+    return [...BASE_SETTINGS_TABS, ...enabledOptional];
+  }, [accountType, userPreferences]);
 
   const activeKey = searchParams.get("tab") || "account";
   const activeTab = SETTINGS_TABS.find((t) => t.key === activeKey) ?? SETTINGS_TABS[0];
@@ -113,6 +122,9 @@ export function SettingsClient({
         )}
         {activeTab.key === "notifications" && (
           <NotificationsTab userPreferences={userPreferences} />
+        )}
+        {activeTab.key === "features" && (
+          <FeaturesTab userPreferences={userPreferences} />
         )}
         {activeTab.key === "media-kit" && (
           <MediaKitTab profile={profile} socialProfiles={socialProfiles} mediaKitData={mediaKitData} />

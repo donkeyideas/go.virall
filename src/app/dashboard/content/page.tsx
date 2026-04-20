@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSocialProfiles } from "@/lib/dal/profiles";
 import { getCachedResults, getCachedContentResults } from "@/lib/dal/analyses";
 import { getTrendingTopics } from "@/lib/ai/trend-intelligence";
+import { getUserPreferences } from "@/lib/dal/settings";
 import { ContentHubClient } from "./ContentHubClient";
 import type { ScheduledPost, SocialProfile } from "@/types";
 
@@ -23,6 +24,9 @@ export default async function ContentPage({ searchParams }: PageProps) {
   if (!user) redirect("/login");
 
   const params = await searchParams;
+  const userPrefs = await getUserPreferences();
+  const featurePublish = userPrefs?.feature_publish ?? false;
+  const featureHashtags = userPrefs?.feature_hashtags ?? false;
   const tab = params.tab || "ai-studio";
 
   if (tab === "ai-studio") {
@@ -39,6 +43,8 @@ export default async function ContentPage({ searchParams }: PageProps) {
           profiles={profiles}
           cachedInsights={cachedInsights}
           cachedContent={cachedContent}
+          featurePublish={featurePublish}
+          featureHashtags={featureHashtags}
         />
       </Suspense>
     );
@@ -48,7 +54,7 @@ export default async function ContentPage({ searchParams }: PageProps) {
     const initialTopics = await getTrendingTopics(undefined, undefined, 50);
     return (
       <Suspense>
-        <ContentHubClient activeTab="hashtags" initialTopics={initialTopics} />
+        <ContentHubClient activeTab="hashtags" initialTopics={initialTopics} featurePublish={featurePublish} featureHashtags={featureHashtags} />
       </Suspense>
     );
   }
@@ -133,6 +139,8 @@ export default async function ContentPage({ searchParams }: PageProps) {
         publishProfiles={publishProfiles}
         publishStats={publishStats}
         dealEvents={dealEvents}
+        featurePublish={featurePublish}
+        featureHashtags={featureHashtags}
       />
     </Suspense>
   );

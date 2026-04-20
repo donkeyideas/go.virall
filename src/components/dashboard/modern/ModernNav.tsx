@@ -17,23 +17,38 @@ import {
   User,
   CreditCard,
   Target,
+  Activity,
+  Compass,
+  Brain,
+  Award,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/lib/contexts/view-mode";
 import { signOut } from "@/lib/actions/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NotificationModal } from "@/components/dashboard/NotificationModal";
+import type { FeatureFlags } from "@/components/dashboard/DashboardShell";
 
-const ALL_NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { label: "Overview", href: "/dashboard", icon: Home },
   { label: "Mission", href: "/dashboard/mission", icon: Target },
   { label: "Profiles", href: "/dashboard/profiles", icon: User },
-  { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
   { label: "Content", href: "/dashboard/content", icon: PenTool },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Business", href: "/dashboard/business", icon: Briefcase },
+  { label: "Metrics", href: "/dashboard/metrics", icon: Activity },
+  { label: "Strategy", href: "/dashboard/strategy", icon: Compass },
+  { label: "Intelligence", href: "/dashboard/intelligence", icon: Brain },
+  { label: "SMO Score", href: "/dashboard/smo-score", icon: Award },
+  { label: "Recommendations", href: "/dashboard/recommendations", icon: Sparkles },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
   { label: "Guide", href: "/dashboard/guide", icon: BookOpen },
+];
+
+// Optional nav items gated by feature flags
+const OPTIONAL_NAV_ITEMS = [
+  { label: "Inbox", href: "/dashboard/inbox", icon: Inbox, flag: "feature_inbox" as const, insertAfter: "/dashboard/profiles" },
+  { label: "Business", href: "/dashboard/business", icon: Briefcase, flag: "feature_business" as const, insertAfter: "/dashboard/analytics" },
 ];
 
 interface ModernNavProps {
@@ -43,14 +58,26 @@ interface ModernNavProps {
   unreadCount?: number;
   notifications?: Array<{ id: string; title: string; body: string | null; type: string; is_read: boolean; created_at: string }>;
   accountType?: "creator" | "brand";
+  featureFlags?: FeatureFlags;
 }
 
-export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, notifications = [], accountType = "creator" }: ModernNavProps) {
+export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, notifications = [], accountType = "creator", featureFlags }: ModernNavProps) {
   const pathname = usePathname();
   const { viewMode, setViewMode } = useViewMode();
   const [dark, setDark] = useState(true);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+
+  const navItems = useMemo(() => {
+    const items = [...BASE_NAV_ITEMS];
+    for (const opt of OPTIONAL_NAV_ITEMS) {
+      if (featureFlags?.[opt.flag]) {
+        const idx = items.findIndex((i) => i.href === opt.insertAfter);
+        items.splice(idx + 1, 0, { label: opt.label, href: opt.href, icon: opt.icon });
+      }
+    }
+    return items;
+  }, [featureFlags]);
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -332,7 +359,7 @@ export function ModernNav({ userName, avatarUrl, showLogout, unreadCount = 0, no
           gap: 0,
         }}
       >
-        {ALL_NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"

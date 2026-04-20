@@ -129,6 +129,47 @@ export async function updateNotificationPreferences(formData: FormData) {
   return { success: true };
 }
 
+export async function updateFeaturePreferences(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Not authenticated." };
+  }
+
+  const boolField = (key: string) => formData.get(key) === "true";
+
+  const prefs = {
+    id: user.id,
+    feature_inbox: boolField("feature_inbox"),
+    feature_business: boolField("feature_business"),
+    feature_publish: boolField("feature_publish"),
+    feature_hashtags: boolField("feature_hashtags"),
+    feature_media_kit: boolField("feature_media_kit"),
+    feature_team: boolField("feature_team"),
+    feature_api_keys: boolField("feature_api_keys"),
+    feature_growth: boolField("feature_growth"),
+    feature_revenue: boolField("feature_revenue"),
+    feature_strategy: boolField("feature_strategy"),
+    feature_intelligence: boolField("feature_intelligence"),
+    feature_trust_score: boolField("feature_trust_score"),
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase
+    .from("user_preferences")
+    .upsert(prefs, { onConflict: "id" });
+
+  if (error) {
+    return { error: "Failed to update feature preferences." };
+  }
+
+  revalidatePath("/dashboard", "layout");
+  return { success: true };
+}
+
 export async function updatePassword(formData: FormData) {
   const newPassword = formData.get("newPassword") as string | null;
   const confirmPassword = formData.get("confirmPassword") as string | null;

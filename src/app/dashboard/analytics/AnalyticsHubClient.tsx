@@ -102,6 +102,8 @@ const INTELLIGENCE_TABS: TabDef[] = [
 interface AnalyticsHubClientProps {
   activeTab: string;
   profiles: SocialProfile[];
+  featureGrowth?: boolean;
+  featureRevenue?: boolean;
   // Metrics tab
   posts?: PostPerformance[];
   platformGrowth?: PlatformGrowthComparison[];
@@ -126,6 +128,8 @@ interface AnalyticsHubClientProps {
 export function AnalyticsHubClient({
   activeTab,
   profiles,
+  featureGrowth,
+  featureRevenue,
   posts,
   platformGrowth,
   earningsResults,
@@ -159,6 +163,8 @@ export function AnalyticsHubClient({
           platformGrowth={platformGrowth ?? []}
           earningsResults={earningsResults ?? {}}
           competitorResults={competitorResults ?? {}}
+          featureGrowth={featureGrowth}
+          featureRevenue={featureRevenue}
         />
       )}
       {activeTab === "strategy" && (

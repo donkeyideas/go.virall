@@ -326,7 +326,51 @@ function RecommendationsRenderer({
 }: {
   data: Record<string, unknown>;
 }) {
-  const rec = (data.recommendations ?? data) as Record<string, unknown>;
+  // Robustly extract JSON from various wrapper formats
+  function tryParseString(text: string): Record<string, unknown> | null {
+    // Strategy 1: direct parse
+    try {
+      const v = JSON.parse(text.trim());
+      if (v && typeof v === "object") return v as Record<string, unknown>;
+    } catch { /* continue */ }
+    // Strategy 2: extract outermost {...}
+    const braceMatch = text.match(/(\{[\s\S]*\})/);
+    if (braceMatch) {
+      try {
+        const v = JSON.parse(braceMatch[1].trim());
+        if (v && typeof v === "object") return v as Record<string, unknown>;
+      } catch { /* continue */ }
+    }
+    // Strategy 3: code block extraction
+    const codeMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeMatch) {
+      try {
+        const v = JSON.parse(codeMatch[1].trim());
+        if (v && typeof v === "object") return v as Record<string, unknown>;
+      } catch { /* continue */ }
+    }
+    return null;
+  }
+
+  let parsed: Record<string, unknown> = data;
+
+  // Unwrap { raw: "..." } — the string may need multi-strategy parsing
+  if (typeof parsed.raw === "string") {
+    const attempt = tryParseString(parsed.raw);
+    if (attempt) parsed = attempt;
+  }
+  // Handle double-wrapped raw
+  if (typeof parsed.raw === "string") {
+    const attempt = tryParseString(parsed.raw);
+    if (attempt) parsed = attempt;
+  }
+  // Handle { result: "..." } wrapper
+  if (typeof parsed.result === "string") {
+    const attempt = tryParseString(parsed.result);
+    if (attempt) parsed = attempt;
+  }
+
+  const rec = (parsed.recommendations ?? parsed) as Record<string, unknown>;
   const platformContext = rec.platformContext as Record<string, unknown> | undefined;
   const healthScore = rec.healthScore as Record<string, unknown> | undefined;
   const topPriorities = (rec.topPriorities ?? []) as Record<string, unknown>[];
@@ -341,9 +385,13 @@ function RecommendationsRenderer({
   if (!platformContext && !healthScore && !topPriorities.length) {
     return (
       <div className="border border-rule bg-surface-card p-4">
-        <pre className="whitespace-pre-wrap text-xs text-ink-secondary">
-          {JSON.stringify(data, null, 2)}
-        </pre>
+        <p className="mb-2 text-xs font-semibold text-ink-muted">Could not parse recommendations. Try clicking Regenerate.</p>
+        <details>
+          <summary className="cursor-pointer text-[10px] text-ink-muted">Show raw data</summary>
+          <pre className="mt-2 max-h-60 overflow-auto whitespace-pre-wrap text-xs text-ink-secondary">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </details>
       </div>
     );
   }

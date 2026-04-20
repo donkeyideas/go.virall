@@ -5,6 +5,7 @@ import { getSocialProfiles } from "@/lib/dal/profiles";
 import { getPostsPerformance, getPlatformGrowthComparison } from "@/lib/dal/analytics";
 import { getCachedResultsBatch, getCachedResults, getAnalysisStatus } from "@/lib/dal/analyses";
 import { getTrustScore, getTrustScoreHistory } from "@/lib/dal/trust";
+import { getUserPreferences } from "@/lib/dal/settings";
 import { AnalyticsHubClient } from "./AnalyticsHubClient";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,12 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const tab = params.tab || "metrics";
-  const profiles = await getSocialProfiles();
+  const [profiles, userPrefs] = await Promise.all([
+    getSocialProfiles(),
+    getUserPreferences(),
+  ]);
+  const featureGrowth = userPrefs?.feature_growth ?? false;
+  const featureRevenue = userPrefs?.feature_revenue ?? false;
   const ids = profiles.map((p) => p.id);
 
   /* ── Strategy ── */
@@ -134,6 +140,8 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
       <AnalyticsHubClient
         activeTab="metrics"
         profiles={profiles}
+        featureGrowth={featureGrowth}
+        featureRevenue={featureRevenue}
         posts={posts}
         platformGrowth={platformGrowth}
         earningsResults={batch.earnings_forecast}

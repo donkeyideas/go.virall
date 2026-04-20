@@ -64,6 +64,19 @@ export interface UserPreferences {
   deal_room_messages: boolean;
   campaign_reminders: boolean;
   ai_analysis_complete: boolean;
+  // Feature flags — user-controlled toggles for advanced features
+  feature_inbox: boolean;
+  feature_business: boolean;
+  feature_publish: boolean;
+  feature_hashtags: boolean;
+  feature_media_kit: boolean;
+  feature_team: boolean;
+  feature_api_keys: boolean;
+  feature_growth: boolean;
+  feature_revenue: boolean;
+  feature_strategy: boolean;
+  feature_intelligence: boolean;
+  feature_trust_score: boolean;
   created_at: string;
   updated_at: string;
 }

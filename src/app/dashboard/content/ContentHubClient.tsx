@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { HubTabBar } from "@/components/dashboard/HubTabBar";
 import PublishClient from "@/app/dashboard/publish/PublishClient";
@@ -9,12 +9,6 @@ import { HashtagsClient } from "@/app/dashboard/hashtags/HashtagsClient";
 import { trackEvent } from "@/lib/analytics/track";
 import type { ScheduledPost, SocialProfile, TrendingTopic } from "@/types";
 import type { DealEvent } from "@/components/dashboard/ContentCalendar";
-
-const TABS = [
-  { key: "ai-studio", label: "Studio" },
-  { key: "publish", label: "Publish" },
-  { key: "hashtags", label: "Hashtags" },
-];
 
 /* ─── Props (only active tab data provided) ─── */
 
@@ -32,6 +26,9 @@ interface ContentHubClientProps {
   cachedContent?: Record<string, Record<string, Record<string, unknown>>>;
   // Hashtags
   initialTopics?: TrendingTopic[];
+  // Feature flags
+  featurePublish?: boolean;
+  featureHashtags?: boolean;
 }
 
 export function ContentHubClient({
@@ -45,8 +42,17 @@ export function ContentHubClient({
   cachedInsights,
   cachedContent,
   initialTopics,
+  featurePublish = false,
+  featureHashtags = false,
 }: ContentHubClientProps) {
   const router = useRouter();
+
+  const tabs = useMemo(() => {
+    const t = [{ key: "ai-studio", label: "Studio" }];
+    if (featurePublish) t.push({ key: "publish", label: "Publish" });
+    if (featureHashtags) t.push({ key: "hashtags", label: "Hashtags" });
+    return t;
+  }, [featurePublish, featureHashtags]);
 
   useEffect(() => {
     trackEvent("page_view", "content");
@@ -58,7 +64,7 @@ export function ContentHubClient({
 
   return (
     <div>
-      <HubTabBar tabs={TABS} activeKey={activeTab} onSwitch={switchTab} />
+      <HubTabBar tabs={tabs} activeKey={activeTab} onSwitch={switchTab} />
 
       {activeTab === "publish" && (
         <PublishClient

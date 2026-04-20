@@ -7,15 +7,19 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ViewModeToggle } from "@/components/dashboard/ViewModeToggle";
 import { getUnreadCount, getNotifications } from "@/lib/dal/notifications";
 import { getSocialProfileCount } from "@/lib/dal/profiles";
+import { getUserPreferences } from "@/lib/dal/settings";
+import type { FeatureFlags } from "@/components/dashboard/DashboardShell";
 
-const ALL_NAV_ITEMS: NavItem[] = [
+const BASE_NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/dashboard" },
   { label: "Mission", href: "/dashboard/mission" },
   { label: "Profiles", href: "/dashboard/profiles" },
-  { label: "Inbox", href: "/dashboard/inbox" },
   { label: "Content", href: "/dashboard/content" },
-  { label: "Analytics", href: "/dashboard/analytics" },
-  { label: "Business", href: "/dashboard/business" },
+  { label: "Metrics", href: "/dashboard/metrics" },
+  { label: "Strategy", href: "/dashboard/strategy" },
+  { label: "Intelligence", href: "/dashboard/intelligence" },
+  { label: "SMO Score", href: "/dashboard/smo-score" },
+  { label: "Recommendations", href: "/dashboard/recommendations" },
   { label: "Settings", href: "/dashboard/settings" },
   { label: "Guide", href: "/dashboard/guide" },
 ];
@@ -45,11 +49,27 @@ export default async function DashboardLayout({
     accountType = (data?.account_type as "creator" | "brand") ?? "creator";
   }
 
-  const [unreadCount, profileCount, notifications] = await Promise.all([
+  const [unreadCount, profileCount, notifications, userPrefs] = await Promise.all([
     getUnreadCount(),
     getSocialProfileCount(),
     getNotifications(10),
+    getUserPreferences(),
   ]);
+
+  const featureFlags: FeatureFlags = {
+    feature_inbox: userPrefs?.feature_inbox ?? false,
+    feature_business: userPrefs?.feature_business ?? false,
+    feature_publish: userPrefs?.feature_publish ?? false,
+    feature_hashtags: userPrefs?.feature_hashtags ?? false,
+    feature_media_kit: userPrefs?.feature_media_kit ?? false,
+    feature_team: userPrefs?.feature_team ?? false,
+    feature_api_keys: userPrefs?.feature_api_keys ?? false,
+    feature_growth: userPrefs?.feature_growth ?? false,
+    feature_revenue: userPrefs?.feature_revenue ?? false,
+    feature_strategy: userPrefs?.feature_strategy ?? false,
+    feature_intelligence: userPrefs?.feature_intelligence ?? false,
+    feature_trust_score: userPrefs?.feature_trust_score ?? false,
+  };
 
   const today = new Date();
   const dateLine = today.toLocaleDateString("en-US", {
@@ -80,7 +100,18 @@ export default async function DashboardLayout({
         accentText="Go"
         tagline="Social Intelligence Platform &middot; Growth Analytics &middot; Content Strategy"
       />
-      <PaperNav items={ALL_NAV_ITEMS} />
+      <PaperNav items={(() => {
+        const items = [...BASE_NAV_ITEMS];
+        if (featureFlags.feature_inbox) {
+          const idx = items.findIndex((i) => i.href === "/dashboard/profiles");
+          items.splice(idx + 1, 0, { label: "Inbox", href: "/dashboard/inbox" });
+        }
+        if (featureFlags.feature_business) {
+          const idx = items.findIndex((i) => i.href === "/dashboard/analytics");
+          items.splice(idx + 1, 0, { label: "Business", href: "/dashboard/business" });
+        }
+        return items;
+      })()} />
 
       <main className="dashboard-main mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
         {children}
@@ -103,6 +134,7 @@ export default async function DashboardLayout({
       hasProfiles={profileCount > 0}
       notifications={notifications}
       accountType={accountType}
+      featureFlags={featureFlags}
     >
       {children}
     </DashboardShell>

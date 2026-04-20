@@ -118,6 +118,7 @@ export async function signIn(formData: FormData) {
   });
 
   if (error) {
+    console.error("[signIn] Auth failed for", email, ":", error.message, error.code);
     return { error: "Invalid email or password." };
   }
 
