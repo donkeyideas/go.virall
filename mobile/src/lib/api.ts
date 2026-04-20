@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 // For local dev on a physical device, use your machine's network IP instead of localhost.
 const API_BASE =
   process.env.EXPO_PUBLIC_API_URL ||
-  (__DEV__ ? 'http://192.168.1.152:3600' : 'https://govirall.com');
+  (__DEV__ ? 'http://192.168.1.152:3600' : 'https://www.govirall.com');
 
 /** Authenticated fetch wrapper for the Next.js API */
 export async function mobileApi<T = any>(

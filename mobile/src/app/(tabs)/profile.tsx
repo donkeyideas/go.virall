@@ -19,7 +19,7 @@ import { ScreenHeader } from '../../components/cockpit/ScreenHeader';
 import { useToast } from '../../components/cockpit/Toast';
 import { useAppModal } from '../../components/cockpit/AppModal';
 
-const WEB_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://govirall.com';
+const WEB_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://www.govirall.com';
 
 const PRIMARY_LINKS: Array<{
   label: string;
