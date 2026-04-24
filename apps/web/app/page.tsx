@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { JsonLd, softwareAppSchema } from '../lib/seo/json-ld';
 import { getPublicPlans } from '../lib/actions/admin/plans';
+import { MarketingFooter } from '../components/marketing/Footer';
 
 export const metadata: Metadata = {
   title: 'Go Virall - Social Intelligence Platform for Creators',
@@ -83,10 +84,16 @@ export default async function LandingPage() {
             fontWeight: 500,
           }}
         >
-          {['Product', 'Intelligence', 'Creators', 'Pricing', 'Stories'].map((item) => (
-            <li key={item}>
-              <Link href="#" style={{ color: 'inherit', textDecoration: 'none' }}>
-                {item}
+          {[
+            { label: 'Product', href: '/product' },
+            { label: 'Intelligence', href: '/intelligence' },
+            { label: 'Creators', href: '/creators' },
+            { label: 'Pricing', href: '/pricing' },
+            { label: 'Stories', href: '/stories' },
+          ].map((item) => (
+            <li key={item.label}>
+              <Link href={item.href} style={{ color: 'inherit', textDecoration: 'none' }}>
+                {item.label}
               </Link>
             </li>
           ))}
@@ -799,111 +806,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer
-        style={{
-          background: 'var(--ink)',
-          color: 'var(--paper)',
-          padding: '80px 28px 30px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "'Fraunces', serif",
-            fontWeight: 300,
-            fontStyle: 'italic',
-            fontSize: 'clamp(80px, 15vw, 230px)',
-            lineHeight: 0.82,
-            letterSpacing: '-.04em',
-            marginBottom: 40,
-          }}
-        >
-          Ready to<br />go <span style={{ fontWeight: 900, fontStyle: 'normal', color: 'var(--lime)' }}>virall.</span>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr 1fr 1fr',
-            gap: 40,
-            borderTop: '1px solid rgba(255,255,255,.15)',
-            paddingTop: 40,
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontFamily: "'Fraunces', serif",
-                fontWeight: 900,
-                fontStyle: 'italic',
-                fontSize: 32,
-                display: 'flex',
-                gap: 6,
-                alignItems: 'center',
-                color: 'var(--paper)',
-              }}
-            >
-              Go Virall
-              <span
-                style={{
-                  width: 10,
-                  height: 10,
-                  background: 'var(--hot)',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  animation: 'pulse-dot 1.4s ease-in-out infinite',
-                }}
-              />
-            </div>
-            <p style={{ maxWidth: 380, fontSize: 14, marginTop: 14, opacity: 0.7, lineHeight: 1.5 }}>
-              The social intelligence platform that transforms creators into cultural forces. Built on real data, tuned by real creators.
-            </p>
-          </div>
-          <FooterCol title="Product" links={[
-            { label: 'Viral Score', href: '/signup' },
-            { label: 'AI Studio', href: '/signup' },
-            { label: 'Audience Intel', href: '/signup' },
-            { label: 'Revenue Tracker', href: '/signup' },
-          ]} />
-          <FooterCol title="Company" links={[
-            { label: 'About', href: '/about' },
-            { label: 'FAQ', href: '/faq' },
-            { label: 'Contact', href: '/contact' },
-          ]} />
-          <FooterCol title="Legal" links={[
-            { label: 'Privacy Policy', href: '/privacy' },
-            { label: 'Terms of Service', href: '/terms' },
-            { label: 'Child Safety', href: '/child-safety' },
-            { label: 'Delete Account', href: '/delete-account' },
-          ]} />
-        </div>
-
-        <div
-          style={{
-            marginTop: 60,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 11,
-            letterSpacing: '.15em',
-            display: 'flex',
-            justifyContent: 'space-between',
-            opacity: 0.5,
-          }}
-        >
-          <span>&copy; 2026 GO VIRALL</span>
-          <span>NEW YORK &middot; LOS ANGELES &middot; LISBON</span>
-          <span>
-            <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
-            {' '}&middot;{' '}
-            <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-            {' '}&middot;{' '}
-            <Link href="/child-safety" style={{ color: 'inherit', textDecoration: 'none' }}>CHILD SAFETY</Link>
-            {' '}&middot;{' '}
-            <Link href="/delete-account" style={{ color: 'inherit', textDecoration: 'none' }}>DELETE ACCOUNT</Link>
-          </span>
-        </div>
-      </footer>
+      <MarketingFooter />
     </main>
   );
 }
@@ -1028,36 +931,3 @@ function PricingTier({
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
-  return (
-    <div>
-      <h6
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11,
-          letterSpacing: '.2em',
-          marginBottom: 16,
-          opacity: 0.6,
-        }}
-      >
-        {title.toUpperCase()}
-      </h6>
-      {links.map((link) => (
-        <Link
-          key={link.label}
-          href={link.href}
-          style={{
-            display: 'block',
-            padding: '6px 0',
-            fontSize: 14,
-            opacity: 0.8,
-            color: 'inherit',
-            textDecoration: 'none',
-          }}
-        >
-          {link.label}
-        </Link>
-      ))}
-    </div>
-  );
-}
