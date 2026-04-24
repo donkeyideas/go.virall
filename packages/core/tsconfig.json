@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@govirall/api-types": ["../api-types/src"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

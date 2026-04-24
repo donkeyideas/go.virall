@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Go Virall · Neon Editorial — iPhone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..700,0..100;1,9..144,400..700,0..100&family=JetBrains+Mono:wght@400;500;600;700&family=Satoshi:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+  :root {
+    --cream: #f4ecde;
+    --cream-2: #ebe1cf;
+    --ink: #0b0b0b;
+    --muted: #6b6559;
+    --lime: #c8ff3d;
+    --pink: #ff3e88;
+    --mustard: #e8b92b;
+    --blue: #1c4bff;
+    --mint: #43d9a6;
+  }
+
+  body {
+    font-family: 'Satoshi', -apple-system, sans-serif;
+    background: #2a2520;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* ────── IPHONE FRAME ────── */
+  .iphone {
+    width: 390px;
+    height: 844px;
+    background: #1a1a1a;
+    border-radius: 55px;
+    padding: 8px;
+    position: relative;
+    box-shadow:
+      0 0 0 2px #2a2a2a,
+      0 0 0 3px #0a0a0a,
+      0 30px 80px rgba(0,0,0,0.7),
+      0 10px 30px rgba(255,62,136,0.15);
+  }
+  .iphone::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 180px;
+    width: 3px;
+    height: 90px;
+    background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 130px 0 #2a2a2a, 0 170px 0 #2a2a2a;
+  }
+
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 47px;
+    overflow: hidden;
+    position: relative;
+    background: var(--cream);
+  }
+
+  /* Dynamic Island */
+  .island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+  }
+
+  /* Status bar - ink text */
+  .status-bar {
+    position: absolute;
+    top: 16px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    z-index: 99;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons svg { height: 11px; }
+
+  /* ────── APP ────── */
+  .app {
+    position: absolute;
+    inset: 0;
+    padding-top: 56px;
+    padding-bottom: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    color: var(--ink);
+    background: var(--cream);
+  }
+  .app::-webkit-scrollbar { display: none; }
+
+  /* ────── FLOATING MENU BUTTON ────── */
+  .fab-menu {
+    position: absolute;
+    top: 54px;
+    left: 16px;
+    width: 48px;
+    height: 48px;
+    background: var(--lime);
+    border: 1.5px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 80;
+    transition: all 100ms ease;
+  }
+  .fab-menu:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .fab-menu-lines {
+    width: 22px;
+    height: 14px;
+    position: relative;
+  }
+  .fab-menu-lines span {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--ink);
+  }
+  .fab-menu-lines span:nth-child(1) { top: 0; }
+  .fab-menu-lines span:nth-child(2) { top: 50%; transform: translateY(-50%); right: 30%; }
+  .fab-menu-lines span:nth-child(3) { bottom: 0; }
+
+  /* Drawer backdrop */
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(11,11,11,0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease;
+    z-index: 90;
+  }
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Drawer */
+  .drawer {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 290px;
+    background: var(--cream);
+    border-right: 1.5px solid var(--ink);
+    box-shadow: 6px 0 0 var(--ink);
+    transform: translateX(-110%);
+    transition: transform 320ms cubic-bezier(0.2, 0, 0, 1);
+    z-index: 95;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+  .drawer-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .drawer-logo {
+    width: 38px;
+    height: 38px;
+    background: var(--pink);
+    border: 1.5px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--cream);
+    font-size: 22px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .drawer-brand {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    font-variation-settings: 'SOFT' 100;
+    letter-spacing: -0.5px;
+  }
+  .drawer-brand em { font-style: italic; }
+  .drawer-close {
+    width: 36px; height: 36px;
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .drawer-close:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .drawer-close svg { width: 14px; height: 14px; }
+
+  .drawer-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 16px 0 18px;
+  }
+  .drawer-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--cream);
+    padding: 3px 8px;
+  }
+  .drawer-tag.lime { background: var(--lime); color: var(--ink); border: 1.5px solid var(--ink); }
+
+  .drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    background: var(--cream);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: 1.5px solid transparent;
+    position: relative;
+  }
+  .drawer-item:hover {
+    border-color: var(--ink);
+  }
+  .drawer-item.active {
+    background: var(--lime);
+    border: 1.5px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .drawer-item svg {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+  }
+  .drawer-item-badge {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--pink);
+    color: var(--cream);
+    border: 1.5px solid var(--ink);
+    padding: 2px 6px;
+  }
+  .drawer-item.active .drawer-item-badge {
+    background: var(--ink);
+    color: var(--lime);
+  }
+
+  .drawer-divider {
+    height: 1.5px;
+    background: var(--ink);
+    margin: 12px 0 12px;
+    position: relative;
+  }
+  .drawer-divider::after {
+    content: '✦';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--cream);
+    padding: 0 8px;
+    color: var(--ink);
+    font-size: 12px;
+  }
+
+  .drawer-footer {
+    margin-top: auto;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .drawer-footer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--lime);
+    border: 1.5px solid var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .drawer-footer-text { flex: 1; }
+  .drawer-footer-name {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+  }
+  .drawer-footer-plan {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--lime);
+    margin-top: 2px;
+  }
+
+  /* Greeting area — shifted right to accommodate FAB */
+  .greeting-area {
+    padding: 20px 20px 14px 76px;
+    border-bottom: 1.5px solid var(--ink);
+    background: var(--cream);
+  }
+  .greeting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .brand-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-square {
+    width: 32px;
+    height: 32px;
+    background: var(--lime);
+    border: 1.5px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 18px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .brand-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    font-variation-settings: 'SOFT' 100;
+    letter-spacing: -0.5px;
+  }
+  .brand-name em { font-style: italic; }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--pink);
+    border: 1.5px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 2px 2px 0 var(--ink);
+    border-radius: 50%;
+  }
+
+  .kicker-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .kicker-bar {
+    flex: 1;
+    height: 1.5px;
+    background: var(--ink);
+    margin: 0 10px;
+  }
+  .kicker-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .headline {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 42px;
+    line-height: 0.95;
+    letter-spacing: -1.5px;
+    font-variation-settings: 'SOFT' 100;
+    margin-top: 6px;
+  }
+  .headline-hl {
+    background: var(--lime);
+    padding: 0 6px;
+    display: inline-block;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    font-style: italic;
+  }
+
+  /* Pulse stripe */
+  .pulse-stripe {
+    padding: 14px 20px;
+    background: var(--ink);
+    color: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    position: relative;
+  }
+  .pulse-stripe::before, .pulse-stripe::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 8px;
+    background-image: linear-gradient(45deg, var(--ink) 25%, transparent 25%, transparent 50%, var(--ink) 50%, var(--ink) 75%, transparent 75%);
+    background-size: 12px 12px;
+  }
+  .pulse-stripe::before { top: -8px; background-color: var(--cream); }
+  .pulse-stripe::after { bottom: -8px; background-color: var(--cream); }
+
+  .pulse-cell {
+    padding: 4px 8px;
+    border-right: 1px solid rgba(244,236,222,0.2);
+  }
+  .pulse-cell:nth-child(2n) { border-right: none; }
+  .pulse-cell:nth-child(-n+2) { border-bottom: 1px solid rgba(244,236,222,0.2); padding-bottom: 8px; }
+  .pulse-cell:nth-child(n+3) { padding-top: 8px; }
+
+  .pulse-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lime);
+    margin-bottom: 2px;
+  }
+  .pulse-value {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--cream);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .pulse-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--lime);
+    margin-top: 1px;
+    font-weight: 600;
+  }
+  .pulse-delta.flat { color: var(--mustard); }
+
+  /* SMO Card */
+  .smo-card {
+    margin: 18px 20px 20px;
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    box-shadow: 5px 5px 0 var(--ink);
+    padding: 18px;
+    position: relative;
+  }
+  .smo-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px dashed var(--ink);
+  }
+  .smo-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .smo-delta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--lime);
+    border: 1.5px solid var(--ink);
+    padding: 2px 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .smo-main {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .smo-ring-wrap {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .smo-ring-wrap svg { width: 100%; height: 100%; }
+
+  .smo-text { flex: 1; }
+  .smo-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.3px;
+  }
+  .smo-title .hl {
+    background: var(--lime);
+    padding: 0 4px;
+    display: inline-block;
+  }
+  .smo-notes {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+  .smo-notes strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* Factor bars */
+  .factors-row {
+    display: flex;
+    gap: 5px;
+    padding-top: 14px;
+    border-top: 1.5px dashed var(--ink);
+  }
+  .fm {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .fm-bar {
+    width: 100%;
+    height: 36px;
+    border: 1.5px solid var(--ink);
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .fm-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--lime);
+  }
+  .fm-fill.low { background: var(--mustard); }
+  .fm-fill.hi { background: var(--mint); }
+  .fm-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .fm-value {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  /* Section headers */
+  .section-head {
+    display: flex;
+    align-items: center;
+    padding: 20px 20px 12px;
+    gap: 10px;
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cream);
+    background: var(--ink);
+    padding: 2px 6px;
+    letter-spacing: 0.1em;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: -0.3px;
+    font-variation-settings: 'SOFT' 100;
+  }
+  .section-title em { font-style: italic; }
+  .section-title .hl { background: var(--lime); padding: 0 5px; font-style: italic; display: inline-block; }
+  .section-title .pk { background: var(--pink); color: var(--cream); padding: 0 5px; font-style: italic; display: inline-block; }
+  .section-meta {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Next post — hero card */
+  .next-post {
+    margin: 0 20px 14px;
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    box-shadow: 5px 5px 0 var(--ink);
+    padding: 0;
+    overflow: hidden;
+  }
+  .next-post-band {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 6px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .next-post-band .tag-lime {
+    background: var(--lime);
+    color: var(--ink);
+    padding: 2px 6px;
+  }
+  .next-post-body { padding: 16px; }
+  .next-post-hook {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    font-variation-settings: 'SOFT' 100;
+    margin-bottom: 14px;
+  }
+  .next-post-hook .hl {
+    background: var(--lime);
+    padding: 0 4px;
+    display: inline-block;
+  }
+  .next-post-meta-row {
+    display: flex;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1.5px dashed var(--ink);
+  }
+  .np-meta {
+    flex: 1;
+  }
+  .np-meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .np-meta-val {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 16px;
+    margin-top: 2px;
+    letter-spacing: -0.2px;
+  }
+
+  /* Action cards */
+  .action {
+    margin: 0 20px 12px;
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    padding: 14px 16px;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .action.pink {
+    background: var(--pink);
+    color: var(--cream);
+  }
+  .action.lime {
+    background: var(--lime);
+  }
+  .action-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .action-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--cream);
+    padding: 2px 6px;
+  }
+  .action.pink .action-tag {
+    background: var(--cream);
+    color: var(--ink);
+  }
+  .action.lime .action-tag {
+    background: var(--ink);
+    color: var(--lime);
+  }
+  .action-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .action.pink .action-time { color: var(--cream); opacity: 0.8; }
+  .action-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    line-height: 1.22;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    font-variation-settings: 'SOFT' 100;
+    margin-bottom: 6px;
+  }
+  .action-title em {
+    font-style: italic;
+  }
+  .action-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.45;
+  }
+  .action.pink .action-meta { color: rgba(244,236,222,0.85); }
+  .action-ctas { display: flex; gap: 8px; }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1.5px solid var(--ink);
+    background: var(--cream);
+    color: var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .btn-lime {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  .btn-ink {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .btn-cream {
+    background: var(--cream);
+    color: var(--ink);
+  }
+  .btn-skip {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--muted);
+  }
+  .action.pink .btn-skip { color: rgba(244,236,222,0.7); }
+
+  /* Win card */
+  .win-card {
+    margin: 0 20px 10px;
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--ink);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .win-square {
+    width: 40px;
+    height: 40px;
+    background: var(--lime);
+    border: 1.5px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .win-square.mint { background: var(--mint); }
+  .win-square svg { width: 20px; height: 20px; }
+  .win-body { flex: 1; }
+  .win-k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .win-text {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    margin-top: 1px;
+  }
+  .win-text em { font-style: italic; }
+  .win-text .hl {
+    background: var(--lime);
+    padding: 0 3px;
+    font-style: italic;
+  }
+  .win-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    font-style: italic;
+  }
+
+  /* Marquee strip between sections — small decorative detail */
+  .marquee-strip {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 8px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 10px 0;
+  }
+  .marquee-strip span { display: inline-flex; align-items: center; gap: 10px; }
+  .marquee-strip span::after { content: '✦'; color: var(--lime); }
+
+  /* Home indicator */
+  .home-ind {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--ink);
+    border-radius: 3px;
+    z-index: 51;
+  }
+
+  .theme-label {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(244,236,222,0.5);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<div class="iphone">
+  <div class="screen">
+
+    <div class="island"></div>
+
+    <div class="status-bar">
+      <span>2:14</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 18 12" fill="#0b0b0b"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="5" y="5" width="3" height="7" rx="0.5"/><rect x="10" y="2" width="3" height="10" rx="0.5"/><rect x="15" y="0" width="3" height="12" rx="0.5"/></svg>
+        <svg viewBox="0 0 16 12" fill="none" stroke="#0b0b0b" stroke-width="1.4"><path d="M1 4.5 Q8 -1 15 4.5" stroke-linecap="round" fill="none"/><path d="M3.5 7 Q8 3 12.5 7" stroke-linecap="round" fill="none"/><path d="M6 9.5 Q8 8 10 9.5" stroke-linecap="round" fill="none"/></svg>
+        <svg viewBox="0 0 27 12" fill="none" stroke="#0b0b0b" stroke-width="1"><rect x="0.5" y="1" width="22" height="10" rx="2.5"/><rect x="2" y="2.5" width="16" height="7" rx="1" fill="#0b0b0b"/><rect x="23.5" y="4" width="2" height="4" rx="0.5" fill="#0b0b0b"/></svg>
+      </div>
+    </div>
+
+    <div class="app">
+
+      <!-- Greeting -->
+      <div class="greeting-area">
+        <div class="greeting-row" style="justify-content: flex-end;">
+          <div class="avatar">TK</div>
+        </div>
+        <div class="kicker-row">
+          <span class="kicker">Today · Chapter One</span>
+          <div class="kicker-bar"></div>
+          <span class="kicker-meta">Tue · Apr 21</span>
+        </div>
+        <div class="headline">Good afternoon,<br><span class="headline-hl">Taylor.</span></div>
+      </div>
+
+      <!-- Pulse stripe -->
+      <div class="pulse-stripe">
+        <div class="pulse-cell">
+          <div class="pulse-label">Followers</div>
+          <div class="pulse-value">148.2K</div>
+          <div class="pulse-delta">↑ 2,847 / wk</div>
+        </div>
+        <div class="pulse-cell">
+          <div class="pulse-label">Engagement</div>
+          <div class="pulse-value">8.7%</div>
+          <div class="pulse-delta">↑ 0.6</div>
+        </div>
+        <div class="pulse-cell">
+          <div class="pulse-label">Revenue MTD</div>
+          <div class="pulse-value">$12.8K</div>
+          <div class="pulse-delta">↑ on pace</div>
+        </div>
+        <div class="pulse-cell">
+          <div class="pulse-label">Pipeline</div>
+          <div class="pulse-value">$34.5K</div>
+          <div class="pulse-delta flat">— 7 deals</div>
+        </div>
+      </div>
+
+      <!-- SMO Card -->
+      <div class="smo-card">
+        <div class="smo-top">
+          <span class="smo-kicker">SMO Score · Today</span>
+          <span class="smo-delta-tag">↑ 6 this mo</span>
+        </div>
+        <div class="smo-main">
+          <div class="smo-ring-wrap">
+            <svg viewBox="0 0 120 120">
+              <!-- background ring -->
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#0b0b0b" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.3"/>
+              <!-- progress (82/100) -->
+              <circle cx="60" cy="60" r="50" fill="none"
+                stroke="#c8ff3d" stroke-width="14"
+                stroke-dasharray="314.16" stroke-dashoffset="56.55"
+                transform="rotate(-90 60 60)"
+                stroke-linecap="butt"/>
+              <!-- ink frame outer -->
+              <circle cx="60" cy="60" r="58" fill="none" stroke="#0b0b0b" stroke-width="1.5"/>
+              <!-- ink frame inner -->
+              <circle cx="60" cy="60" r="42" fill="none" stroke="#0b0b0b" stroke-width="1.5"/>
+              <!-- end dot marker -->
+              <circle cx="108.2" cy="51.1" r="5" fill="#ff3e88" stroke="#0b0b0b" stroke-width="1.5"/>
+              <!-- Number -->
+              <text x="60" y="66" text-anchor="middle" dominant-baseline="middle"
+                font-family="Fraunces" font-size="34" fill="#0b0b0b" font-style="italic" font-weight="600">82</text>
+              <text x="60" y="84" text-anchor="middle"
+                font-family="JetBrains Mono" font-size="8" fill="#0b0b0b" letter-spacing="2" font-weight="700">/ 100</text>
+            </svg>
+          </div>
+          <div class="smo-text">
+            <div class="smo-title">You're <span class="hl">optimized</span>.<br>Keep going.</div>
+            <div class="smo-notes">
+              <strong>Strongest:</strong> Engagement (94)<br>
+              <strong>Biggest lift:</strong> Consistency (+8)
+            </div>
+          </div>
+        </div>
+
+        <div class="factors-row">
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill hi" style="height: 91%"></div></div>
+            <div class="fm-value">91</div>
+            <div class="fm-label">Prof</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill hi" style="height: 88%"></div></div>
+            <div class="fm-value">88</div>
+            <div class="fm-label">Cont</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill low" style="height: 68%"></div></div>
+            <div class="fm-value">68</div>
+            <div class="fm-label">Cons</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill hi" style="height: 94%"></div></div>
+            <div class="fm-value">94</div>
+            <div class="fm-label">Enga</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill" style="height: 83%"></div></div>
+            <div class="fm-value">83</div>
+            <div class="fm-label">Grow</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill low" style="height: 66%"></div></div>
+            <div class="fm-value">66</div>
+            <div class="fm-label">Mone</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next post -->
+      <div class="section-head">
+        <span class="section-num">01</span>
+        <span class="section-title">Your next <em>post</em></span>
+        <span class="section-meta">Ships 4h 28m</span>
+      </div>
+
+      <div class="next-post">
+        <div class="next-post-band">
+          <span><span class="tag-lime">● Scheduled</span> · Reel · Instagram</span>
+          <span>6:42 PM ET</span>
+        </div>
+        <div class="next-post-body">
+          <div class="next-post-hook">The <span class="hl">three-tab setup</span> I wish I knew sooner.</div>
+          <div class="next-post-meta-row">
+            <div class="np-meta">
+              <div class="np-meta-label">Score</div>
+              <div class="np-meta-val">78 / 100</div>
+            </div>
+            <div class="np-meta">
+              <div class="np-meta-label">Hook</div>
+              <div class="np-meta-val">Strong</div>
+            </div>
+            <div class="np-meta">
+              <div class="np-meta-label">Predicted</div>
+              <div class="np-meta-val">14.8K</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marquee -->
+      <div class="marquee-strip">
+        <span>Today's intel</span>
+        <span>2 urgent</span>
+        <span>1 closing soon</span>
+      </div>
+
+      <!-- Do now -->
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <span class="section-title">Do <span class="pk">now.</span></span>
+        <span class="section-meta">2 urgent</span>
+      </div>
+
+      <div class="action pink">
+        <div class="action-head">
+          <span class="action-tag">Overdue · 6d</span>
+          <span class="action-time">INV-2026-0037</span>
+        </div>
+        <div class="action-title">Nudge <em>Hatch</em> on the $4,800 invoice.</div>
+        <div class="action-meta">Due April 15 · last viewed April 12. Silence reads as permission.</div>
+        <div class="action-ctas">
+          <button class="btn btn-cream">Send nudge</button>
+          <button class="btn btn-skip">Tomorrow</button>
+        </div>
+      </div>
+
+      <div class="action">
+        <div class="action-head">
+          <span class="action-tag">Closing 48h · 94% match</span>
+          <span class="action-time">Thu</span>
+        </div>
+        <div class="action-title">Apply to <em>Logitech MX Creators.</em></div>
+        <div class="action-meta">$3K–$8K · Reel + carousel. Your audience over-indexes on their target niche.</div>
+        <div class="action-ctas">
+          <button class="btn btn-lime">Apply now</button>
+          <button class="btn btn-skip">Skip</button>
+        </div>
+      </div>
+
+      <!-- Compounds -->
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <span class="section-title">This <span class="hl">compounds.</span></span>
+        <span class="section-meta">Mid-effort</span>
+      </div>
+
+      <div class="action">
+        <div class="action-head">
+          <span class="action-tag">Collab · 94%</span>
+          <span class="action-time">38% overlap</span>
+        </div>
+        <div class="action-title">Draft a DM to <em>@sam_okafor.</em></div>
+        <div class="action-meta">112K followers · same niche · open collab slot this quarter.</div>
+        <div class="action-ctas">
+          <button class="btn btn-ink">Draft DM</button>
+          <button class="btn btn-skip">Later</button>
+        </div>
+      </div>
+
+      <!-- Wins -->
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <span class="section-title">Wins <em>this week.</em></span>
+        <span class="section-meta">Receipts</span>
+      </div>
+
+      <div class="win-card">
+        <div class="win-square mint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div class="win-body">
+          <div class="win-k">Best week · Q2</div>
+          <div class="win-text">+2,847 <span class="hl">new followers</span></div>
+        </div>
+        <div class="win-num">2.8K</div>
+      </div>
+
+      <div class="win-card">
+        <div class="win-square">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="win-body">
+          <div class="win-k">Deal closed</div>
+          <div class="win-text"><em>Skillshare</em> paid in full</div>
+        </div>
+        <div class="win-num">$2.5K</div>
+      </div>
+
+      <div style="height: 20px;"></div>
+    </div>
+
+    <!-- FLOATING MENU -->
+    <button class="fab-menu" onclick="document.querySelector('.drawer').classList.add('open');document.querySelector('.drawer-backdrop').classList.add('open');">
+      <div class="fab-menu-lines">
+        <span></span><span></span><span></span>
+      </div>
+    </button>
+
+    <!-- DRAWER BACKDROP -->
+    <div class="drawer-backdrop" onclick="document.querySelector('.drawer').classList.remove('open');this.classList.remove('open');"></div>
+
+    <!-- DRAWER -->
+    <nav class="drawer">
+      <div class="drawer-head">
+        <div class="drawer-brand-row">
+          <div class="drawer-logo">G</div>
+          <div class="drawer-brand">Go <em>Virall</em></div>
+        </div>
+        <button class="drawer-close" onclick="document.querySelector('.drawer').classList.remove('open');document.querySelector('.drawer-backdrop').classList.remove('open');">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer-tag-row">
+        <span class="drawer-tag">Menu</span>
+        <span class="drawer-tag lime">Creator OS</span>
+      </div>
+
+      <div class="drawer-nav">
+        <a href="#" class="drawer-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></svg>
+          Today
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.4-1.4a2 2 0 0 0-2.8 0L2 23"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          Compose
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Audience
+          <span class="drawer-item-badge">3 new</span>
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Revenue
+          <span class="drawer-item-badge">$4.8K</span>
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Schedule
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Messages
+        </a>
+        <div class="drawer-divider"></div>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </div>
+
+      <div class="drawer-footer">
+        <div class="drawer-footer-avatar">TK</div>
+        <div class="drawer-footer-text">
+          <div class="drawer-footer-name">Taylor Kai</div>
+          <div class="drawer-footer-plan">Pro · Renews May 3</div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="home-ind"></div>
+
+  </div>
+</div>
+
+<div class="theme-label">Neon Editorial</div>
+
+</body>
+</html>

@@ -1,42 +1,16 @@
 {
-  "name": "go.virall",
-  "version": "0.1.0",
+  "name": "govirall",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3600 -H 0.0.0.0",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@google-analytics/data": "^5.2.1",
-    "@stripe/react-stripe-js": "^6.1.0",
-    "@stripe/stripe-js": "^9.0.1",
-    "@supabase/ssr": "^0.9.0",
-    "@supabase/supabase-js": "^2.99.3",
-    "clsx": "^2.1.1",
-    "firebase-admin": "^13.7.0",
-    "googleapis": "^171.4.0",
-    "lucide-react": "^0.577.0",
-    "next": "16.2.1",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "recharts": "^3.8.0",
-    "resend": "^6.10.0",
-    "stripe": "^20.4.1",
-    "tailwind-merge": "^3.5.0",
-    "zod": "^4.3.6",
-    "zustand": "^5.0.12"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "types:generate": "bash scripts/generate-types.sh"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.1",
-    "pg": "^8.20.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0"
+  },
+  "packageManager": "pnpm@9.15.0"
 }

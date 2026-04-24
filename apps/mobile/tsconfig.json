@@ -1,0 +1,13 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": ["./*"],
+      "@govirall/core": ["../../packages/core/src"],
+      "@govirall/api-types": ["../../packages/api-types/src"],
+      "@govirall/design-tokens": ["../../packages/design-tokens/src"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

@@ -1,56 +1,38 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+node_modules/
+.pnpm-store/
 
-# testing
-/coverage
+# build
+.next/
+dist/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
 
-# next.js
-/.next/
-/out/
+# env
+.env*
+!.env.example
 
-# production
-/build
+# turbo
+.turbo/
 
 # misc
 .DS_Store
 *.pem
+Thumbs.db
+
+# editors
+.vscode/
+!.vscode/settings.json
+.idea/
 
 # debug
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# testing
+coverage/
 
 # vercel
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# mobile (Expo/EAS)
-mobile/.expo/
-mobile/dist/
-mobile/ios/
-mobile/android/
-mobile/*.jks
-mobile/*.p8
-mobile/*.p12
-mobile/*.key
-mobile/*.mobileprovision
-mobile/google-services.json
-mobile/GoogleService-Info.plist
-mobile/play-service-account.json
-

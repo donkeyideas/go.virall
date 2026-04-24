@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Go Virall · Glassmorphic — iPhone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background:
+      radial-gradient(ellipse at 20% 30%, #2a1b4a 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, #4a1f3d 0%, transparent 50%),
+      linear-gradient(135deg, #0a0614, #1a0c2e);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* ────── IPHONE FRAME ────── */
+  .iphone {
+    width: 390px;
+    height: 844px;
+    background: #1a1a1a;
+    border-radius: 55px;
+    padding: 8px;
+    position: relative;
+    box-shadow:
+      0 0 0 2px #2a2a2a,
+      0 0 0 3px #0a0a0a,
+      0 30px 80px rgba(0,0,0,0.7),
+      0 10px 30px rgba(139,92,246,0.25);
+  }
+  .iphone::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 56px;
+    background: linear-gradient(135deg, #3a3a3a, #0a0a0a 50%, #3a3a3a);
+    z-index: -1;
+  }
+  /* Side buttons */
+  .iphone::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 180px;
+    width: 3px;
+    height: 90px;
+    background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 130px 0 #2a2a2a, 0 170px 0 #2a2a2a;
+  }
+
+  /* Screen */
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 47px;
+    overflow: hidden;
+    position: relative;
+    background: #0a0618;
+  }
+
+  /* Dynamic Island */
+  .island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: absolute;
+    top: 16px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    z-index: 99;
+    letter-spacing: -0.2px;
+  }
+  .status-time { font-family: 'Inter', sans-serif; }
+  .status-icons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .status-icons svg {
+    height: 12px;
+  }
+
+  /* ────── APP CONTENT ────── */
+  .app {
+    position: absolute;
+    inset: 0;
+    padding-top: 56px;
+    padding-bottom: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    color: #f6f3ff;
+    background:
+      radial-gradient(ellipse 500px 300px at 90% -5%, rgba(139,92,246,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 250px at -5% 95%, rgba(255,113,168,0.22) 0%, transparent 70%),
+      linear-gradient(180deg, #0a0618 0%, #120a27 100%);
+  }
+  .app::-webkit-scrollbar { display: none; }
+
+  /* ────── FLOATING MENU BUTTON ────── */
+  .fab-menu {
+    position: absolute;
+    top: 54px;
+    left: 16px;
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(24px) saturate(1.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 80;
+    box-shadow:
+      0 8px 24px -4px rgba(139,92,246,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: all 200ms ease;
+  }
+  .fab-menu:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(199,180,255,0.4);
+  }
+  .fab-menu:active {
+    transform: scale(0.95);
+  }
+  .fab-menu-lines {
+    width: 20px;
+    height: 14px;
+    position: relative;
+  }
+  .fab-menu-lines span {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1.5px;
+    background: linear-gradient(90deg, #c7b4ff, #ff71a8);
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(199,180,255,0.5);
+  }
+  .fab-menu-lines span:nth-child(1) { top: 0; }
+  .fab-menu-lines span:nth-child(2) { top: 50%; transform: translateY(-50%); width: 70%; }
+  .fab-menu-lines span:nth-child(3) { bottom: 0; }
+
+  /* Drawer */
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,6,24,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+    z-index: 90;
+  }
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .drawer {
+    position: absolute;
+    top: 0; left: 0;
+    bottom: 0;
+    width: 280px;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(139,92,246,0.25), transparent 60%),
+      rgba(18,10,39,0.92);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    border-right: 1px solid rgba(255,255,255,0.12);
+    transform: translateX(-100%);
+    transition: transform 350ms cubic-bezier(0.2, 0, 0, 1);
+    z-index: 95;
+    padding: 64px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 28px 28px 0;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-close {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(246,243,255,0.7);
+    cursor: pointer;
+  }
+  .drawer-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    color: #f6f3ff;
+    margin-bottom: 4px;
+  }
+  .drawer-brand em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .drawer-sub {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,243,255,0.4);
+    margin-bottom: 24px;
+  }
+  .drawer-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    margin: 8px 0 16px;
+  }
+  .drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    color: rgba(246,243,255,0.7);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    position: relative;
+    transition: all 200ms ease;
+  }
+  .drawer-item:hover {
+    background: rgba(255,255,255,0.04);
+    color: #f6f3ff;
+  }
+  .drawer-item.active {
+    background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(255,113,168,0.12));
+    border: 1px solid rgba(199,180,255,0.3);
+    color: #f6f3ff;
+    box-shadow: 0 4px 14px -4px rgba(139,92,246,0.4);
+  }
+  .drawer-item.active::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: linear-gradient(180deg, #c7b4ff, #ff71a8);
+    border-radius: 0 3px 3px 0;
+  }
+  .drawer-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .drawer-item-badge {
+    margin-left: auto;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: #ff71a8;
+    background: rgba(255,113,168,0.15);
+    border: 1px solid rgba(255,113,168,0.3);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+
+  .drawer-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .drawer-footer-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: #0a0618;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .drawer-footer-text { flex: 1; }
+  .drawer-footer-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f6f3ff;
+  }
+  .drawer-footer-plan {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(199,180,255,0.7);
+  }
+
+  /* Top greeting area — shifted right to accommodate FAB */
+  .greeting-area {
+    padding: 24px 20px 16px 76px;
+  }
+  .greeting-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .greeting-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: #f6f3ff;
+    letter-spacing: -0.5px;
+  }
+  .greeting-brand em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: #0a0618;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(139,92,246,0.4);
+    position: relative;
+  }
+  .avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 10px; height: 10px;
+    background: #8affc1;
+    border-radius: 50%;
+    border: 2px solid #0a0618;
+  }
+
+  .headline {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 38px;
+    line-height: 1.05;
+    letter-spacing: -0.5px;
+    color: #f6f3ff;
+  }
+  .headline em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff 0%, #ff71a8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .headline-sub {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,243,255,0.5);
+    margin-top: 8px;
+  }
+
+  /* Horizontal scrolling pulse pills */
+  .pulse-row {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px 4px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  .pulse-row::-webkit-scrollbar { display: none; }
+  .pulse-pill {
+    flex-shrink: 0;
+    min-width: 130px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 12px 14px;
+    scroll-snap-align: start;
+  }
+  .pulse-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,243,255,0.5);
+    margin-bottom: 4px;
+  }
+  .pulse-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: #f6f3ff;
+    letter-spacing: -0.3px;
+    line-height: 1.1;
+  }
+  .pulse-delta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    margin-top: 2px;
+    color: #8affc1;
+  }
+  .pulse-delta.flat { color: #ffb648; }
+  .pulse-delta.warn { color: #ff71a8; }
+
+  /* ────── SMO CARD (hero) ────── */
+  .smo-card {
+    margin: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    border-radius: 24px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 20px 60px -20px rgba(139,92,246,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .smo-card::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(199,180,255,0.35), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .smo-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .smo-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(199,180,255,0.8);
+  }
+  .smo-delta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: #8affc1;
+    letter-spacing: 0.05em;
+    padding: 4px 8px;
+    background: rgba(138,255,193,0.1);
+    border: 1px solid rgba(138,255,193,0.3);
+    border-radius: 999px;
+  }
+
+  .smo-main {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    position: relative;
+  }
+  .smo-ring {
+    width: 110px;
+    height: 110px;
+    flex-shrink: 0;
+  }
+  .smo-text { flex: 1; }
+  .smo-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    line-height: 1.2;
+    color: #f6f3ff;
+  }
+  .smo-title em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .smo-meta {
+    font-size: 12px;
+    color: rgba(246,243,255,0.6);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* Factor bars horizontal */
+  .factors-mini {
+    display: flex;
+    gap: 6px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .factor-mini {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .factor-mini-bar {
+    width: 100%;
+    height: 34px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+  }
+  .factor-mini-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    background: linear-gradient(180deg, #c7b4ff, #8b5cf6);
+    border-radius: 3px 3px 2px 2px;
+    box-shadow: 0 0 8px rgba(139,92,246,0.5);
+  }
+  .factor-mini-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(246,243,255,0.5);
+  }
+  .factor-mini-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: #f6f3ff;
+  }
+
+  /* ────── SECTION HEADER ────── */
+  .section-head {
+    padding: 22px 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .section-head h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 22px;
+    color: #f6f3ff;
+    letter-spacing: -0.3px;
+  }
+  .section-head h2 em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-head .count {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,243,255,0.45);
+  }
+
+  /* ────── ACTION CARDS ────── */
+  .action {
+    margin: 0 20px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 16px;
+    position: relative;
+  }
+  .action-urgent {
+    border-color: rgba(255,113,168,0.35);
+    background: linear-gradient(135deg, rgba(255,113,168,0.08), rgba(255,255,255,0.04));
+  }
+  .action-warm {
+    border-color: rgba(255,182,72,0.35);
+    background: linear-gradient(135deg, rgba(255,182,72,0.08), rgba(255,255,255,0.04));
+  }
+  .action-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .action-glyph {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: #c7b4ff;
+    flex-shrink: 0;
+  }
+  .action-urgent .action-glyph {
+    color: #ff71a8;
+    background: rgba(255,113,168,0.15);
+    border-color: rgba(255,113,168,0.3);
+  }
+  .action-warm .action-glyph {
+    color: #ffb648;
+    background: rgba(255,182,72,0.15);
+    border-color: rgba(255,182,72,0.3);
+  }
+  .action-kicker {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(199,180,255,0.7);
+    line-height: 1.2;
+  }
+  .action-urgent .action-kicker { color: #ff71a8; }
+  .action-warm .action-kicker { color: #ffb648; }
+  .action-eyebrow {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: rgba(246,243,255,0.5);
+    margin-top: 2px;
+  }
+  .action-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 19px;
+    line-height: 1.22;
+    color: #f6f3ff;
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+  }
+  .action-title em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .action-urgent .action-title em {
+    background: linear-gradient(135deg, #ff71a8, #ffb648);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .action-meta {
+    font-size: 12px;
+    color: rgba(246,243,255,0.6);
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .action-ctas {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 8px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #8b5cf6, #ff71a8);
+    color: #fff;
+    box-shadow: 0 4px 14px -2px rgba(139,92,246,0.5);
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #f6f3ff;
+  }
+  .btn-skip {
+    background: transparent;
+    color: rgba(246,243,255,0.45);
+    font-weight: 500;
+    padding: 8px 4px;
+  }
+
+  /* Next post card - larger */
+  .next-post {
+    margin: 0 20px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 22px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .next-post::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #c7b4ff, #ff71a8, #ffb648);
+  }
+  .next-post-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .next-post-chip {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #8affc1;
+    padding: 4px 8px;
+    background: rgba(138,255,193,0.1);
+    border: 1px solid rgba(138,255,193,0.25);
+    border-radius: 999px;
+  }
+  .next-post-time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: rgba(246,243,255,0.65);
+    letter-spacing: 0.05em;
+  }
+  .next-post-hook {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    line-height: 1.25;
+    color: #f6f3ff;
+    margin-bottom: 12px;
+    letter-spacing: -0.2px;
+  }
+  .next-post-hook em {
+    font-style: italic;
+    background: linear-gradient(135deg, #c7b4ff, #ff71a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .next-post-meta {
+    display: flex;
+    gap: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .meta-item {
+    flex: 1;
+  }
+  .meta-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,243,255,0.4);
+  }
+  .meta-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 15px;
+    color: #f6f3ff;
+    margin-top: 2px;
+  }
+  .meta-value em {
+    font-style: italic;
+    color: #c7b4ff;
+  }
+
+  /* Wins */
+  .win-card {
+    margin: 0 20px 10px;
+    background:
+      linear-gradient(135deg, rgba(138,255,193,0.08), rgba(199,180,255,0.06)),
+      rgba(255,255,255,0.04);
+    border: 1px solid rgba(138,255,193,0.25);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .win-glyph {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(138,255,193,0.15);
+    border: 1px solid rgba(138,255,193,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8affc1;
+    flex-shrink: 0;
+  }
+  .win-glyph svg { width: 18px; height: 18px; }
+  .win-body { flex: 1; }
+  .win-k {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #8affc1;
+  }
+  .win-text {
+    font-family: 'Instrument Serif', serif;
+    font-size: 16px;
+    color: #f6f3ff;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+  .win-text em {
+    font-style: italic;
+    color: #8affc1;
+  }
+  .win-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: #f6f3ff;
+    letter-spacing: -0.5px;
+  }
+
+  /* ────── TAB BAR ────── */
+  /* Home indicator */
+  .home-ind {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 3px;
+    z-index: 51;
+  }
+
+  /* ────── LABEL BELOW PHONE ────── */
+  .theme-label {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<div class="iphone">
+  <div class="screen">
+
+    <!-- Dynamic Island -->
+    <div class="island"></div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="status-time">2:14</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 18 12" fill="white"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="5" y="5" width="3" height="7" rx="0.5"/><rect x="10" y="2" width="3" height="10" rx="0.5"/><rect x="15" y="0" width="3" height="12" rx="0.5"/></svg>
+        <svg viewBox="0 0 16 12" fill="none" stroke="white" stroke-width="1.2"><path d="M1 4.5 Q8 -1 15 4.5" stroke-linecap="round" fill="none"/><path d="M3.5 7 Q8 3 12.5 7" stroke-linecap="round" fill="none"/><path d="M6 9.5 Q8 8 10 9.5" stroke-linecap="round" fill="none"/></svg>
+        <svg viewBox="0 0 27 12" fill="none" stroke="white" stroke-width="1"><rect x="0.5" y="1" width="22" height="10" rx="2.5"/><rect x="2" y="2.5" width="16" height="7" rx="1" fill="white"/><rect x="23.5" y="4" width="2" height="4" rx="0.5" fill="white"/></svg>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div class="app">
+
+      <!-- Greeting -->
+      <div class="greeting-area">
+        <div class="greeting-row">
+          <div class="avatar">TK</div>
+        </div>
+        <div class="headline">Good afternoon, <em>Taylor</em>.</div>
+        <div class="headline-sub">Tue · Apr 21 · 2:14 PM</div>
+      </div>
+
+      <!-- Pulse -->
+      <div class="pulse-row">
+        <div class="pulse-pill">
+          <div class="pulse-label">Followers</div>
+          <div class="pulse-value">148.2K</div>
+          <div class="pulse-delta">↑ 2,847 / wk</div>
+        </div>
+        <div class="pulse-pill">
+          <div class="pulse-label">Engagement</div>
+          <div class="pulse-value">8.7%</div>
+          <div class="pulse-delta">↑ 0.6</div>
+        </div>
+        <div class="pulse-pill">
+          <div class="pulse-label">Revenue MTD</div>
+          <div class="pulse-value">$12.8K</div>
+          <div class="pulse-delta">↑ on pace</div>
+        </div>
+        <div class="pulse-pill">
+          <div class="pulse-label">Pipeline</div>
+          <div class="pulse-value">$34.5K</div>
+          <div class="pulse-delta flat">— 7 deals</div>
+        </div>
+      </div>
+
+      <!-- SMO Card -->
+      <div class="smo-card">
+        <div class="smo-top">
+          <div class="smo-label">SMO Score · 82nd pct</div>
+          <div class="smo-delta">↑ 6 this mo</div>
+        </div>
+        <div class="smo-main">
+          <svg class="smo-ring" viewBox="0 0 110 110">
+            <defs>
+              <linearGradient id="ring-g" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#c7b4ff"/>
+                <stop offset="100%" stop-color="#ff71a8"/>
+              </linearGradient>
+              <filter id="ring-glow">
+                <feGaussianBlur stdDeviation="3"/>
+                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="55" cy="55" r="45" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+            <circle cx="55" cy="55" r="45" fill="none"
+              stroke="url(#ring-g)" stroke-width="8" stroke-linecap="round"
+              stroke-dasharray="282.7" stroke-dashoffset="50.9"
+              transform="rotate(-90 55 55)"
+              filter="url(#ring-glow)"/>
+            <text x="55" y="58" text-anchor="middle" dominant-baseline="middle"
+              font-family="Instrument Serif" font-size="34" fill="#f6f3ff" font-style="italic">82</text>
+            <text x="55" y="76" text-anchor="middle"
+              font-family="Geist Mono" font-size="7" fill="rgba(246,243,255,0.5)" letter-spacing="1.5">/ 100</text>
+          </svg>
+          <div class="smo-text">
+            <div class="smo-title">Your <em>optimization</em>, at a glance.</div>
+            <div class="smo-meta">Strongest: Engagement (94)<br>Biggest lift: Consistency (+8)</div>
+          </div>
+        </div>
+
+        <div class="factors-mini">
+          <div class="factor-mini">
+            <div class="factor-mini-bar"><div class="factor-mini-fill" style="height: 91%"></div></div>
+            <div class="factor-mini-value">91</div>
+            <div class="factor-mini-label">Prof</div>
+          </div>
+          <div class="factor-mini">
+            <div class="factor-mini-bar"><div class="factor-mini-fill" style="height: 88%"></div></div>
+            <div class="factor-mini-value">88</div>
+            <div class="factor-mini-label">Cont</div>
+          </div>
+          <div class="factor-mini">
+            <div class="factor-mini-bar"><div class="factor-mini-fill" style="height: 68%; background: linear-gradient(180deg, #ffb648, #c4821e);"></div></div>
+            <div class="factor-mini-value">68</div>
+            <div class="factor-mini-label">Cons</div>
+          </div>
+          <div class="factor-mini">
+            <div class="factor-mini-bar"><div class="factor-mini-fill" style="height: 94%; background: linear-gradient(180deg, #8affc1, #3fd68a);"></div></div>
+            <div class="factor-mini-value">94</div>
+            <div class="factor-mini-label">Enga</div>
+          </div>
+          <div class="factor-mini">
+            <div class="factor-mini-bar"><div class="factor-mini-fill" style="height: 83%"></div></div>
+            <div class="factor-mini-value">83</div>
+            <div class="factor-mini-label">Grow</div>
+          </div>
+          <div class="factor-mini">
+            <div class="factor-mini-bar"><div class="factor-mini-fill" style="height: 66%; background: linear-gradient(180deg, #ffb648, #c4821e);"></div></div>
+            <div class="factor-mini-value">66</div>
+            <div class="factor-mini-label">Mone</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next post -->
+      <div class="section-head">
+        <h2>Your next <em>post</em></h2>
+        <span class="count">Ships 4h 28m</span>
+      </div>
+
+      <div class="next-post">
+        <div class="next-post-top">
+          <span class="next-post-chip">● Scheduled · Reel · IG</span>
+          <span class="next-post-time">6:42 PM ET</span>
+        </div>
+        <div class="next-post-hook">The <em>three-tab setup</em> I wish I knew sooner.</div>
+        <div class="next-post-meta">
+          <div class="meta-item">
+            <div class="meta-label">Score</div>
+            <div class="meta-value"><em>78</em></div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Hook</div>
+            <div class="meta-value">Strong</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Predicted</div>
+            <div class="meta-value">14.8K</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Do now -->
+      <div class="section-head">
+        <h2>Do <em>now</em></h2>
+        <span class="count">2 urgent</span>
+      </div>
+
+      <div class="action action-urgent">
+        <div class="action-top">
+          <div class="action-glyph">!</div>
+          <div style="flex: 1;">
+            <div class="action-kicker">Overdue · 6 days</div>
+            <div class="action-eyebrow">Invoice INV-2026-0037</div>
+          </div>
+        </div>
+        <div class="action-title">Nudge <em>Hatch</em> on the $4,800 invoice.</div>
+        <div class="action-meta">Due April 15 · last viewed April 12</div>
+        <div class="action-ctas">
+          <button class="btn btn-primary">Send nudge</button>
+          <button class="btn btn-skip">Remind tomorrow</button>
+        </div>
+      </div>
+
+      <div class="action action-warm">
+        <div class="action-top">
+          <div class="action-glyph">⏱</div>
+          <div style="flex: 1;">
+            <div class="action-kicker">Closing in 48h · 94% match</div>
+            <div class="action-eyebrow">Logitech MX Creators</div>
+          </div>
+        </div>
+        <div class="action-title">Apply to <em>Logitech MX Creators</em>.</div>
+        <div class="action-meta">$3K–$8K · Reel + carousel · deadline Thursday</div>
+        <div class="action-ctas">
+          <button class="btn btn-primary">Apply now</button>
+          <button class="btn btn-skip">Skip</button>
+        </div>
+      </div>
+
+      <!-- Compounds -->
+      <div class="section-head">
+        <h2>This <em>compounds</em></h2>
+        <span class="count">Mid-effort</span>
+      </div>
+
+      <div class="action">
+        <div class="action-top">
+          <div class="action-glyph">@</div>
+          <div style="flex: 1;">
+            <div class="action-kicker">Collab · 94% match</div>
+            <div class="action-eyebrow">38% audience overlap</div>
+          </div>
+        </div>
+        <div class="action-title">Draft a DM to <em>@sam_okafor</em>.</div>
+        <div class="action-meta">112K followers · same niche · open collab slot</div>
+        <div class="action-ctas">
+          <button class="btn btn-ghost">Draft DM</button>
+          <button class="btn btn-skip">Later</button>
+        </div>
+      </div>
+
+      <!-- Wins -->
+      <div class="section-head">
+        <h2>This <em>week's</em> wins</h2>
+        <span class="count">Receipts</span>
+      </div>
+
+      <div class="win-card">
+        <div class="win-glyph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div class="win-body">
+          <div class="win-k">Best week · Q2</div>
+          <div class="win-text">+2,847 <em>new followers</em></div>
+        </div>
+        <div class="win-num">2.8K</div>
+      </div>
+
+      <div class="win-card">
+        <div class="win-glyph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="win-body">
+          <div class="win-k">Deal closed</div>
+          <div class="win-text"><em>Skillshare</em> paid in full</div>
+        </div>
+        <div class="win-num">$2.5K</div>
+      </div>
+
+      <div style="height: 20px;"></div>
+    </div>
+
+    <!-- FLOATING MENU -->
+    <button class="fab-menu" onclick="document.querySelector('.drawer').classList.add('open');document.querySelector('.drawer-backdrop').classList.add('open');">
+      <div class="fab-menu-lines">
+        <span></span><span></span><span></span>
+      </div>
+    </button>
+
+    <!-- DRAWER BACKDROP -->
+    <div class="drawer-backdrop" onclick="document.querySelector('.drawer').classList.remove('open');this.classList.remove('open');"></div>
+
+    <!-- DRAWER -->
+    <nav class="drawer">
+      <button class="drawer-close" onclick="document.querySelector('.drawer').classList.remove('open');document.querySelector('.drawer-backdrop').classList.remove('open');">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="drawer-brand">Go <em>Virall</em></div>
+      <div class="drawer-sub">Your creator OS</div>
+      <div class="drawer-divider"></div>
+
+      <div class="drawer-nav">
+        <a href="#" class="drawer-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></svg>
+          Today
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.4-1.4a2 2 0 0 0-2.8 0L2 23"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          Compose
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Audience
+          <span class="drawer-item-badge">3 new</span>
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Revenue
+          <span class="drawer-item-badge">$4.8K</span>
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Schedule
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Messages
+        </a>
+        <div class="drawer-divider"></div>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </div>
+
+      <div class="drawer-footer">
+        <div class="drawer-footer-avatar">TK</div>
+        <div class="drawer-footer-text">
+          <div class="drawer-footer-name">Taylor Kai</div>
+          <div class="drawer-footer-plan">Pro · Renews May 3</div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Home indicator -->
+    <div class="home-ind"></div>
+
+  </div>
+</div>
+
+<div class="theme-label">Glassmorphic</div>
+
+</body>
+</html>

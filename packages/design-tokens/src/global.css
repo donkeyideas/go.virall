@@ -1,0 +1,523 @@
+/* ============================================================
+   Go Virall -- Design Tokens (CSS Custom Properties)
+   Three themes: glassmorphic, neon-editorial, neumorphic
+   ============================================================ */
+
+/* ────── GLASSMORPHIC ────── */
+/* Dark, dimensional, gradient-accented. Frosted glass surfaces. */
+
+[data-theme="glassmorphic"] {
+  /* Backgrounds */
+  --bg: #0a0618;
+  --bg-mid: #120a27;
+  --bg-top: #1b1236;
+  --fg: #f6f3ff;
+  --paper: rgba(255, 255, 255, 0.05);
+  --paper-2: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.12);
+  --line-2: rgba(255, 255, 255, 0.20);
+  --ink: #f6f3ff;
+  --muted: rgba(246, 243, 255, 0.6);
+  --subtle: rgba(246, 243, 255, 0.4);
+
+  /* Accents */
+  --color-primary: #8b5cf6;
+  --color-primary-soft: #c7b4ff;
+  --color-accent: #ff71a8;
+  --color-good: #8affc1;
+  --color-warn: #ffb648;
+  --color-bad: #ff71a8;
+  --color-info: #6be3ff;
+
+  /* Gradients */
+  --grad-hero: linear-gradient(135deg, #c7b4ff 0%, #ff71a8 40%, #ffb648 100%);
+  --grad-primary: linear-gradient(135deg, #8b5cf6, #ff71a8);
+  --grad-subtle: linear-gradient(180deg, rgba(139, 92, 246, 0.15), transparent 60%);
+
+  /* Typography -- references next/font CSS variables */
+  --font-display: var(--font-instrument-serif), 'Instrument Serif', serif;
+  --font-body: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Effects */
+  --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.25);
+  --shadow-card: 0 20px 60px -20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-floating: 0 30px 80px -20px rgba(139, 92, 246, 0.35);
+  --shadow-button: 0 0 24px -4px rgba(139, 92, 246, 0.5);
+  --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  /* Surfaces */
+  --card-background: rgba(255, 255, 255, 0.05);
+  --card-border: 1px solid rgba(255, 255, 255, 0.12);
+  --card-backdrop: blur(24px) saturate(1.2);
+  --card-hover-border: rgba(199, 180, 255, 0.3);
+  --card-hover-shadow: 0 30px 80px -20px rgba(139, 92, 246, 0.35);
+  --card-hover-transform: translateY(-2px);
+
+  /* Input */
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.22);
+  --input-shadow: none;
+  --input-focus-border: rgba(199, 180, 255, 0.6);
+  --input-focus-ring: 0 0 0 4px rgba(139, 92, 246, 0.15);
+  --input-placeholder: rgba(246, 243, 255, 0.35);
+
+  /* Button */
+  --btn-primary-bg: linear-gradient(135deg, #8b5cf6, #ff71a8);
+  --btn-primary-text: white;
+  --btn-primary-border: 1px solid rgba(255, 255, 255, 0.15);
+
+  /* Glass surfaces */
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-2: rgba(255, 255, 255, 0.10);
+
+  /* Button outline */
+  --btn-outline-bg: rgba(255, 255, 255, 0.10);
+  --btn-outline-border: rgba(255, 255, 255, 0.25);
+  --btn-outline-hover: rgba(255, 255, 255, 0.16);
+  --btn-outline-shadow: none;
+
+  /* Named accents */
+  --violet: #8b5cf6;
+  --lilac: #c7b4ff;
+  --rose: #ff71a8;
+  --amber: #ffb648;
+  --mint: #8affc1;
+  --cyan: #6be3ff;
+
+  /* Layout */
+  --sidebar-width: 240px;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ────── NEON EDITORIAL ────── */
+/* Cream paper, ink borders, hard offset shadows, magazine typography. */
+
+[data-theme="neon-editorial"] {
+  /* Backgrounds */
+  --bg: #f4ecde;
+  --bg-mid: #ebe1cf;
+  --bg-top: #e4d7c0;
+  --fg: #0b0b0b;
+  --paper: #f4ecde;
+  --paper-2: #ebe1cf;
+  --line: #0b0b0b;
+  --line-2: #6b6559;
+  --ink: #0b0b0b;
+  --muted: #6b6559;
+  --subtle: #8b8478;
+
+  /* Accents */
+  --color-primary: #c8ff3d;
+  --color-primary-soft: #9ecc21;
+  --color-accent: #ff3e88;
+  --color-good: #c8ff3d;
+  --color-warn: #e8b92b;
+  --color-bad: #ff3e88;
+  --color-info: #1c4bff;
+
+  /* Gradients -- editorial avoids gradients on fills */
+  --grad-hero: none;
+  --grad-primary: none;
+  --grad-subtle: none;
+
+  /* Typography -- references next/font CSS variables */
+  --font-display: var(--font-fraunces), 'Fraunces', serif;
+  --font-body: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+
+  /* Shape */
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-full: 9999px;
+
+  /* Effects */
+  --shadow-soft: none;
+  --shadow-card: 5px 5px 0 #0b0b0b;
+  --shadow-floating: 8px 8px 0 #0b0b0b;
+  --shadow-button: 3px 3px 0 #0b0b0b;
+  --shadow-inset: none;
+
+  /* Surfaces */
+  --card-background: #f4ecde;
+  --card-border: 1.5px solid #0b0b0b;
+  --card-backdrop: none;
+  --card-hover-border: #0b0b0b;
+  --card-hover-shadow: 8px 8px 0 #0b0b0b;
+  --card-hover-transform: translate(-2px, -2px);
+
+  /* Input */
+  --input-bg: #f4ecde;
+  --input-border: #0b0b0b;
+  --input-shadow: none;
+  --input-focus-border: #0b0b0b;
+  --input-focus-ring: 3px 3px 0 #0b0b0b;
+  --input-placeholder: #6b6559;
+
+  /* Button */
+  --btn-primary-bg: #c8ff3d;
+  --btn-primary-text: #0b0b0b;
+  --btn-primary-border: 1.5px solid #0b0b0b;
+
+  /* Button outline */
+  --btn-outline-bg: var(--paper);
+  --btn-outline-border: var(--ink);
+  --btn-outline-hover: var(--paper-2);
+  --btn-outline-shadow: 3px 3px 0 var(--ink);
+
+  /* Named accents */
+  --cream: #eae4d3;
+  --lime: #c6fd4f;
+  --hot: #ff2e6c;
+  --cobalt: #1739ff;
+  --tangerine: #ff6a1f;
+
+  /* Rules */
+  --rule: rgba(11, 11, 11, 0.14);
+  --rule-dk: rgba(11, 11, 11, 0.3);
+
+  /* Layout */
+  --sidebar-width: 220px;
+
+  /* Motion -- snappier */
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+  --duration-slow: 200ms;
+}
+
+/* ────── NEUMORPHIC ────── */
+/* Soft gray surface, inset/outset shadows, no hard edges. */
+
+[data-theme="neumorphic"] {
+  /* Backgrounds */
+  --bg: #e4e9f0;
+  --bg-mid: #dde2ea;
+  --bg-top: #d5dae3;
+  --fg: #2a3444;
+  --paper: #e4e9f0;
+  --paper-2: #eef2f7;
+  --line: rgba(42, 52, 68, 0.12);
+  --line-2: rgba(42, 52, 68, 0.2);
+  --ink: #2a3444;
+  --muted: #7b8699;
+  --subtle: #a4adbd;
+
+  /* Accents */
+  --color-primary: #5a78d0;
+  --color-primary-soft: #8098db;
+  --color-accent: #5a78d0;
+  --color-good: #6aa684;
+  --color-warn: #c39560;
+  --color-bad: #c87878;
+  --color-info: #5a78d0;
+
+  /* Gradients -- neumorphic uses none */
+  --grad-hero: none;
+  --grad-primary: none;
+  --grad-subtle: none;
+
+  /* Typography -- references next/font CSS variables */
+  --font-display: var(--font-fraunces), 'Fraunces', serif;
+  --font-body: var(--font-manrope), 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Effects -- the neumorphic signature */
+  --shadow-soft:
+    3px 3px 8px #9aa0ab,
+    -3px -3px 8px #ffffff;
+  --shadow-card:
+    6px 6px 16px #9aa0ab,
+    -6px -6px 16px #ffffff;
+  --shadow-floating:
+    12px 12px 28px #9aa0ab,
+    -12px -12px 28px #ffffff;
+  --shadow-button:
+    3px 3px 8px #9aa0ab,
+    -3px -3px 8px #ffffff;
+  --shadow-inset:
+    inset 5px 5px 12px #9aa0ab,
+    inset -5px -5px 12px #ffffff;
+
+  /* Surfaces -- no borders, shadow-defined depth */
+  --card-background: #e4e9f0;
+  --card-border: none;
+  --card-backdrop: none;
+  --card-hover-border: none;
+  --card-hover-shadow:
+    14px 14px 30px #a7adb8,
+    -14px -14px 30px #ffffff;
+  --card-hover-transform: translateY(-2px);
+
+  /* Input -- inset shadow */
+  --input-bg: #dde2ea;
+  --input-border: transparent;
+  --input-shadow:
+    inset 3px 3px 7px #9aa0ab,
+    inset -3px -3px 7px #ffffff;
+  --input-focus-border: var(--color-primary);
+  --input-focus-ring:
+    inset 4px 4px 10px #9298a4,
+    inset -4px -4px 10px #ffffff;
+  --input-placeholder: #7b8699;
+
+  /* Button */
+  --btn-primary-bg: #e4e9f0;
+  --btn-primary-text: #5a78d0;
+  --btn-primary-border: none;
+
+  /* Button outline */
+  --btn-outline-bg: var(--surface, var(--bg));
+  --btn-outline-border: transparent;
+  --btn-outline-hover: var(--surface-lighter, var(--bg));
+  --btn-outline-shadow: var(--out-sm);
+
+  /* Neumorphic shadow scale */
+  --out-sm: 3px 3px 8px #9aa0ab, -3px -3px 8px #ffffff;
+  --out-md: 6px 6px 16px #9aa0ab, -6px -6px 16px #ffffff;
+  --out-lg: 12px 12px 28px #9aa0ab, -12px -12px 28px #ffffff;
+  --in-sm: inset 3px 3px 7px #9aa0ab, inset -3px -3px 7px #ffffff;
+  --in-md: inset 5px 5px 12px #9aa0ab, inset -5px -5px 12px #ffffff;
+
+  /* Surface shades */
+  --surface: #e4e9f0;
+  --surface-lighter: #eef2f7;
+  --surface-darker: #c7ccd4;
+
+  /* Named accents */
+  --accent: #5a78d0;
+  --accent-soft: #8098db;
+  --text: #425268;
+  --faint: #a4adbd;
+
+  /* Layout */
+  --sidebar-width: 0px;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ────── SHARED TOKENS ────── */
+
+:root {
+  --duration-instant: 75ms;
+  --duration-slower: 500ms;
+  --duration-slowest: 800ms;
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  --z-base: 0;
+  --z-raised: 10;
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-fixed: 200;
+  --z-drawer: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-toast: 600;
+  --z-max: 9999;
+}
+
+/* ────── THEME-SPECIFIC EMPHASIS ────── */
+
+/* Glassmorphic: gradient text */
+[data-theme="glassmorphic"] .emphasis-hi {
+  font-style: italic;
+  background: linear-gradient(135deg, #c7b4ff 0%, #ff71a8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+[data-theme="glassmorphic"] .emphasis-pink {
+  font-style: italic;
+  background: linear-gradient(135deg, #ff71a8 0%, #ffb648 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Editorial: highlighter swipe */
+[data-theme="neon-editorial"] .emphasis-hi {
+  font-style: italic;
+  background: #c8ff3d;
+  padding: 0 0.1em;
+  display: inline-block;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+[data-theme="neon-editorial"] .emphasis-pink {
+  font-style: italic;
+  background: #ff3e88;
+  color: #f4ecde;
+  padding: 0 0.1em;
+  display: inline-block;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Neumorphic: subtle glow behind text */
+[data-theme="neumorphic"] .emphasis-hi {
+  font-style: italic;
+  color: #5a78d0;
+  text-shadow: 0 0 20px rgba(90, 120, 208, 0.3);
+}
+[data-theme="neumorphic"] .emphasis-pink {
+  font-style: italic;
+  color: #c87878;
+  text-shadow: 0 0 20px rgba(200, 120, 120, 0.3);
+}
+
+/* ────── THEME-SPECIFIC CARD HOVER ────── */
+
+[data-theme="glassmorphic"] .card-interactive:hover {
+  transform: var(--card-hover-transform);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
+}
+
+[data-theme="neon-editorial"] .card-interactive:hover {
+  transform: var(--card-hover-transform);
+  box-shadow: var(--card-hover-shadow);
+}
+
+[data-theme="neumorphic"] .card-interactive:hover {
+  transform: var(--card-hover-transform);
+  box-shadow: var(--card-hover-shadow);
+}
+
+[data-theme="neon-editorial"] .card-interactive:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0 #0b0b0b;
+}
+
+[data-theme="neumorphic"] .card-interactive:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-inset);
+}
+
+/* ────── REDUCED MOTION ────── */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0ms !important;
+    transition-duration: 75ms !important;
+  }
+}
+
+/* ────── ADMIN DARK ────── */
+/* Command-center aesthetic. Charcoal surfaces, red accent, sharp corners, no gradients. */
+
+[data-theme="admin-dark"] {
+  /* Backgrounds */
+  --bg: #0f1012;
+  --bg-mid: #141418;
+  --bg-top: #1a1b20;
+  --fg: #e2e4ea;
+  --paper: #1a1b20;
+  --paper-2: #1f2128;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --ink: #e2e4ea;
+  --muted: rgba(226, 228, 234, 0.5);
+  --subtle: rgba(226, 228, 234, 0.3);
+
+  /* Accents */
+  --color-primary: #c0392b;
+  --color-primary-soft: #e74c3c;
+  --color-accent: #c0392b;
+  --color-good: #27ae60;
+  --color-warn: #e67e22;
+  --color-bad: #c0392b;
+  --color-info: #2980b9;
+
+  /* Gradients — none */
+  --grad-hero: none;
+  --grad-primary: none;
+  --grad-subtle: none;
+
+  /* Typography */
+  --font-display: var(--font-fraunces), 'Fraunces', serif;
+  --font-body: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+
+  /* Shape — sharp corners */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-full: 9999px;
+
+  /* Effects — flat shadows */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-button: none;
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  /* Surfaces */
+  --card-background: #1a1b20;
+  --card-border: 1px solid rgba(255, 255, 255, 0.08);
+  --card-backdrop: none;
+  --card-hover-border: rgba(192, 57, 43, 0.4);
+  --card-hover-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --card-hover-transform: none;
+
+  /* Input */
+  --input-bg: #0f1012;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --input-shadow: none;
+  --input-focus-border: #c0392b;
+  --input-focus-ring: 0 0 0 2px rgba(192, 57, 43, 0.25);
+  --input-placeholder: rgba(226, 228, 234, 0.3);
+
+  /* Button */
+  --btn-primary-bg: #c0392b;
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: none;
+
+  /* Admin-specific surfaces */
+  --admin-red: #c0392b;
+  --admin-red-soft: rgba(192, 57, 43, 0.15);
+  --admin-green: #27ae60;
+  --admin-green-soft: rgba(39, 174, 96, 0.15);
+  --admin-amber: #e67e22;
+  --admin-amber-soft: rgba(230, 126, 34, 0.15);
+  --admin-blue: #2980b9;
+  --admin-blue-soft: rgba(41, 128, 185, 0.15);
+  --admin-surface: #1a1b20;
+  --admin-surface-2: #1f2128;
+  --admin-surface-3: #242630;
+  --admin-border: rgba(255, 255, 255, 0.08);
+
+  /* Layout */
+  --sidebar-width: 220px;
+
+  /* Motion */
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+  --duration-slow: 200ms;
+}

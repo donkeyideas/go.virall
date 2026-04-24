@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Go Virall · Neumorphic — iPhone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+  :root {
+    --surface: #e4e9f0;
+    --surface-darker: #c7ccd4;
+    --shadow-light: #ffffff;
+    --shadow-dark: #a7adb8;
+
+    --out-sm:
+      4px 4px 10px var(--shadow-dark),
+      -4px -4px 10px var(--shadow-light);
+    --out-md:
+      8px 8px 20px var(--shadow-dark),
+      -8px -8px 20px var(--shadow-light);
+    --out-lg:
+      14px 14px 30px var(--shadow-dark),
+      -14px -14px 30px var(--shadow-light);
+    --in-sm:
+      inset 3px 3px 6px var(--shadow-dark),
+      inset -3px -3px 6px var(--shadow-light);
+    --in-md:
+      inset 5px 5px 12px var(--shadow-dark),
+      inset -5px -5px 12px var(--shadow-light);
+    --in-lg:
+      inset 7px 7px 16px var(--shadow-dark),
+      inset -7px -7px 16px var(--shadow-light);
+
+    --accent: #5a78d0;
+    --accent-soft: #8098db;
+    --ink: #2a3444;
+    --text: #425268;
+    --muted: #7b8699;
+    --faint: #a4adbd;
+    --good: #6aa684;
+    --warn: #c39560;
+    --bad: #c87878;
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: linear-gradient(135deg, #c5ccd6, #dde2ea);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* iPhone frame */
+  .iphone {
+    width: 390px;
+    height: 844px;
+    background: #1a1a1a;
+    border-radius: 55px;
+    padding: 8px;
+    position: relative;
+    box-shadow:
+      0 0 0 2px #2a2a2a,
+      0 0 0 3px #0a0a0a,
+      0 30px 80px rgba(60, 70, 90, 0.35),
+      0 10px 30px rgba(90, 120, 208, 0.15);
+  }
+  .iphone::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 180px;
+    width: 3px;
+    height: 90px;
+    background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 130px 0 #2a2a2a, 0 170px 0 #2a2a2a;
+  }
+
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 47px;
+    overflow: hidden;
+    position: relative;
+    background: var(--surface);
+  }
+
+  .island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+  }
+
+  .status-bar {
+    position: absolute;
+    top: 16px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    z-index: 99;
+    letter-spacing: -0.2px;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons svg { height: 11px; }
+
+  /* APP */
+  .app {
+    position: absolute;
+    inset: 0;
+    padding-top: 56px;
+    padding-bottom: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--surface);
+    color: var(--text);
+  }
+  .app::-webkit-scrollbar { display: none; }
+
+  /* ────── FLOATING MENU BUTTON ────── */
+  .fab-menu {
+    position: absolute;
+    top: 54px;
+    left: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--out-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 80;
+    border: none;
+    transition: all 200ms ease;
+  }
+  .fab-menu:hover { box-shadow: var(--out-md); }
+  .fab-menu:active { box-shadow: var(--in-sm); }
+  .fab-menu-lines {
+    width: 22px;
+    height: 14px;
+    position: relative;
+  }
+  .fab-menu-lines span {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .fab-menu-lines span:nth-child(1) { top: 0; }
+  .fab-menu-lines span:nth-child(2) { top: 50%; transform: translateY(-50%); right: 30%; }
+  .fab-menu-lines span:nth-child(3) { bottom: 0; }
+
+  /* Drawer backdrop */
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(60, 70, 90, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease;
+    z-index: 90;
+  }
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Drawer — feels carved from the surface */
+  .drawer {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    bottom: 10px;
+    width: 280px;
+    background: var(--surface);
+    border-radius: 32px;
+    box-shadow: var(--out-lg);
+    transform: translateX(-110%);
+    transition: transform 350ms cubic-bezier(0.2, 0, 0, 1);
+    z-index: 95;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+  .drawer-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .drawer-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--in-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 20px;
+  }
+  .drawer-brand {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+  }
+  .drawer-brand em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .drawer-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--out-sm);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .drawer-close:active { box-shadow: var(--in-sm); color: var(--accent); }
+  .drawer-close svg { width: 14px; height: 14px; }
+
+  .drawer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--surface);
+    border-radius: 999px;
+    box-shadow: var(--in-sm);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    align-self: flex-start;
+    margin-bottom: 18px;
+  }
+  .drawer-pill::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 6px rgba(106,166,132,0.6);
+  }
+
+  .drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: all 200ms ease;
+  }
+  .drawer-item:hover { color: var(--ink); }
+  .drawer-item.active {
+    box-shadow: var(--in-sm);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .drawer-item svg {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+  }
+  .drawer-item-badge {
+    margin-left: auto;
+    font-family: 'Manrope', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    background: var(--surface);
+    box-shadow: var(--in-sm);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .drawer-divider {
+    height: 2px;
+    background: var(--surface);
+    box-shadow: var(--in-sm);
+    margin: 14px 0 10px;
+    border-radius: 1px;
+  }
+
+  .drawer-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: 18px;
+    box-shadow: var(--in-sm);
+  }
+  .drawer-footer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: var(--out-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 13px;
+  }
+  .drawer-footer-text { flex: 1; }
+  .drawer-footer-name {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.2px;
+  }
+  .drawer-footer-plan {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Greeting — shifted right to accommodate FAB */
+  .greeting-area {
+    padding: 20px 24px 18px 76px;
+  }
+  .greeting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .brand-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-emblem {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--accent);
+    box-shadow: var(--in-sm);
+  }
+  .brand-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 19px;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .avatar-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 4px 4px;
+    background: var(--surface);
+    border-radius: 999px;
+    box-shadow: var(--out-sm);
+  }
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 13px;
+    box-shadow: var(--in-sm);
+  }
+  .avatar-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .headline {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 1.05;
+    color: var(--ink);
+    letter-spacing: -1.2px;
+  }
+  .headline em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .headline-sub {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 10px;
+  }
+
+  /* Pulse segmented */
+  .pulse-wrap {
+    margin: 18px 20px 6px;
+    background: var(--surface);
+    border-radius: 22px;
+    padding: 8px;
+    box-shadow: var(--in-sm);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .pulse-cell {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow: var(--out-sm);
+  }
+  .pulse-cell.active {
+    box-shadow: var(--in-sm);
+  }
+  .pulse-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .pulse-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+    line-height: 1;
+  }
+  .pulse-delta {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--good);
+    margin-top: 3px;
+  }
+  .pulse-delta.flat { color: var(--muted); }
+
+  /* SMO Card */
+  .smo-card {
+    margin: 18px 20px;
+    background: var(--surface);
+    border-radius: 28px;
+    padding: 24px 22px;
+    box-shadow: var(--out-md);
+  }
+  .smo-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .smo-kicker {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .smo-delta-chip {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--good);
+    background: var(--surface);
+    padding: 6px 12px;
+    border-radius: 999px;
+    box-shadow: var(--in-sm);
+  }
+
+  .smo-main {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* Gauge — deep well */
+  .gauge-well {
+    width: 128px;
+    height: 128px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: var(--in-md);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gauge-well svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+  }
+  .gauge-center {
+    position: absolute;
+    inset: 16px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: var(--out-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .gauge-number {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 36px;
+    color: var(--ink);
+    letter-spacing: -1.2px;
+    line-height: 1;
+  }
+  .gauge-sub {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .smo-text { flex: 1; }
+  .smo-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    line-height: 1.2;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+    font-weight: 400;
+  }
+  .smo-title em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .smo-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .smo-meta strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* Factor bars in inset tray */
+  .factors-tray {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 16px 14px;
+    box-shadow: var(--in-sm);
+    display: flex;
+    gap: 8px;
+  }
+  .fm {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .fm-bar {
+    width: 100%;
+    height: 40px;
+    background: var(--surface);
+    border-radius: 4px;
+    box-shadow: var(--in-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .fm-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    background: linear-gradient(180deg, var(--accent-soft), var(--accent));
+    border-radius: 3px 3px 2px 2px;
+    box-shadow: 0 0 6px rgba(90,120,208,0.35);
+  }
+  .fm-fill.warn {
+    background: linear-gradient(180deg, #d6a87d, var(--warn));
+  }
+  .fm-fill.good {
+    background: linear-gradient(180deg, #8cc4a4, var(--good));
+  }
+  .fm-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .fm-label {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Section headers */
+  .section-head {
+    padding: 20px 24px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .section-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: -0.4px;
+  }
+  .section-head h2 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .section-head .count {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  /* Next post — deep raised card */
+  .next-post {
+    margin: 0 20px 14px;
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 18px;
+    box-shadow: var(--out-md);
+    position: relative;
+  }
+  .next-post-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .next-post-chip {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--good);
+    padding: 6px 12px;
+    background: var(--surface);
+    border-radius: 999px;
+    box-shadow: var(--in-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .next-post-chip::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 6px rgba(106,166,132,0.6);
+  }
+  .next-post-time {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .next-post-hook {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+    font-weight: 400;
+  }
+  .next-post-hook em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .next-post-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: var(--in-sm);
+  }
+  .np-item {
+    text-align: center;
+  }
+  .np-item + .np-item {
+    border-left: 1px solid rgba(167, 173, 184, 0.3);
+  }
+  .np-label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 2px;
+  }
+  .np-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .np-value em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  /* Action cards */
+  .action {
+    margin: 0 20px 12px;
+    background: var(--surface);
+    border-radius: 22px;
+    padding: 18px;
+    box-shadow: var(--out-sm);
+  }
+  .action.urgent {
+    box-shadow:
+      4px 4px 10px var(--shadow-dark),
+      -4px -4px 10px var(--shadow-light),
+      inset 0 0 0 2px rgba(200, 120, 120, 0.2);
+  }
+  .action-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .action-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--in-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .action-icon.bad { color: var(--bad); }
+  .action-icon.warn { color: var(--warn); }
+  .action-icon.good { color: var(--good); }
+  .action-icon svg { width: 20px; height: 20px; }
+
+  .action-meta-row {
+    flex: 1;
+  }
+  .action-kicker {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .action-kicker.bad { color: var(--bad); }
+  .action-kicker.warn { color: var(--warn); }
+  .action-sub {
+    font-size: 11px;
+    color: var(--faint);
+    margin-top: 1px;
+  }
+  .action-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    line-height: 1.25;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .action-title em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .action-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.45;
+  }
+  .action-ctas {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Buttons */
+  .btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    background: var(--surface);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: var(--out-sm);
+    transition: all 150ms ease;
+  }
+  .btn:active {
+    box-shadow: var(--in-sm);
+  }
+  .btn-primary {
+    color: var(--accent);
+  }
+  .btn-primary:active { color: var(--ink); }
+
+  .btn-skip {
+    background: transparent;
+    box-shadow: none;
+    color: var(--faint);
+    padding: 10px 8px;
+  }
+
+  /* Win cards */
+  .win-card {
+    margin: 0 20px 10px;
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--out-sm);
+  }
+  .win-glyph {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: var(--in-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--good);
+    flex-shrink: 0;
+  }
+  .win-glyph.accent { color: var(--accent); }
+  .win-glyph svg { width: 20px; height: 20px; }
+  .win-body { flex: 1; }
+  .win-k {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .win-text {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.22;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  .win-text em {
+    font-style: italic;
+    color: var(--good);
+    font-weight: 500;
+  }
+  .win-text em.accent { color: var(--accent); }
+  .win-num {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+  }
+
+  .home-ind {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--muted);
+    border-radius: 3px;
+    z-index: 51;
+    opacity: 0.6;
+  }
+
+  .theme-label {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(60,70,90,0.5);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<div class="iphone">
+  <div class="screen">
+
+    <div class="island"></div>
+
+    <div class="status-bar">
+      <span>2:14</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 18 12" fill="#2a3444"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="5" y="5" width="3" height="7" rx="0.5"/><rect x="10" y="2" width="3" height="10" rx="0.5"/><rect x="15" y="0" width="3" height="12" rx="0.5"/></svg>
+        <svg viewBox="0 0 16 12" fill="none" stroke="#2a3444" stroke-width="1.4"><path d="M1 4.5 Q8 -1 15 4.5" stroke-linecap="round" fill="none"/><path d="M3.5 7 Q8 3 12.5 7" stroke-linecap="round" fill="none"/><path d="M6 9.5 Q8 8 10 9.5" stroke-linecap="round" fill="none"/></svg>
+        <svg viewBox="0 0 27 12" fill="none" stroke="#2a3444" stroke-width="1"><rect x="0.5" y="1" width="22" height="10" rx="2.5"/><rect x="2" y="2.5" width="16" height="7" rx="1" fill="#2a3444"/><rect x="23.5" y="4" width="2" height="4" rx="0.5" fill="#2a3444"/></svg>
+      </div>
+    </div>
+
+    <div class="app">
+
+      <!-- Greeting -->
+      <div class="greeting-area">
+        <div class="greeting-row" style="justify-content: flex-end;">
+          <div class="avatar-block">
+            <div class="avatar">TK</div>
+            <span class="avatar-name">Taylor</span>
+          </div>
+        </div>
+        <div class="headline">Good afternoon,<br><em>Taylor</em>.</div>
+        <div class="headline-sub">Tuesday · April 21 · 2:14 PM</div>
+      </div>
+
+      <!-- Pulse segmented -->
+      <div class="pulse-wrap">
+        <div class="pulse-cell active">
+          <div class="pulse-label">Followers</div>
+          <div class="pulse-value">148.2K</div>
+          <div class="pulse-delta">↑ 2.8K</div>
+        </div>
+        <div class="pulse-cell">
+          <div class="pulse-label">Engage</div>
+          <div class="pulse-value">8.7%</div>
+          <div class="pulse-delta">↑ 0.6</div>
+        </div>
+        <div class="pulse-cell">
+          <div class="pulse-label">Revenue</div>
+          <div class="pulse-value">$12.8K</div>
+          <div class="pulse-delta">↑ MTD</div>
+        </div>
+        <div class="pulse-cell">
+          <div class="pulse-label">Pipeline</div>
+          <div class="pulse-value">$34.5K</div>
+          <div class="pulse-delta flat">7 deals</div>
+        </div>
+      </div>
+
+      <!-- SMO Card -->
+      <div class="smo-card">
+        <div class="smo-top">
+          <span class="smo-kicker">SMO Score · 82nd pct</span>
+          <span class="smo-delta-chip">↑ 6 this mo</span>
+        </div>
+
+        <div class="smo-main">
+          <div class="gauge-well">
+            <svg viewBox="0 0 128 128">
+              <defs>
+                <linearGradient id="arc-neumorphic" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#8098db"/>
+                  <stop offset="100%" stop-color="#5a78d0"/>
+                </linearGradient>
+              </defs>
+              <!-- progress arc (82/100) -->
+              <g transform="translate(64 64)">
+                <path d="M -40 40 A 56.5 56.5 0 1 1 55.6 -10"
+                      fill="none"
+                      stroke="url(#arc-neumorphic)"
+                      stroke-width="6"
+                      stroke-linecap="round"/>
+                <!-- end dot -->
+                <circle cx="55.6" cy="-10" r="5" fill="#5a78d0"/>
+                <circle cx="55.6" cy="-10" r="2" fill="#e4e9f0"/>
+              </g>
+            </svg>
+            <div class="gauge-center">
+              <div class="gauge-number">82</div>
+              <div class="gauge-sub">/ 100</div>
+            </div>
+          </div>
+          <div class="smo-text">
+            <div class="smo-title">Your <em>optimization</em>, at a glance.</div>
+            <div class="smo-meta">
+              <strong>Strongest:</strong> Engagement (94)<br>
+              <strong>Biggest lift:</strong> Consistency (+8)
+            </div>
+          </div>
+        </div>
+
+        <div class="factors-tray">
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill good" style="height: 91%"></div></div>
+            <div class="fm-value">91</div>
+            <div class="fm-label">Prof</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill good" style="height: 88%"></div></div>
+            <div class="fm-value">88</div>
+            <div class="fm-label">Cont</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill warn" style="height: 68%"></div></div>
+            <div class="fm-value">68</div>
+            <div class="fm-label">Cons</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill good" style="height: 94%"></div></div>
+            <div class="fm-value">94</div>
+            <div class="fm-label">Enga</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill" style="height: 83%"></div></div>
+            <div class="fm-value">83</div>
+            <div class="fm-label">Grow</div>
+          </div>
+          <div class="fm">
+            <div class="fm-bar"><div class="fm-fill warn" style="height: 66%"></div></div>
+            <div class="fm-value">66</div>
+            <div class="fm-label">Mone</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next post -->
+      <div class="section-head">
+        <h2>Your next <em>post</em></h2>
+        <span class="count">Ships 4h 28m</span>
+      </div>
+
+      <div class="next-post">
+        <div class="next-post-top">
+          <span class="next-post-chip">Scheduled · Reel · IG</span>
+          <span class="next-post-time">6:42 PM ET</span>
+        </div>
+        <div class="next-post-hook">The <em>three-tab setup</em> I wish I knew sooner.</div>
+        <div class="next-post-meta">
+          <div class="np-item">
+            <div class="np-label">Score</div>
+            <div class="np-value"><em>78</em></div>
+          </div>
+          <div class="np-item">
+            <div class="np-label">Hook</div>
+            <div class="np-value">Strong</div>
+          </div>
+          <div class="np-item">
+            <div class="np-label">Predicted</div>
+            <div class="np-value">14.8K</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Do now -->
+      <div class="section-head">
+        <h2>Do <em>now</em></h2>
+        <span class="count">2 urgent</span>
+      </div>
+
+      <div class="action urgent">
+        <div class="action-head">
+          <div class="action-icon bad">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+          </div>
+          <div class="action-meta-row">
+            <div class="action-kicker bad">Overdue · 6 days</div>
+            <div class="action-sub">Invoice INV-2026-0037</div>
+          </div>
+        </div>
+        <div class="action-title">Nudge <em>Hatch</em> on the $4,800 invoice.</div>
+        <div class="action-meta">Due April 15 · last viewed April 12</div>
+        <div class="action-ctas">
+          <button class="btn btn-primary">Send nudge</button>
+          <button class="btn btn-skip">Tomorrow</button>
+        </div>
+      </div>
+
+      <div class="action">
+        <div class="action-head">
+          <div class="action-icon warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="action-meta-row">
+            <div class="action-kicker warn">Closing in 48h · 94% match</div>
+            <div class="action-sub">Logitech MX Creators</div>
+          </div>
+        </div>
+        <div class="action-title">Apply to <em>Logitech MX Creators</em>.</div>
+        <div class="action-meta">$3K–$8K · Reel + carousel · deadline Thursday</div>
+        <div class="action-ctas">
+          <button class="btn btn-primary">Apply now</button>
+          <button class="btn btn-skip">Skip</button>
+        </div>
+      </div>
+
+      <!-- Compounds -->
+      <div class="section-head">
+        <h2>This <em>compounds</em></h2>
+        <span class="count">Mid-effort</span>
+      </div>
+
+      <div class="action">
+        <div class="action-head">
+          <div class="action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="action-meta-row">
+            <div class="action-kicker">Collab · 94% match</div>
+            <div class="action-sub">38% audience overlap</div>
+          </div>
+        </div>
+        <div class="action-title">Draft a DM to <em>@sam_okafor</em>.</div>
+        <div class="action-meta">112K followers · same niche · open collab slot</div>
+        <div class="action-ctas">
+          <button class="btn">Draft DM</button>
+          <button class="btn btn-skip">Later</button>
+        </div>
+      </div>
+
+      <!-- Wins -->
+      <div class="section-head">
+        <h2>This week's <em>wins</em></h2>
+        <span class="count">Receipts</span>
+      </div>
+
+      <div class="win-card">
+        <div class="win-glyph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div class="win-body">
+          <div class="win-k">Best week · Q2</div>
+          <div class="win-text">+2,847 <em>new followers</em></div>
+        </div>
+        <div class="win-num">2.8K</div>
+      </div>
+
+      <div class="win-card">
+        <div class="win-glyph accent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="win-body">
+          <div class="win-k">Deal closed</div>
+          <div class="win-text"><em class="accent">Skillshare</em> paid in full</div>
+        </div>
+        <div class="win-num">$2.5K</div>
+      </div>
+
+      <div style="height: 20px;"></div>
+    </div>
+
+    <!-- FLOATING MENU -->
+    <button class="fab-menu" onclick="document.querySelector('.drawer').classList.add('open');document.querySelector('.drawer-backdrop').classList.add('open');">
+      <div class="fab-menu-lines">
+        <span></span><span></span><span></span>
+      </div>
+    </button>
+
+    <!-- DRAWER BACKDROP -->
+    <div class="drawer-backdrop" onclick="document.querySelector('.drawer').classList.remove('open');this.classList.remove('open');"></div>
+
+    <!-- DRAWER -->
+    <nav class="drawer">
+      <div class="drawer-head">
+        <div class="drawer-brand-row">
+          <div class="drawer-logo">G</div>
+          <div class="drawer-brand">Go <em>Virall</em></div>
+        </div>
+        <button class="drawer-close" onclick="document.querySelector('.drawer').classList.remove('open');document.querySelector('.drawer-backdrop').classList.remove('open');">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <span class="drawer-pill">All systems · synced</span>
+
+      <div class="drawer-nav">
+        <a href="#" class="drawer-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></svg>
+          Today
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.4-1.4a2 2 0 0 0-2.8 0L2 23"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          Compose
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Audience
+          <span class="drawer-item-badge">3 new</span>
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Revenue
+          <span class="drawer-item-badge">$4.8K</span>
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Schedule
+        </a>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Messages
+        </a>
+        <div class="drawer-divider"></div>
+        <a href="#" class="drawer-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </div>
+
+      <div class="drawer-footer">
+        <div class="drawer-footer-avatar">TK</div>
+        <div class="drawer-footer-text">
+          <div class="drawer-footer-name">Taylor Kai</div>
+          <div class="drawer-footer-plan">Pro · Renews May 3</div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="home-ind"></div>
+
+  </div>
+</div>
+
+<div class="theme-label">Neumorphic</div>
+
+</body>
+</html>
