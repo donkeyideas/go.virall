@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { JsonLd, softwareAppSchema } from '../lib/seo/json-ld';
 import { getPublicPlans } from '../lib/actions/admin/plans';
 import { MarketingFooter } from '../components/marketing/Footer';
+import { CustomPlanCard } from '../components/marketing/CustomPlanCard';
 
 export const metadata: Metadata = {
   title: 'Go Virall - Social Intelligence Platform for Creators',
@@ -32,7 +33,8 @@ export const metadata: Metadata = {
 };
 
 export default async function LandingPage() {
-  const plans = await getPublicPlans();
+  const allPlans = await getPublicPlans();
+  const plans = allPlans.filter((p) => p.tier === 'free' || p.tier === 'creator');
   return (
     <main data-theme="neon-editorial" style={{ background: 'var(--paper)', color: 'var(--ink)', fontFamily: '"Inter Tight", sans-serif', overflowX: 'hidden' }}>
       <JsonLd data={softwareAppSchema()} />
@@ -234,24 +236,6 @@ export default async function LandingPage() {
                 }}
               >
                 Start free &mdash; no card &rarr;
-              </Link>
-              <Link
-                href="#"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '16px 24px',
-                  border: '1.5px solid var(--ink)',
-                  borderRadius: 999,
-                  fontWeight: 600,
-                  fontSize: 14,
-                  background: 'transparent',
-                  color: 'var(--ink)',
-                  textDecoration: 'none',
-                }}
-              >
-                Watch the 90-sec tour
               </Link>
             </div>
             <div
@@ -588,22 +572,21 @@ export default async function LandingPage() {
                 Analyzes your content history. Generates captions in your voice, flags high-potential ideas, and suggests optimal timing.
               </p>
             </div>
-            <span
+            <div
               style={{
                 marginTop: 18,
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 11,
-                letterSpacing: '.1em',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                borderBottom: '1.5px solid currentColor',
-                alignSelf: 'flex-start',
-                paddingBottom: 2,
+                padding: '14px 16px',
+                background: 'var(--ink)',
+                color: 'var(--paper)',
+                borderRadius: 12,
+                border: '1.5px solid var(--ink)',
               }}
             >
-              Ask your strategist &rarr;
-            </span>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '.15em', opacity: 0.5, marginBottom: 8 }}>AI INSIGHT</div>
+              <p style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontStyle: 'italic', fontSize: 16, lineHeight: 1.3, letterSpacing: '-.01em' }}>
+                &ldquo;Your Reels under 15s get <span style={{ color: 'var(--lime)' }}>3.4&times;</span> more shares. Double down on short-form.&rdquo;
+              </p>
+            </div>
           </article>
 
           {/* Feature 3 - Audience */}
@@ -630,22 +613,26 @@ export default async function LandingPage() {
                 Demographics, interest graphs, behavior clusters. Pitch brands with receipts.
               </p>
             </div>
-            <span
-              style={{
-                marginTop: 18,
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 11,
-                letterSpacing: '.1em',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                borderBottom: '1.5px solid currentColor',
-                alignSelf: 'flex-start',
-                paddingBottom: 2,
-              }}
-            >
-              Open audience view &rarr;
-            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 18 }}>
+              {[
+                { label: 'TOP AGE', value: '18\u201324' },
+                { label: 'REACH', value: '2.4M' },
+                { label: 'ENG. RATE', value: '6.8%' },
+                { label: 'TOP GEO', value: 'US' },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  style={{
+                    padding: '10px 12px',
+                    border: '1px solid var(--rule)',
+                    borderRadius: 10,
+                  }}
+                >
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '.15em', opacity: 0.5, marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 900, fontSize: 20, letterSpacing: '-.02em' }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
           </article>
 
           {/* Feature 4 - Deals (hot) */}
@@ -790,7 +777,7 @@ export default async function LandingPage() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(plans.length, 3)}, 1fr)`, gap: 20, maxWidth: plans.length > 2 ? 1080 : 720, margin: '0 auto' }}>
+        <div className="grid-pricing" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, maxWidth: 1080, margin: '0 auto' }}>
           {plans.map((plan, i) => (
             <PricingTier
               key={plan.tier}
@@ -803,6 +790,7 @@ export default async function LandingPage() {
               popular={i === 1}
             />
           ))}
+          <CustomPlanCard />
         </div>
       </section>
 

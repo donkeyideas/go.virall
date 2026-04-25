@@ -1024,5 +1024,36 @@ where not exists (select 1 from public.users u where u.id = au.id)
 on conflict (id) do nothing;
 
 
+-- ============ 014: API Role Grants ============
+-- PostgREST only exposes tables that API roles have privileges on.
+-- Without these, the Supabase JS client gets "table not found in schema cache".
+
+-- service_role: full access (used by admin client, bypasses RLS)
+grant usage on schema public to service_role;
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+grant all on all routines in schema public to service_role;
+
+-- authenticated: full access (RLS policies handle row-level filtering)
+grant usage on schema public to authenticated;
+grant all on all tables in schema public to authenticated;
+grant all on all sequences in schema public to authenticated;
+
+-- anon: read-only (for public pages, media kits, etc.)
+grant usage on schema public to anon;
+grant select on all tables in schema public to anon;
+
+-- Ensure future tables also get proper grants automatically
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant all on sequences to service_role;
+alter default privileges in schema public grant all on routines to service_role;
+alter default privileges in schema public grant all on tables to authenticated;
+alter default privileges in schema public grant all on sequences to authenticated;
+alter default privileges in schema public grant select on tables to anon;
+
+-- Reload PostgREST schema cache so changes take effect immediately
+notify pgrst, 'reload schema';
+
+
 -- ============ Done! ============
 -- After running this, refresh your app and everything should work.

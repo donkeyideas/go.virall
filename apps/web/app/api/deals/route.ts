@@ -34,12 +34,12 @@ export const POST = handleRoute(async ({ req, userId, supabase }) => {
     .insert({
       user_id: userId,
       brand_name: body.brand_name,
-      contact_name: body.contact_name,
-      contact_email: body.contact_email || null,
-      value: body.value,
+      title: body.title,
+      brand_contact_email: body.brand_contact_email || null,
+      amount_cents: body.amount_cents,
       currency: body.currency,
       stage: body.stage,
-      notes: body.notes,
+      description: body.description,
       close_date: body.close_date ?? null,
     })
     .select()

@@ -150,7 +150,7 @@ export function SmoScoreClient({ theme, score, factors, computedAt, connectedCou
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 20 }}>
+        <div className="grid-smo" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 20 }}>
           {/* Score gauge */}
           {isNeumorphic ? (
             <NeumorphicScoreGauge score={score} getGrade={getGrade} />

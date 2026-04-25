@@ -11,7 +11,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         {children}
       </main>
 
-      <MarketingFooter />
+      <MarketingFooter showCTA={false} />
     </div>
   );
 }

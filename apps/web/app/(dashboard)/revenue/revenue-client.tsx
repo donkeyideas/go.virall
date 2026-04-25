@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Button, Input, Badge } from '@govirall/ui-web';
+import { Input, Badge } from '@govirall/ui-web';
 import { STAGE_LABELS, type DealStage } from '@govirall/core';
 import { createDeal, updateDealStage, deleteDeal } from '@/lib/actions/deals';
-import { createInvoice, sendInvoice, markInvoicePaid } from '@/lib/actions/invoices';
+import { createInvoice, sendInvoice, markInvoicePaid, deleteInvoice } from '@/lib/actions/invoices';
 import { useRouter } from 'next/navigation';
 
 type Deal = {
   id: string;
   brand_name: string;
-  contact_name: string | null;
-  contact_email: string | null;
-  value: number | null;
+  title: string;
+  brand_contact_email: string | null;
+  amount_cents: number;
   currency: string;
   stage: string;
-  notes: string | null;
+  description: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -25,8 +25,8 @@ type Invoice = {
   invoice_number: string;
   brand_name: string;
   brand_email: string;
-  description: string | null;
-  amount: number;
+  notes: string | null;
+  amount_cents: number;
   currency: string;
   status: string;
   due_date: string | null;
@@ -100,9 +100,11 @@ export function RevenueClient({
 
   const dealsByStage = (stage: string) => initialDeals.filter((d) => d.stage === stage);
 
-  const fmt = (amount: number) => {
-    const dollars = amount >= 100 ? amount / 100 : amount;
-    return `$${dollars.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const fmt = (cents: number) => {
+    const dollars = cents / 100;
+    return dollars % 1 === 0
+      ? `$${dollars.toLocaleString('en-US', { minimumFractionDigits: 0 })}`
+      : `$${dollars.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   async function handleCreateDeal(formData: FormData) {
@@ -158,6 +160,14 @@ export function RevenueClient({
     }
   }
 
+  async function handleDeleteInvoice(invoiceId: string) {
+    if (!confirm('Delete this invoice?')) return;
+    const result = await deleteInvoice(invoiceId);
+    if (!result.error) {
+      startTransition(() => router.refresh());
+    }
+  }
+
   // KPI data
   const kpis = [
     { label: 'All time', value: totalRevenue > 0 ? fmt(totalRevenue) : '$0', color: isEditorial ? 'var(--ink)' : undefined },
@@ -195,7 +205,7 @@ export function RevenueClient({
       </div>
 
       {/* KPI hero row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: isEditorial ? 18 : 16, marginBottom: 32 }}>
+      <div className="grid-kpi" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: isEditorial ? 18 : 16, marginBottom: 32 }}>
         {kpis.map((kpi, i) => (
           <div
             key={kpi.label}
@@ -286,14 +296,14 @@ export function RevenueClient({
             {dealError && (
               <p style={{ fontSize: 13, color: 'var(--color-bad)', marginBottom: 10 }}>{dealError}</p>
             )}
-            <form action={handleCreateDeal} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <form action={handleCreateDeal} className="grid-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Input name="brand_name" placeholder="Brand name *" required />
-              <Input name="contact_name" placeholder="Contact name" />
-              <Input name="contact_email" type="email" placeholder="Contact email" />
-              <Input name="value" type="number" placeholder="Value (cents)" />
+              <Input name="title" placeholder="Deal title *" required />
+              <Input name="brand_contact_email" type="email" placeholder="Contact email" />
+              <Input name="amount" type="number" step="0.01" min="0" placeholder="Amount ($)" />
               <textarea
-                name="notes"
-                placeholder="Notes..."
+                name="description"
+                placeholder="Description..."
                 rows={2}
                 style={{
                   gridColumn: 'span 2',
@@ -310,11 +320,33 @@ export function RevenueClient({
                   outline: 'none',
                 }}
               />
-              <div style={{ gridColumn: 'span 2', display: 'flex', gap: 8 }}>
-                <Button type="submit" size="sm">Create</Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => setShowNewDeal(false)}>
+              <div style={{ gridColumn: 'span 2', display: 'flex', gap: 10 }}>
+                <button
+                  type="submit"
+                  style={{
+                    height: 36, padding: '0 20px', fontSize: 13, fontWeight: 600,
+                    borderRadius: isNeumorphic ? 14 : 12, border: 'none', cursor: 'pointer',
+                    ...(isEditorial
+                      ? { background: 'var(--ink)', color: 'var(--bg)' }
+                      : isNeumorphic
+                      ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
+                      : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
+                  }}
+                >
+                  Create Deal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewDeal(false)}
+                  style={{
+                    height: 36, padding: '0 20px', fontSize: 13, fontWeight: 600,
+                    borderRadius: isNeumorphic ? 14 : 12, cursor: 'pointer',
+                    background: 'transparent', color: 'var(--muted)',
+                    border: '1px solid var(--line)',
+                  }}
+                >
                   Cancel
-                </Button>
+                </button>
               </div>
             </form>
           </div>
@@ -407,17 +439,39 @@ export function RevenueClient({
             {invoiceError && (
               <p style={{ fontSize: 13, color: 'var(--color-bad)', marginBottom: 10 }}>{invoiceError}</p>
             )}
-            <form action={handleCreateInvoice} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <form action={handleCreateInvoice} className="grid-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Input name="brand_name" placeholder="Brand name *" required />
               <Input name="brand_email" type="email" placeholder="Brand email *" required />
-              <Input name="amount" type="number" placeholder="Amount (cents) *" required />
-              <Input name="due_date" type="date" placeholder="Due date" />
-              <Input name="description" placeholder="Description" />
-              <div style={{ gridColumn: 'span 2', display: 'flex', gap: 8 }}>
-                <Button type="submit" size="sm">Create</Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => setShowNewInvoice(false)}>
+              <Input name="amount" type="number" step="0.01" min="0.01" placeholder="Amount ($) *" required />
+              <Input name="due_date" type="date" />
+              <Input name="notes" placeholder="Notes" style={{ gridColumn: 'span 2' }} />
+              <div style={{ gridColumn: 'span 2', display: 'flex', gap: 10 }}>
+                <button
+                  type="submit"
+                  style={{
+                    height: 36, padding: '0 20px', fontSize: 13, fontWeight: 600,
+                    borderRadius: isNeumorphic ? 14 : 12, border: 'none', cursor: 'pointer',
+                    ...(isEditorial
+                      ? { background: 'var(--ink)', color: 'var(--bg)' }
+                      : isNeumorphic
+                      ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
+                      : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
+                  }}
+                >
+                  Create Invoice
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewInvoice(false)}
+                  style={{
+                    height: 36, padding: '0 20px', fontSize: 13, fontWeight: 600,
+                    borderRadius: isNeumorphic ? 14 : 12, cursor: 'pointer',
+                    background: 'transparent', color: 'var(--muted)',
+                    border: '1px solid var(--line)',
+                  }}
+                >
                   Cancel
-                </Button>
+                </button>
               </div>
             </form>
           </div>
@@ -452,7 +506,7 @@ export function RevenueClient({
                     <tr key={inv.id} style={{ borderBottom: '1px solid var(--line)' }}>
                       <td style={{ padding: '10px 12px', color: 'var(--fg)', fontWeight: 500, fontFamily: 'var(--font-display)', fontVariantNumeric: 'tabular-nums' }}>{inv.invoice_number}</td>
                       <td style={{ padding: '10px 12px', color: 'var(--fg)' }}>{inv.brand_name}</td>
-                      <td style={{ padding: '10px 12px', color: 'var(--fg)', fontFamily: 'var(--font-display)', fontVariantNumeric: 'tabular-nums' }}>{fmt(inv.amount)}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--fg)', fontFamily: 'var(--font-display)', fontVariantNumeric: 'tabular-nums' }}>{fmt(inv.amount_cents)}</td>
                       <td style={{ padding: '10px 12px' }}>
                         <Badge variant={INVOICE_STATUS_COLOR[inv.status] ?? 'default'}>
                           {inv.status}
@@ -462,17 +516,50 @@ export function RevenueClient({
                         {inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '--'}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                           {inv.status === 'draft' && (
-                            <Button size="sm" variant="ghost" onClick={() => handleSendInvoice(inv.id)}>
+                            <button
+                              onClick={() => handleSendInvoice(inv.id)}
+                              style={{
+                                height: 28, padding: '0 12px', fontSize: 11, fontWeight: 600,
+                                borderRadius: isNeumorphic ? 10 : 8, border: 'none', cursor: 'pointer',
+                                ...(isEditorial
+                                  ? { background: 'var(--ink)', color: 'var(--bg)' }
+                                  : isNeumorphic
+                                  ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
+                                  : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
+                              }}
+                            >
                               Send
-                            </Button>
+                            </button>
                           )}
                           {(inv.status === 'sent' || inv.status === 'viewed') && (
-                            <Button size="sm" variant="ghost" onClick={() => handleMarkPaid(inv.id)}>
+                            <button
+                              onClick={() => handleMarkPaid(inv.id)}
+                              style={{
+                                height: 28, padding: '0 12px', fontSize: 11, fontWeight: 600,
+                                borderRadius: isNeumorphic ? 10 : 8, border: 'none', cursor: 'pointer',
+                                ...(isEditorial
+                                  ? { background: 'var(--ink)', color: 'var(--bg)' }
+                                  : isNeumorphic
+                                  ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
+                                  : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
+                              }}
+                            >
                               Mark paid
-                            </Button>
+                            </button>
                           )}
+                          <button
+                            onClick={() => handleDeleteInvoice(inv.id)}
+                            style={{
+                              height: 28, padding: '0 12px', fontSize: 11, fontWeight: 600,
+                              borderRadius: isNeumorphic ? 10 : 8, cursor: 'pointer',
+                              background: 'transparent', color: 'var(--color-bad, #ef4444)',
+                              border: '1px solid var(--color-bad, #ef4444)',
+                            }}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -534,44 +621,59 @@ function DealCard({
       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {deal.brand_name}
       </p>
-      {deal.value ? (
+      {deal.amount_cents ? (
         <p style={{ fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-display)', fontVariantNumeric: 'tabular-nums', color: 'var(--color-primary)', marginTop: 2 }}>
-          {fmt(deal.value)}
+          {fmt(deal.amount_cents)}
         </p>
       ) : null}
-      {deal.contact_name && (
+      {deal.title && (
         <p style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
-          {deal.contact_name}
+          {deal.title}
         </p>
       )}
 
       {showActions && (
-        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line)', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line)', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {nextStage && (
-            <Button
-              size="sm"
-              variant="ghost"
+            <button
               onClick={(e) => { e.stopPropagation(); onMove(deal.id, nextStage); }}
+              style={{
+                height: 28, padding: '0 12px', fontSize: 11, fontWeight: 600,
+                borderRadius: isNeumorphic ? 10 : 8, border: 'none', cursor: 'pointer',
+                ...(isEditorial
+                  ? { background: 'var(--ink)', color: 'var(--bg)' }
+                  : isNeumorphic
+                  ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
+                  : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
+              }}
             >
               {STAGE_LABELS[nextStage]}
-            </Button>
+            </button>
           )}
           {currentStage !== 'lost' && currentStage !== 'done' && (
-            <Button
-              size="sm"
-              variant="ghost"
+            <button
               onClick={(e) => { e.stopPropagation(); onMove(deal.id, 'lost'); }}
+              style={{
+                height: 28, padding: '0 12px', fontSize: 11, fontWeight: 600,
+                borderRadius: isNeumorphic ? 10 : 8, cursor: 'pointer',
+                background: 'transparent', color: 'var(--muted)',
+                border: '1px solid var(--line)',
+              }}
             >
               Lost
-            </Button>
+            </button>
           )}
-          <Button
-            size="sm"
-            variant="ghost"
+          <button
             onClick={(e) => { e.stopPropagation(); onDelete(deal.id); }}
+            style={{
+              height: 28, padding: '0 12px', fontSize: 11, fontWeight: 600,
+              borderRadius: isNeumorphic ? 10 : 8, cursor: 'pointer',
+              background: 'transparent', color: 'var(--color-bad, #ef4444)',
+              border: '1px solid var(--color-bad, #ef4444)',
+            }}
           >
             Delete
-          </Button>
+          </button>
         </div>
       )}
     </div>

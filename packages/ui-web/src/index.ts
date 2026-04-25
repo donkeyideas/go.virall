@@ -24,3 +24,4 @@ export { ActionCard } from './compound/ActionCard';
 export { WinCard } from './compound/WinCard';
 export { QuickActions } from './compound/QuickActions';
 export { NotificationBell } from './compound/NotificationPanel';
+export { MobileDrawer } from './compound/MobileDrawer';

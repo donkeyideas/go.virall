@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPublicPlans } from '../../../lib/actions/admin/plans';
+import { CustomPlanCard } from '../../../components/marketing/CustomPlanCard';
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -9,7 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function PricingPage() {
-  const plans = await getPublicPlans();
+  const allPlans = await getPublicPlans();
+  const plans = allPlans.filter((p) => p.tier === 'free' || p.tier === 'creator');
 
   return (
     <main>
@@ -57,11 +59,12 @@ export default async function PricingPage() {
       {/* Plans */}
       <section style={{ padding: '40px 28px 80px' }}>
         <div
+          className="grid-pricing"
           style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(${Math.min(plans.length, 3)}, 1fr)`,
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 20,
-            maxWidth: plans.length > 2 ? 1080 : 720,
+            maxWidth: 1080,
             margin: '0 auto',
           }}
         >
@@ -195,6 +198,7 @@ export default async function PricingPage() {
               </div>
             </div>
           ))}
+          <CustomPlanCard />
         </div>
       </section>
 

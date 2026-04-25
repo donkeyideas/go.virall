@@ -18,7 +18,7 @@ export default function MarketingLayout({
     >
       <MarketingNav />
       {children}
-      <MarketingFooter />
+      <MarketingFooter showCTA={false} />
     </div>
   );
 }

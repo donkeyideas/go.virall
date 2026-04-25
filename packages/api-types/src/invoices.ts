@@ -16,8 +16,8 @@ export const CreateInvoiceInput = z.object({
   deal_id: z.string().uuid().optional(),
   brand_name: z.string().min(1).max(200),
   brand_email: z.string().email(),
-  description: z.string().max(2000).optional().default(''),
-  amount: z.number().min(0.01),
+  notes: z.string().max(2000).optional().default(''),
+  amount_cents: z.number().int().min(1),
   currency: z.string().length(3).default('USD'),
   due_date: z.string().datetime(),
   line_items: z

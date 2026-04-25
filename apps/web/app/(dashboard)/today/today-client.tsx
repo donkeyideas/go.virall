@@ -163,7 +163,7 @@ function SidebarToday({
       </div>
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="grid-kpi" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         <KpiCard
           label="Followers"
           value={totalFollowers > 0 ? fmtK(totalFollowers) : '--'}
@@ -197,7 +197,7 @@ function SidebarToday({
       </div>
 
       {/* Main grid: Score + Strategist */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: isEditorial ? 18 : 20, marginBottom: isEditorial ? 22 : 22 }}>
+      <div className="grid-main-2col" style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: isEditorial ? 18 : 20, marginBottom: isEditorial ? 22 : 22 }}>
         <ScoreGauge
           score={smoScore}
           factors={smoFactors?.slice(0, 3) ?? undefined}
@@ -222,7 +222,7 @@ function SidebarToday({
       </div>
 
       {/* Bottom row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
+      <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
         <PlatformsList platforms={platforms} theme={theme} />
         {/* Top content */}
         <TopContentCard theme={theme} posts={topPosts} />
@@ -517,7 +517,7 @@ function NeumorphicToday({
       </div>
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="grid-kpi" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         <KpiCard label="Followers" value={totalFollowers > 0 ? fmtK(totalFollowers) : '--'} theme="neumorphic" variant="default" glowColor="var(--violet)" />
         <KpiCard label="Posts" value={postCount > 0 ? String(postCount) : '--'} theme="neumorphic" variant="lime" glowColor="var(--rose)" />
         <KpiCard label="Revenue" value={wonDealValue > 0 ? fmt(wonDealValue) : '$0'} theme="neumorphic" variant="dark" glowColor="var(--cyan)" />
@@ -525,7 +525,7 @@ function NeumorphicToday({
       </div>
 
       {/* Main grid: Score + Strategist */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 20, marginBottom: 22 }}>
+      <div className="grid-main-2col" style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 20, marginBottom: 22 }}>
         <ScoreGauge
           score={smoScore}
           factors={smoFactors?.slice(0, 3) ?? undefined}
@@ -550,7 +550,7 @@ function NeumorphicToday({
       </div>
 
       {/* Bottom row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+      <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
         <PlatformsList platforms={platforms} theme="neumorphic" />
         <TopContentCard theme="neumorphic" posts={topPosts} />
         <EngagementCard theme="neumorphic" engagementRate={engagementRate} connectedPlatformCount={connectedPlatformCount} smoScore={smoScore} />

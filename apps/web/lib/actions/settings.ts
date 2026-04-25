@@ -61,6 +61,45 @@ export async function updateNotificationPrefs(prefs: Record<string, boolean>) {
   return { success: true };
 }
 
+export async function uploadAvatar(formData: FormData) {
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const file = formData.get('avatar') as File | null;
+  if (!file || file.size === 0) return { error: 'No file selected' };
+
+  // Validate file type & size
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowed.includes(file.type)) return { error: 'Only JPG, PNG, WebP, or GIF files are allowed' };
+  if (file.size > 5 * 1024 * 1024) return { error: 'Image must be under 5 MB' };
+
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${user.id}/avatar.${ext}`;
+
+  // Upload to avatars bucket (public)
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (uploadError) return { error: uploadError.message };
+
+  // Get public URL
+  const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+  const avatarUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+
+  // Update user record
+  const admin = createAdminClient();
+  const { error: dbError } = await admin
+    .from('users')
+    .update({ avatar_url: avatarUrl })
+    .eq('id', user.id);
+
+  if (dbError) return { error: dbError.message };
+
+  return { success: true, avatarUrl };
+}
+
 export async function deleteAccount() {
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -319,7 +319,7 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: isEditorial ? 18 : 20 }}>
+      <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: isEditorial ? 18 : 20 }}>
         {/* Left panel: Editor */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Platform selector */}
@@ -707,7 +707,7 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
             </div>
 
             {/* Signal grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+            <div className="grid-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
               {(signals.length > 0
                 ? signals
                 : [

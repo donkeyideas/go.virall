@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { NotificationBell } from './NotificationPanel';
 
 type Props = {
@@ -12,6 +13,8 @@ type Props = {
 
 export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
   const isEditorial = theme === 'neon-editorial';
+  const router = useRouter();
+  const [syncing, startSync] = useTransition();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -26,13 +29,16 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
   }, []);
 
   return (
+    <>
+    {syncing && <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>}
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 14,
-        padding: isEditorial ? '14px 32px' : '14px 32px',
+        flexWrap: 'wrap' as const,
+        padding: isEditorial ? '14px clamp(14px, 3vw, 32px)' : '14px clamp(14px, 3vw, 32px)',
         borderBottom: isEditorial ? '1.5px solid var(--ink)' : 'none',
         background: isEditorial ? 'var(--paper)' : 'transparent',
         position: isEditorial ? 'sticky' : 'relative',
@@ -44,6 +50,9 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
       <div
         style={{
           width: isEditorial ? 460 : 420,
+          maxWidth: '100%',
+          flex: '1 1 auto',
+          minWidth: 0,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -94,6 +103,7 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
 
       {/* Status pill */}
       <span
+        className="topbar-status"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -113,33 +123,49 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
             width: isEditorial ? 7 : 6,
             height: isEditorial ? 7 : 6,
             borderRadius: '50%',
-            background: isEditorial ? 'var(--lime)' : 'var(--mint, var(--color-good))',
-            boxShadow: isEditorial
-              ? '0 0 6px var(--lime)'
-              : '0 0 10px var(--mint, var(--color-good))',
+            background: syncing
+              ? 'var(--amber, #f59e0b)'
+              : isEditorial ? 'var(--lime)' : 'var(--mint, var(--color-good))',
+            boxShadow: syncing
+              ? '0 0 6px var(--amber, #f59e0b)'
+              : isEditorial
+                ? '0 0 6px var(--lime)'
+                : '0 0 10px var(--mint, var(--color-good))',
           }}
         />
-        {isEditorial ? 'SYNCED · 2 MIN AGO' : 'All systems synced'}
+        {syncing
+          ? (isEditorial ? 'SYNCING...' : 'Syncing...')
+          : (isEditorial ? 'SYNCED' : 'All systems synced')}
       </span>
 
       {/* Refresh button */}
       <button
+        onClick={() => startSync(() => router.refresh())}
+        disabled={syncing}
         style={{
-          width: isEditorial ? 38 : 36,
-          height: isEditorial ? 38 : 36,
+          width: 44,
+          height: 44,
           display: 'grid',
           placeItems: 'center',
           border: isEditorial ? '1.5px solid var(--ink)' : '1px solid var(--line)',
           borderRadius: isEditorial ? '50%' : 10,
           background: isEditorial ? 'transparent' : 'var(--glass, rgba(255,255,255,.06))',
-          cursor: 'pointer',
+          cursor: syncing ? 'wait' : 'pointer',
           transition: 'all .15s',
           color: 'var(--fg)',
+          opacity: syncing ? 0.6 : 1,
         }}
       >
         <svg
           viewBox="0 0 24 24"
-          style={{ width: 15, height: 15, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6 }}
+          style={{
+            width: 15,
+            height: 15,
+            stroke: 'currentColor',
+            fill: 'none',
+            strokeWidth: 1.6,
+            animation: syncing ? 'spin .8s linear infinite' : 'none',
+          }}
         >
           <path d="M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0 0 20.5 15" />
         </svg>
@@ -178,10 +204,12 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           style={{
-            width: isEditorial ? 38 : 36,
-            height: isEditorial ? 38 : 36,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
-            background: isEditorial ? 'var(--hot)' : 'linear-gradient(135deg, var(--rose), var(--amber))',
+            background: avatarUrl
+              ? 'transparent'
+              : isEditorial ? 'var(--hot)' : 'linear-gradient(135deg, var(--rose), var(--amber))',
             display: 'grid',
             placeItems: 'center',
             fontWeight: isEditorial ? 900 : 700,
@@ -275,5 +303,6 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
         )}
       </div>
     </div>
+    </>
   );
 }

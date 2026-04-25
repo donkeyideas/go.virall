@@ -1,40 +1,42 @@
 import Link from 'next/link';
 
-export function MarketingFooter() {
+export function MarketingFooter({ showCTA = true }: { showCTA?: boolean }) {
   return (
     <footer
       style={{
         background: 'var(--ink)',
         color: 'var(--paper)',
-        padding: '80px 28px 30px',
+        padding: showCTA ? '80px 28px 30px' : '0 28px 30px',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      <div
-        style={{
-          fontFamily: "'Fraunces', serif",
-          fontWeight: 300,
-          fontStyle: 'italic',
-          fontSize: 'clamp(80px, 15vw, 230px)',
-          lineHeight: 0.82,
-          letterSpacing: '-.04em',
-          marginBottom: 40,
-        }}
-      >
-        Ready to<br />go{' '}
-        <span style={{ fontWeight: 900, fontStyle: 'normal', color: 'var(--lime)' }}>
-          virall.
-        </span>
-      </div>
+      {showCTA && (
+        <div
+          style={{
+            fontFamily: "'Fraunces', serif",
+            fontWeight: 300,
+            fontStyle: 'italic',
+            fontSize: 'clamp(80px, 15vw, 230px)',
+            lineHeight: 0.82,
+            letterSpacing: '-.04em',
+            marginBottom: 40,
+          }}
+        >
+          Ready to<br />go{' '}
+          <span style={{ fontWeight: 900, fontStyle: 'normal', color: 'var(--lime)' }}>
+            virall.
+          </span>
+        </div>
+      )}
 
       <div
+        className="grid-footer"
         style={{
           display: 'grid',
           gridTemplateColumns: '2fr 1fr 1fr 1fr',
           gap: 40,
-          borderTop: '1px solid rgba(255,255,255,.15)',
-          paddingTop: 40,
+          ...(showCTA ? { borderTop: '1px solid rgba(255,255,255,.15)', paddingTop: 40 } : { paddingTop: 28 }),
         }}
       >
         <div>
@@ -111,6 +113,8 @@ export function MarketingFooter() {
           letterSpacing: '.15em',
           display: 'flex',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
           opacity: 0.5,
         }}
       >

@@ -1,11 +1,13 @@
 import { handleRoute, parseBody, ApiError } from '../../../_lib/handler';
+import { createAdminClient } from '@govirall/db/admin';
 import { UpdateCompetitorInput } from '@govirall/api-types';
 
 // PATCH /api/audience/competitors/[id]
-export const PATCH = handleRoute(async ({ req, userId, params, supabase }) => {
+export const PATCH = handleRoute(async ({ req, userId, params }) => {
   const body = await parseBody(req, UpdateCompetitorInput);
 
-  const { data, error } = await supabase
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from('competitors')
     .update(body)
     .eq('id', params!.id)
@@ -19,9 +21,9 @@ export const PATCH = handleRoute(async ({ req, userId, params, supabase }) => {
 });
 
 // DELETE /api/audience/competitors/[id]
-export const DELETE = handleRoute(async ({ userId, params, supabase }) => {
-
-  const { error } = await supabase
+export const DELETE = handleRoute(async ({ userId, params }) => {
+  const admin = createAdminClient();
+  const { error } = await admin
     .from('competitors')
     .delete()
     .eq('id', params!.id)

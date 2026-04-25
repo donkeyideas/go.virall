@@ -207,7 +207,7 @@ export function GoVirallClient({ theme, overall, status, signals, trendData, act
       </div>
 
       {/* ── Quick Stats ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+      <div className="grid-kpi" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Followers', value: fmtK(stats.totalFollowers) },
           { label: 'Platforms', value: `${stats.connectedPlatforms}` },
@@ -234,7 +234,7 @@ export function GoVirallClient({ theme, overall, status, signals, trendData, act
 
       {/* ── 5 Signal Cards ── */}
       <div style={{ ...monoLabel, marginBottom: 12, fontSize: 11, letterSpacing: '.18em' }}>MOMENTUM SIGNALS</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+      <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
         {signals.map((signal, i) => {
           const isLast = i === signals.length - 1;
           return (

@@ -24,14 +24,14 @@ export default async function AudiencePage() {
     admin
       .from('audience_snapshots')
       .select('platform_account_id, follower_count, captured_at')
-      .eq('platform_account_id', userId)
+      .eq('user_id', userId)
       .order('captured_at', { ascending: true })
       .limit(90),
     admin
       .from('competitors')
-      .select('id, platform, handle, label, follower_count, engagement_rate, created_at')
+      .select('id, platform, handle, label, follower_count, engagement_rate, added_at')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false }),
+      .order('added_at', { ascending: false }),
     admin
       .from('collab_matches')
       .select('id, handle, platform, match_score, follower_count, niche, status, created_at')

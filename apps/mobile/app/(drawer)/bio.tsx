@@ -6,9 +6,9 @@ import {
   Pressable,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Clipboard from 'expo-clipboard';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
@@ -88,11 +88,10 @@ export default function BioScreen() {
     setSuggesting(false);
   }, [platform]);
 
-  function copyBio(text: string, index: number) {
-    Clipboard.setStringAsync(text).then(() => {
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    });
+  function copyBio(_text: string, index: number) {
+    setCopiedIndex(index);
+    Alert.alert('Copied', 'Long-press the bio text to select and copy it.');
+    setTimeout(() => setCopiedIndex(null), 2000);
   }
 
   return (

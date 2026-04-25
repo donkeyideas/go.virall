@@ -11,12 +11,12 @@ export const neonEditorial = {
   muted: '#6b6559',
   subtle: '#8b8478',
 
-  colorPrimary: '#c8ff3d',
-  colorPrimarySoft: '#9ecc21',
-  colorAccent: '#ff3e88',
-  colorGood: '#c8ff3d',
-  colorWarn: '#e8b92b',
-  colorBad: '#ff3e88',
+  colorPrimary: '#6b8f1a',
+  colorPrimarySoft: '#5a7a16',
+  colorAccent: '#d42a6a',
+  colorGood: '#6b8f1a',
+  colorWarn: '#a07814',
+  colorBad: '#d42a6a',
   colorInfo: '#1c4bff',
 
   fontDisplay: "'Fraunces', serif",

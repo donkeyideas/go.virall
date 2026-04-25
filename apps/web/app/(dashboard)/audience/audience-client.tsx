@@ -19,7 +19,7 @@ type Competitor = {
   label: string | null;
   follower_count: number | null;
   engagement_rate: number | null;
-  created_at: string;
+  added_at: string;
 };
 
 type Collab = {
@@ -89,6 +89,7 @@ export function AudienceClient({
   const [showAddCompetitor, setShowAddCompetitor] = useState(false);
   const [addError, setAddError] = useState('');
   const [competitorPlatform, setCompetitorPlatform] = useState('instagram');
+  const [competitorLabel, setCompetitorLabel] = useState('watch');
 
   const cardStyle: React.CSSProperties = isEditorial
     ? { border: '1.5px solid var(--ink)', borderRadius: 20, background: 'var(--paper)', padding: 24 }
@@ -124,14 +125,19 @@ export function AudienceClient({
 
   async function handleAddCompetitor(formData: FormData) {
     setAddError('');
+    const handle = (formData.get('handle') as string)?.trim();
+    if (!handle) {
+      setAddError('Handle is required');
+      return;
+    }
     try {
       const res = await fetch('/api/audience/competitors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          platform: formData.get('platform') as string,
-          handle: formData.get('handle') as string,
-          label: (formData.get('label') as string) || undefined,
+          platform: competitorPlatform,
+          handle,
+          label: competitorLabel,
         }),
       });
       const json = await res.json();
@@ -205,7 +211,7 @@ export function AudienceClient({
         <h2 style={sectionHeading('Who\'s watching')}>
           Who&apos;s watching{isEditorial ? '.' : ''}
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isEditorial ? 18 : 20 }}>
+        <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isEditorial ? 18 : 20 }}>
           {/* Your reach */}
           <div style={cardStyle}>
             <h3 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 16 }}>
@@ -213,24 +219,28 @@ export function AudienceClient({
             </h3>
             {connectedPlatforms.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ ...innerItemStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 13, color: 'var(--muted)' }}>Total followers</span>
-                  <span style={{
+                <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 6 }}>
+                    Total followers
+                  </div>
+                  <div style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 22,
+                    fontSize: 36,
                     fontWeight: 700,
                     fontVariantNumeric: 'tabular-nums',
                     color: 'var(--fg)',
+                    lineHeight: 1,
                   }}>
                     {totalFollowers.toLocaleString()}
-                  </span>
+                  </div>
                 </div>
                 {connectedPlatforms.map((p) => {
                   const meta = PLATFORM_META[p.platform];
                   return (
                     <div key={p.id} style={{ ...innerItemStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', color: meta?.color ?? 'var(--fg)' }}>
-                        {meta?.icon}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: meta?.color ?? 'var(--fg)', display: 'inline-flex' }}>{meta?.icon}</span>
+                        <span style={{ fontSize: 13, color: 'var(--fg)' }}>{meta?.label ?? p.platform}</span>
                       </span>
                       <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display)', fontVariantNumeric: 'tabular-nums', color: 'var(--fg)' }}>
                         {(p.follower_count ?? 0).toLocaleString()}
@@ -341,7 +351,7 @@ export function AudienceClient({
           </h3>
           {snapshots.length > 0 ? (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 <div style={innerItemStyle}>
                   <p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>Start</p>
                   <p style={{ fontSize: 16, fontWeight: 600, fontFamily: 'var(--font-display)', fontVariantNumeric: 'tabular-nums', color: 'var(--fg)' }}>
@@ -377,7 +387,7 @@ export function AudienceClient({
           Who to collab with{isEditorial ? '.' : ''}
         </h2>
         {collabs.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
+          <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
             {collabs.map((collab) => (
               <div key={collab.id} style={cardStyle}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -398,24 +408,6 @@ export function AudienceClient({
                   </p>
                 )}
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    style={{
-                      height: 28,
-                      padding: '0 12px',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      borderRadius: isNeumorphic ? 10 : isEditorial ? 0 : 8,
-                      border: isEditorial ? '1px solid var(--ink)' : 'none',
-                      cursor: 'pointer',
-                      ...(isEditorial
-                        ? { background: 'var(--paper-2)', color: 'var(--ink)' }
-                        : isNeumorphic
-                        ? { background: 'var(--surface, var(--bg))', color: 'var(--fg)', boxShadow: 'var(--out-sm)' }
-                        : { background: 'rgba(255,255,255,.1)', color: 'var(--fg)' }),
-                    }}
-                  >
-                    Draft DM
-                  </button>
                   <button
                     onClick={() => handleDismissCollab(collab.id)}
                     style={{
@@ -482,7 +474,7 @@ export function AudienceClient({
             {addError && (
               <p style={{ fontSize: 13, color: 'var(--color-bad)', marginBottom: 10 }}>{addError}</p>
             )}
-            <form action={handleAddCompetitor} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <form action={handleAddCompetitor} className="grid-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <ThemedSelect
                 name="platform"
                 value={competitorPlatform}
@@ -499,7 +491,18 @@ export function AudienceClient({
                 ]}
               />
               <Input name="handle" placeholder="@handle" required />
-              <Input name="label" placeholder="Label (optional)" />
+              <ThemedSelect
+                name="label"
+                value={competitorLabel}
+                onChange={setCompetitorLabel}
+                theme={theme}
+                options={[
+                  { value: 'watch', label: 'Watch' },
+                  { value: 'benchmark', label: 'Benchmark' },
+                  { value: 'rival', label: 'Rival' },
+                  { value: 'collab', label: 'Collab' },
+                ]}
+              />
               <div style={{ gridColumn: 'span 3', display: 'flex', gap: 8 }}>
                 <button
                   type="submit"
@@ -624,7 +627,7 @@ export function AudienceClient({
         <h2 style={sectionHeading('Where to grow next')}>
           Where to grow next{isEditorial ? '.' : ''}
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
+        <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
           {connectedPlatforms.length > 0 ? (
             <>
               {['instagram', 'tiktok', 'youtube', 'linkedin', 'x', 'facebook', 'twitch']
@@ -641,6 +644,7 @@ export function AudienceClient({
                         Connect your {label} account to cross-pollinate your audience and unlock new growth.
                       </p>
                       <button
+                        onClick={() => { window.location.href = '/settings#platforms'; }}
                         style={{
                           height: 32,
                           padding: '0 14px',

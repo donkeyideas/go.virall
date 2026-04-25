@@ -238,7 +238,7 @@ export function CaptionsClient({ theme, platforms, previousResults, previousMeta
 
       {/* Form */}
       <div style={{ ...cardStyle, marginBottom: 24, overflow: 'visible' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 80px auto', gap: 12, alignItems: 'end' }}>
+        <div className="grid-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 160px 80px auto', gap: 12, alignItems: 'end' }}>
           <div>
             <label style={{ display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 8 }}>
               Topic

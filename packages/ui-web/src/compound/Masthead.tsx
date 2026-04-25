@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
 const NAV_ITEMS = [
   { href: '/today', label: 'Today' },
   { href: '/go-virall', label: 'Go Virall' },
@@ -47,6 +46,8 @@ export function Masthead({ displayName, avatarUrl }: Props) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
         boxShadow: 'var(--out-md)',
         marginBottom: 32,
       }}
@@ -73,6 +74,7 @@ export function Masthead({ displayName, avatarUrl }: Props) {
           G
         </div>
         <div
+          className="masthead-brand-text"
           style={{
             fontFamily: "'Fraunces', serif",
             fontSize: 22,
@@ -87,6 +89,7 @@ export function Masthead({ displayName, avatarUrl }: Props) {
 
       {/* Nav strip */}
       <nav
+        className="nav-scroll"
         style={{
           display: 'flex',
           gap: 6,
@@ -94,6 +97,7 @@ export function Masthead({ displayName, avatarUrl }: Props) {
           borderRadius: 18,
           padding: 6,
           boxShadow: 'var(--in-sm)',
+          flexWrap: 'nowrap',
         }}
       >
         {NAV_ITEMS.map((item) => {
@@ -103,7 +107,8 @@ export function Masthead({ displayName, avatarUrl }: Props) {
               key={item.href}
               href={item.href}
               style={{
-                padding: '10px 20px',
+                padding: '10px 14px',
+                whiteSpace: 'nowrap',
                 fontSize: 13,
                 fontWeight: 600,
                 color: active ? 'var(--accent, var(--color-primary))' : 'var(--muted)',

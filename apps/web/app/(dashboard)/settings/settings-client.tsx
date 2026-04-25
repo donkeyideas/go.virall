@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { Input, Badge, ThemedSelect } from '@govirall/ui-web';
-import { updateProfile, updateNotificationPrefs, deleteAccount, exportData } from '@/lib/actions/settings';
+import { updateProfile, uploadAvatar, updateNotificationPrefs, deleteAccount, exportData } from '@/lib/actions/settings';
 import { createSubscription, activateSubscription, cancelSubscription, getSubscriptionDetails } from '@/lib/actions/billing';
 import { useRouter } from 'next/navigation';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -118,6 +118,9 @@ export function SettingsClient({
   });
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [timezone, setTimezone] = useState(profile?.timezone ?? 'America/New_York');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url ?? null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarMsg, setAvatarMsg] = useState('');
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState('');
   const [paymentModal, setPaymentModal] = useState<{
@@ -276,6 +279,33 @@ export function SettingsClient({
     }
   }
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Preview immediately
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+
+    // Upload
+    setAvatarUploading(true);
+    setAvatarMsg('');
+    const fd = new FormData();
+    fd.append('avatar', file);
+    const result = await uploadAvatar(fd);
+    setAvatarUploading(false);
+    if (result.error) {
+      setAvatarMsg(result.error);
+      setAvatarPreview(profile?.avatar_url ?? null);
+    } else {
+      setAvatarMsg('Avatar updated');
+      if (result.avatarUrl) setAvatarPreview(result.avatarUrl);
+      startTransition(() => router.refresh());
+      setTimeout(() => setAvatarMsg(''), 3000);
+    }
+  }
+
   const [themeChanging, setThemeChanging] = useState(false);
 
   async function handleThemeChange(newTheme: string) {
@@ -407,6 +437,7 @@ export function SettingsClient({
 
   return (
     <>
+      {avatarUploading && <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>}
       {/* Page heading */}
       <div style={{ marginBottom: 32 }}>
         {isEditorial && (
@@ -433,9 +464,9 @@ export function SettingsClient({
         </h1>
       </div>
 
-      <div style={{ display: 'flex', gap: 24 }}>
+      <div className="settings-layout" style={{ display: 'flex', gap: 24 }}>
         {/* Left rail - tabs */}
-        <nav style={{ width: 180, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <nav className="nav-scroll settings-tabs" style={{ width: 180, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -443,6 +474,7 @@ export function SettingsClient({
               style={{
                 padding: '10px 16px',
                 fontSize: 13,
+                whiteSpace: 'nowrap',
                 fontWeight: activeTab === tab.id ? 600 : 400,
                 textAlign: 'left',
                 borderRadius: isNeumorphic ? 16 : 12,
@@ -473,6 +505,92 @@ export function SettingsClient({
           {activeTab === 'account' && (
             <div style={cardStyle}>
               <h2 style={tabHeadingStyle}>Account{isEditorial ? '.' : ''}</h2>
+              {/* Avatar upload */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28 }}>
+                <div style={{ position: 'relative' }}>
+                  <div
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      background: avatarPreview
+                        ? 'transparent'
+                        : isEditorial
+                        ? 'var(--hot, #ff3e88)'
+                        : isNeumorphic
+                        ? 'var(--surface, var(--bg))'
+                        : 'linear-gradient(135deg, var(--rose, #c084fc), var(--amber, #f59e0b))',
+                      border: isEditorial ? '1.5px solid var(--ink)' : isNeumorphic ? 'none' : '2px solid rgba(255,255,255,.15)',
+                      boxShadow: isNeumorphic ? 'var(--out-sm)' : 'none',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 28,
+                      fontWeight: 700,
+                      color: '#fff',
+                    }}
+                  >
+                    {avatarPreview ? (
+                      <img src={avatarPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      (profile?.display_name ?? '?').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  {avatarUploading && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '50%',
+                        background: 'rgba(0,0,0,.5)',
+                        display: 'grid',
+                        placeItems: 'center',
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{ animation: 'spin .8s linear infinite' }}>
+                        <path d="M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0 0 20.5 15" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label
+                    htmlFor="avatar-input"
+                    style={{
+                      display: 'inline-block',
+                      padding: '8px 18px',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      borderRadius: isNeumorphic ? 12 : isEditorial ? 999 : 10,
+                      cursor: 'pointer',
+                      transition: 'all .15s',
+                      ...(isEditorial
+                        ? { background: 'transparent', border: '1.5px solid var(--ink)', color: 'var(--ink)' }
+                        : isNeumorphic
+                        ? { background: 'var(--surface, var(--bg))', boxShadow: 'var(--out-sm)', border: 'none', color: 'var(--fg)' }
+                        : { background: 'rgba(255,255,255,.08)', border: '1px solid var(--line)', color: 'var(--fg)' }),
+                    }}
+                  >
+                    {avatarPreview ? 'Change photo' : 'Upload photo'}
+                  </label>
+                  <input
+                    id="avatar-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleAvatarChange}
+                    style={{ display: 'none' }}
+                  />
+                  <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+                    JPG, PNG, WebP, or GIF. Max 5 MB.
+                  </p>
+                  {avatarMsg && (
+                    <p style={{ fontSize: 12, marginTop: 4, color: avatarMsg.includes('error') || avatarMsg.includes('Only') || avatarMsg.includes('must') ? 'var(--color-bad, #ef4444)' : 'var(--color-good, #22c55e)' }}>
+                      {avatarMsg}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <form action={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
                 <div>
                   <label style={labelStyle}>Display name</label>
@@ -891,7 +1009,7 @@ export function SettingsClient({
                 <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>
                   API key and webhook configuration will be available on Pro plans.
                 </p>
-                <button style={btnPrimary}>Upgrade to unlock</button>
+                <button style={btnPrimary} onClick={() => switchTab('billing')}>Upgrade to unlock</button>
               </div>
             </div>
           )}

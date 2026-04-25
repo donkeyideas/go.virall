@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Masthead } from './Masthead';
 import { TopBar } from './TopBar';
+import { MobileDrawer } from './MobileDrawer';
 
 type Props = {
   theme: string;
@@ -21,7 +22,7 @@ export function DashboardShell({ theme, children, displayName, avatarUrl, handle
 
   if (theme === 'neumorphic') {
     return (
-      <div className="min-h-screen" style={{ padding: 32 }}>
+      <div className="min-h-screen" style={{ padding: 'clamp(14px, 3vw, 32px)' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <Masthead displayName={displayName} avatarUrl={avatarUrl} />
           <main>{children}</main>
@@ -37,10 +38,11 @@ export function DashboardShell({ theme, children, displayName, avatarUrl, handle
       <main style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <TopBar theme={theme} displayName={displayName} avatarUrl={avatarUrl} isAdmin={isAdmin} />
         {theme === 'neon-editorial' && <TickerSliver />}
-        <div style={{ padding: '34px 32px 70px', flex: 1 }}>
+        <div style={{ padding: '34px clamp(14px, 3vw, 32px) 70px', flex: 1 }}>
           {children}
         </div>
       </main>
+      <MobileDrawer theme={theme} />
     </div>
   );
 }

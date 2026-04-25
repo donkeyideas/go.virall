@@ -1,16 +1,18 @@
 import { z } from 'zod';
 import { PlatformEnum } from './common';
 
+export const CompetitorLabelEnum = z.enum(['benchmark', 'rival', 'watch', 'collab']);
+
 export const AddCompetitorInput = z.object({
   platform: PlatformEnum,
-  platform_username: z.string().min(1).max(100),
-  label: z.enum(['peer', 'aspirational', 'niche']).default('peer'),
+  handle: z.string().min(1).max(100),
+  label: CompetitorLabelEnum.default('watch'),
 });
 
 export type AddCompetitorInput = z.infer<typeof AddCompetitorInput>;
 
 export const UpdateCompetitorInput = z.object({
-  label: z.enum(['peer', 'aspirational', 'niche']).optional(),
+  label: CompetitorLabelEnum.optional(),
 });
 
 export type UpdateCompetitorInput = z.infer<typeof UpdateCompetitorInput>;

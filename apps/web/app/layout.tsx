@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import {
   Instrument_Serif,
   Fraunces,
@@ -10,6 +11,8 @@ import { createServerClient } from '@govirall/db/server';
 import { createAdminClient } from '@govirall/db/admin';
 import { JsonLd, organizationSchema, websiteSchema } from '../lib/seo/json-ld';
 import './globals.css';
+
+const GA_MEASUREMENT_ID = 'G-P1HL4ZZ8QK';
 
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
@@ -111,6 +114,20 @@ export default async function RootLayout({
       data-theme={theme}
       className={`${instrumentSerif.variable} ${fraunces.variable} ${manrope.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
+      </head>
       <body>
         <JsonLd data={organizationSchema()} />
         <JsonLd data={websiteSchema()} />

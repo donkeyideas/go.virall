@@ -9,9 +9,10 @@ export async function createInvoice(formData: FormData) {
 
   const brandName = formData.get('brand_name') as string;
   const brandEmail = formData.get('brand_email') as string;
-  const amount = Number(formData.get('amount'));
+  const dollarStr = formData.get('amount') as string;
+  const amountCents = dollarStr ? Math.round(parseFloat(dollarStr) * 100) : 0;
 
-  if (!brandName || !brandEmail || !amount) {
+  if (!brandName || !brandEmail || !amountCents) {
     return { error: 'Brand name, email, and amount are required' };
   }
 
@@ -31,8 +32,8 @@ export async function createInvoice(formData: FormData) {
       invoice_number: invoiceNumber,
       brand_name: brandName,
       brand_email: brandEmail,
-      description: (formData.get('description') as string) || '',
-      amount,
+      notes: (formData.get('notes') as string) || '',
+      amount_cents: amountCents,
       currency: (formData.get('currency') as string) || 'USD',
       due_date: (formData.get('due_date') as string) || new Date(Date.now() + 30 * 86400000).toISOString(),
       status: 'draft',
@@ -68,6 +69,21 @@ export async function markInvoicePaid(invoiceId: string) {
   const { error } = await supabase
     .from('invoices')
     .update({ status: 'paid', paid_at: new Date().toISOString() })
+    .eq('id', invoiceId)
+    .eq('user_id', user.id);
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function deleteInvoice(invoiceId: string) {
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { error } = await supabase
+    .from('invoices')
+    .delete()
     .eq('id', invoiceId)
     .eq('user_id', user.id);
 

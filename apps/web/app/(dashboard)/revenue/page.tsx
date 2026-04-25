@@ -20,12 +20,12 @@ export default async function RevenuePage() {
       .single(),
     admin
       .from('deals')
-      .select('id, brand_name, contact_name, contact_email, value, currency, stage, notes, created_at, updated_at')
+      .select('id, brand_name, title, brand_contact_email, amount_cents, currency, stage, description, created_at, updated_at')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false }),
     admin
       .from('invoices')
-      .select('id, invoice_number, brand_name, brand_email, description, amount, currency, status, due_date, sent_at, paid_at, created_at')
+      .select('id, invoice_number, brand_name, brand_email, notes, amount_cents, currency, status, due_date, sent_at, paid_at, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
   ]);
@@ -35,17 +35,17 @@ export default async function RevenuePage() {
   const invoices = invoicesRes.data ?? [];
 
   const summary = computePipelineSummary(
-    deals.map((d) => ({ stage: d.stage as DealStage, value: d.value ?? 0 })),
+    deals.map((d) => ({ stage: d.stage as DealStage, value: d.amount_cents ?? 0 })),
   );
 
   const now = new Date();
   const thisMonth = deals
     .filter((d) => d.stage === 'done' && d.updated_at && new Date(d.updated_at).getMonth() === now.getMonth() && new Date(d.updated_at).getFullYear() === now.getFullYear())
-    .reduce((sum, d) => sum + (d.value ?? 0), 0);
+    .reduce((sum, d) => sum + (d.amount_cents ?? 0), 0);
 
   const thisYear = deals
     .filter((d) => d.stage === 'done' && d.updated_at && new Date(d.updated_at).getFullYear() === now.getFullYear())
-    .reduce((sum, d) => sum + (d.value ?? 0), 0);
+    .reduce((sum, d) => sum + (d.amount_cents ?? 0), 0);
 
   return (
     <RevenueClient

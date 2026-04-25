@@ -119,12 +119,12 @@
   --subtle: #8b8478;
 
   /* Accents */
-  --color-primary: #c8ff3d;
-  --color-primary-soft: #9ecc21;
-  --color-accent: #ff3e88;
-  --color-good: #c8ff3d;
-  --color-warn: #e8b92b;
-  --color-bad: #ff3e88;
+  --color-primary: #6b8f1a;
+  --color-primary-soft: #5a7a16;
+  --color-accent: #d42a6a;
+  --color-good: #6b8f1a;
+  --color-warn: #a07814;
+  --color-bad: #d42a6a;
   --color-info: #1c4bff;
 
   /* Gradients -- editorial avoids gradients on fills */

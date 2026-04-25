@@ -182,8 +182,8 @@ function EditorialGauge({
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 30, alignItems: 'center' }}>
-        <div style={{ position: 'relative', width: 220, height: 220 }}>
+      <div className="grid-smo" style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 30, alignItems: 'center' }}>
+        <div style={{ position: 'relative', maxWidth: 220, width: '100%', aspectRatio: '1' }}>
           <svg viewBox="0 0 220 220" style={{ width: '100%', height: '100%' }}>
             <defs>
               <linearGradient id="ring-ed" x1="0" x2="1" y1="0" y2="1">

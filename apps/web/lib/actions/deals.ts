@@ -12,17 +12,21 @@ export async function createDeal(formData: FormData) {
   const brandName = formData.get('brand_name') as string;
   if (!brandName) return { error: 'Brand name is required' };
 
+  const title = (formData.get('title') as string) || brandName;
+  const dollarStr = formData.get('amount') as string;
+  const amountCents = dollarStr ? Math.round(parseFloat(dollarStr) * 100) : 0;
+
   const { data, error } = await supabase
     .from('deals')
     .insert({
       user_id: user.id,
       brand_name: brandName,
-      contact_name: (formData.get('contact_name') as string) || '',
-      contact_email: (formData.get('contact_email') as string) || null,
-      value: Number(formData.get('value') || 0),
+      title,
+      brand_contact_email: (formData.get('brand_contact_email') as string) || null,
+      amount_cents: amountCents,
       currency: (formData.get('currency') as string) || 'USD',
       stage: (formData.get('stage') as string) || 'lead',
-      notes: (formData.get('notes') as string) || '',
+      description: (formData.get('description') as string) || '',
     })
     .select()
     .single();
