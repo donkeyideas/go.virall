@@ -1,5 +1,5 @@
 diff --git a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
-index 586f261712216969182b6e4eca10b8319b6c79db..d764ae15a5d042a7091261aff5005582090086a2 100644
+index 586f261712216969182b6e4eca10b8319b6c79db..3fd04a4d56d5e3c9d04187a1a344a6b49fe3ef27 100644
 --- a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
 +++ b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
 @@ -37,20 +37,22 @@ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicTyp
@@ -15,7 +15,7 @@ index 586f261712216969182b6e4eca10b8319b6c79db..d764ae15a5d042a7091261aff5005582
 -       let innerView = provider.getWrappedView() as? ViewType {
 -      return innerView
 +    if let provider = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.ViewWrapper.self) {
-+      let wrapped = MainActor.assumeIsolated { provider.getWrappedView() }
++      let wrapped = MainActor.assumeIsolated { _AnyBox(provider.getWrappedView()) }.value
 +      if let innerView = wrapped as? ViewType {
 +        return innerView
 +      }
@@ -30,6 +30,16 @@ index 586f261712216969182b6e4eca10b8319b6c79db..d764ae15a5d042a7091261aff5005582
    }
  
    var description: String {
+@@ -70,3 +72,9 @@ private func findViewTag(_ value: JavaScriptValue) -> Int? {
+   }
+   return nil
+ }
++
++// Boxes a non-Sendable Any value for synchronous MainActor access.
++private struct _AnyBox: @unchecked Sendable {
++  let value: Any
++  init(_ value: Any) { self.value = value }
++}
 diff --git a/ios/Core/Logging/PersistentFileLog.swift b/ios/Core/Logging/PersistentFileLog.swift
 index 5ddcbb6a3094760fa61b0049917d655b125f94b1..c978ae4f4f752248a8eac15fa7f0616d6cd6b288 100644
 --- a/ios/Core/Logging/PersistentFileLog.swift
@@ -94,37 +104,104 @@ index d62091c41748d46b21fed9c7b6d1bbc1475a6d54..9238c8f9e83f759c44bdb5a3ad1c3e4c
      }
    }
 diff --git a/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift b/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
-index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..4fb0004e0c69ad78bd02014e76aa014fe84e2890 100644
+index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..8651e75e42a8e1eb4aedf872a3543681d571b833 100644
 --- a/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
 +++ b/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
-@@ -80,7 +80,7 @@ extension ExpoSwiftUI {
-     /**
+@@ -81,14 +81,16 @@ extension ExpoSwiftUI {
       Updates the environment object with props, based on the given dictionary with raw props.
       */
--    override func updateProps(_ rawProps: [String: Any]) {
-+    @MainActor override func updateProps(_ rawProps: [String: Any]) {
-       guard let appContext else {
-         log.error("AppContext is not available, view props cannot be updated for \(self)")
-         return
-@@ -126,7 +126,7 @@ extension ExpoSwiftUI {
-     /**
+     override func updateProps(_ rawProps: [String: Any]) {
+-      guard let appContext else {
+-        log.error("AppContext is not available, view props cannot be updated for \(self)")
+-        return
+-      }
+-      do {
+-        try props.updateRawProps(rawProps, appContext: appContext)
+-      } catch let error {
+-        log.error("Updating props for \(self) has failed: \(error.localizedDescription)")
++      MainActor.assumeIsolated {
++        guard let appContext else {
++          log.error("AppContext is not available, view props cannot be updated for \(self)")
++          return
++        }
++        do {
++          try props.updateRawProps(rawProps, appContext: appContext)
++        } catch let error {
++          log.error("Updating props for \(self) has failed: \(error.localizedDescription)")
++        }
+       }
+     }
+ 
+@@ -127,39 +129,43 @@ extension ExpoSwiftUI {
       Fabric calls this function when mounting (attaching) a child component view.
       */
--    override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
-+    @MainActor override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
-       var children = props.children ?? []
-       let child: any AnyChild
-       if let view = childComponentView as AnyObject as? (any ExpoSwiftUI.View) {
-@@ -143,7 +143,7 @@ extension ExpoSwiftUI {
+     override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
+-      var children = props.children ?? []
+-      let child: any AnyChild
+-      if let view = childComponentView as AnyObject as? (any ExpoSwiftUI.View) {
+-        child = view
+-      } else {
+-        child = UIViewHost(view: childComponentView)
+-      }
+-      children.insert(child, at: index)
++      MainActor.assumeIsolated {
++        var children = props.children ?? []
++        let child: any AnyChild
++        if let view = childComponentView as AnyObject as? (any ExpoSwiftUI.View) {
++          child = view
++        } else {
++          child = UIViewHost(view: childComponentView)
++        }
++        children.insert(child, at: index)
+ 
+-      props.children = children
+-      props.objectWillChange.send()
++        props.children = children
++        props.objectWillChange.send()
++      }
+     }
+ 
      /**
       Fabric calls this function when unmounting (detaching) a child component view.
       */
--    override func unmountChildComponentView(_ childComponentView: UIView, index: Int) {
-+    @MainActor override func unmountChildComponentView(_ childComponentView: UIView, index: Int) {
-       // Make sure the view has no superview, React Native asserts against this.
-       childComponentView.removeFromSuperview()
+     override func unmountChildComponentView(_ childComponentView: UIView, index: Int) {
+-      // Make sure the view has no superview, React Native asserts against this.
+-      childComponentView.removeFromSuperview()
+-
+-      let childViewId: ObjectIdentifier
+-      if let child = childComponentView as AnyObject as? (any AnyChild) {
+-        childViewId = child.id
+-      } else {
+-        childViewId = ObjectIdentifier(childComponentView)
+-      }
++      MainActor.assumeIsolated {
++        // Make sure the view has no superview, React Native asserts against this.
++        childComponentView.removeFromSuperview()
++
++        let childViewId: ObjectIdentifier
++        if let child = childComponentView as AnyObject as? (any AnyChild) {
++          childViewId = child.id
++        } else {
++          childViewId = ObjectIdentifier(childComponentView)
++        }
  
-@@ -193,8 +193,8 @@ extension ExpoSwiftUI {
+-      if let children = props.children {
+-        props.children = children.filter({ $0.id != childViewId })
+-        #if DEBUG
+-        assert(props.children?.count == children.count - 1, "Failed to remove child view")
+-        #endif
+-        props.objectWillChange.send()
++        if let children = props.children {
++          props.children = children.filter({ $0.id != childViewId })
++          #if DEBUG
++          assert(props.children?.count == children.count - 1, "Failed to remove child view")
++          #endif
++          props.objectWillChange.send()
++        }
+       }
+     }
+ 
+@@ -193,8 +199,8 @@ extension ExpoSwiftUI {
  
  // MARK: - ViewWrapper
  
