@@ -1,3 +1,28 @@
+diff --git a/ios/Core/DynamicTypes/DynamicRawType.swift b/ios/Core/DynamicTypes/DynamicRawType.swift
+index 8fe764a9ee7555edb074854152d05ef2461c69bb..112e3b1bbb59699eee7df34e0e8a27d932246f09 100644
+--- a/ios/Core/DynamicTypes/DynamicRawType.swift
++++ b/ios/Core/DynamicTypes/DynamicRawType.swift
+@@ -35,8 +35,9 @@ internal struct DynamicRawType<InnerType>: AnyDynamicType {
+     // TODO: Definitions and JS object builders should have its own dynamic type.
+     // We use `DynamicRawType` for this only temporarily.
+     if let objectBuilder = result as? JavaScriptObjectBuilder {
++      let box = _JSBuilderBox(objectBuilder)
+       return try JavaScriptActor.assumeIsolated {
+-        return try objectBuilder.build(appContext: appContext)
++        return try box.value.build(appContext: appContext)
+       } as Any
+     }
+     return result
+@@ -46,3 +47,9 @@ internal struct DynamicRawType<InnerType>: AnyDynamicType {
+     String(describing: innerType.self)
+   }
+ }
++
++// Boxes a non-Sendable JavaScriptObjectBuilder existential for @JavaScriptActor access.
++private struct _JSBuilderBox: @unchecked Sendable {
++  let value: any JavaScriptObjectBuilder
++  init(_ value: any JavaScriptObjectBuilder) { self.value = value }
++}
 diff --git a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
 index 586f261712216969182b6e4eca10b8319b6c79db..3fd04a4d56d5e3c9d04187a1a344a6b49fe3ef27 100644
 --- a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
@@ -55,6 +80,46 @@ index 5ddcbb6a3094760fa61b0049917d655b125f94b1..c978ae4f4f752248a8eac15fa7f0616d
  
  /**
   * A thread-safe class for reading and writing line-separated strings to a flat file.
+diff --git a/ios/Core/SharedObjects/SharedObject.swift b/ios/Core/SharedObjects/SharedObject.swift
+index 3e81f83c014319b1a5398a628aebf0a278ca8bc8..60abe7d1ef13a2c2e156a749cf7999d8baa68939 100644
+--- a/ios/Core/SharedObjects/SharedObject.swift
++++ b/ios/Core/SharedObjects/SharedObject.swift
+@@ -10,7 +10,7 @@ extension AnySharedObject {
+   }
+ }
+ 
+-open class SharedObject: AnySharedObject {
++open class SharedObject: AnySharedObject, @unchecked Sendable {
+   /**
+    An identifier of the native shared object that maps to the JavaScript object.
+    When the object is not linked with any JavaScript object, its value is 0.
+@@ -81,6 +81,7 @@ public extension SharedObject { // swiftlint:disable:this no_grouping_extension
+     repeat argumentPairs.append((each arguments, ~(each A).self))
+ 
+     // Schedule the event to be asynchronously emitted from the runtime's thread
++    let argBox = _ArgPairsBox(argumentPairs)
+     runtime.schedule { [weak self, weak appContext] in
+       guard let appContext, let runtime = try? appContext.runtime, let jsObject = self?.getJavaScriptObject() else {
+         log.warn("Trying to send event '\(event)' to \(type(of: self)), but the JS object is no longer associated with the native instance")
+@@ -88,7 +89,7 @@ public extension SharedObject { // swiftlint:disable:this no_grouping_extension
+       }
+ 
+       // Convert native arguments to JS, just like function results
+-      let arguments = argumentPairs.map { argument, dynamicType in
++      let arguments = argBox.value.map { argument, dynamicType in
+         return Conversions.convertFunctionResult(argument, appContext: appContext, dynamicType: dynamicType)
+       }
+ 
+@@ -102,3 +103,9 @@ public extension SharedObject { // swiftlint:disable:this no_grouping_extension
+   }
+   #endif // swift(<5.9)
+ }
++
++// Boxes non-Sendable argument pairs for use in @Sendable scheduled closures.
++private struct _ArgPairsBox: @unchecked Sendable {
++  let value: [(AnyArgument, AnyDynamicType)]
++  init(_ value: [(AnyArgument, AnyDynamicType)]) { self.value = value }
++}
 diff --git a/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift b/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift
 index b376a98d07fa4c8e8ccba8130e520760d5902d40..c311be044ee2ca7aeddef75c1bfd869dc1c445c9 100644
 --- a/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift
@@ -104,10 +169,10 @@ index d62091c41748d46b21fed9c7b6d1bbc1475a6d54..9238c8f9e83f759c44bdb5a3ad1c3e4c
      }
    }
 diff --git a/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift b/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
-index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..8651e75e42a8e1eb4aedf872a3543681d571b833 100644
+index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..8a5f2a94369caf566da38747465e7990f818622b 100644
 --- a/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
 +++ b/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
-@@ -81,14 +81,16 @@ extension ExpoSwiftUI {
+@@ -81,14 +81,17 @@ extension ExpoSwiftUI {
       Updates the environment object with props, based on the given dictionary with raw props.
       */
      override func updateProps(_ rawProps: [String: Any]) {
@@ -119,20 +184,21 @@ index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..8651e75e42a8e1eb4aedf872a3543681
 -        try props.updateRawProps(rawProps, appContext: appContext)
 -      } catch let error {
 -        log.error("Updating props for \(self) has failed: \(error.localizedDescription)")
++      let propsBox = _RawPropsBox(rawProps)
 +      MainActor.assumeIsolated {
 +        guard let appContext else {
 +          log.error("AppContext is not available, view props cannot be updated for \(self)")
 +          return
 +        }
 +        do {
-+          try props.updateRawProps(rawProps, appContext: appContext)
++          try props.updateRawProps(propsBox.value, appContext: appContext)
 +        } catch let error {
 +          log.error("Updating props for \(self) has failed: \(error.localizedDescription)")
 +        }
        }
      }
  
-@@ -127,39 +129,43 @@ extension ExpoSwiftUI {
+@@ -127,39 +130,43 @@ extension ExpoSwiftUI {
       Fabric calls this function when mounting (attaching) a child component view.
       */
      override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
@@ -201,7 +267,7 @@ index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..8651e75e42a8e1eb4aedf872a3543681
        }
      }
  
-@@ -193,8 +199,8 @@ extension ExpoSwiftUI {
+@@ -193,11 +200,17 @@ extension ExpoSwiftUI {
  
  // MARK: - ViewWrapper
  
@@ -212,6 +278,15 @@ index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..8651e75e42a8e1eb4aedf872a3543681
      if let wrapper = contentView as? ExpoSwiftUI.ViewWrapper {
        return wrapper.getWrappedView()
      }
+     return contentView
+   }
+ }
++
++// Boxes non-Sendable [String: Any] props for synchronous MainActor access.
++private struct _RawPropsBox: @unchecked Sendable {
++  let value: [String: Any]
++  init(_ value: [String: Any]) { self.value = value }
++}
 diff --git a/ios/Core/Views/ViewDefinition.swift b/ios/Core/Views/ViewDefinition.swift
 index 5dc73e34a3c1c3687f2103ad9481ae5a0b9cae2c..384237b803523c10c3799b1bf9a9cd013c3a5683 100644
 --- a/ios/Core/Views/ViewDefinition.swift
