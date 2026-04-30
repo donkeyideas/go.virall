@@ -53,6 +53,23 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: .
 
+      - name: Write Android keystore (production only)
+        if: ${{ inputs.profile == 'production' }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ./release.keystore
+          cat > credentials.json <<EOF
+          {
+            "android": {
+              "keystore": {
+                "keystorePath": "release.keystore",
+                "keystorePassword": "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}",
+                "keyAlias": "${{ secrets.ANDROID_KEY_ALIAS }}",
+                "keyPassword": "${{ secrets.ANDROID_KEY_PASSWORD }}"
+              }
+            }
+          }
+          EOF
+
       - name: Build Android (production → AAB)
         if: ${{ inputs.profile == 'production' }}
         run: eas build --local --profile production --platform android --non-interactive --output ./go-virall.aab

@@ -1,29 +1,13 @@
 diff --git a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
-index 586f261712216969182b6e4eca10b8319b6c79db..f1bc310811546ca43d63381affd09dba4e464d1d 100644
+index 586f261712216969182b6e4eca10b8319b6c79db..d764ae15a5d042a7091261aff5005582090086a2 100644
 --- a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
 +++ b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
-@@ -1,5 +1,14 @@
- // Copyright 2025-present 650 Industries. All rights reserved.
- 
-+// Swift 6 strict-concurrency patch: `cast(_:appContext:)` is guarded by
-+// Thread.isMainThread (throws NonMainThreadException if not on main thread),
-+// so we know we are always on the main actor when the view methods are called.
-+// `UnsafelySendable` lets us cross the actor boundary inside
-+// `MainActor.assumeIsolated` without a Sendable constraint on the wrapped type.
-+private struct UnsafelySendable<T>: @unchecked Sendable {
-+  let value: T
-+}
-+
- internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicType {
-   let innerType: ViewType.Type
- 
-@@ -37,20 +46,25 @@ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicTyp
+@@ -37,20 +37,22 @@ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicTyp
      // Direct match, the virtual view's content type matches exactly.
      // e.g. View(SlotView.self)
      if let view = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.SwiftUIVirtualView<ViewType.Props, ViewType>.self) {
 -      return view.contentView
-+      // contentView is @MainActor-isolated; Thread.isMainThread is already verified above.
-+      return MainActor.assumeIsolated { UnsafelySendable(value: view.contentView) }.value
++      return MainActor.assumeIsolated { view.contentView }
      }
      // For wrapper types
      // e.g. ExpoUIView(SecureFieldView.self)
@@ -31,9 +15,8 @@ index 586f261712216969182b6e4eca10b8319b6c79db..f1bc310811546ca43d63381affd09dba
 -       let innerView = provider.getWrappedView() as? ViewType {
 -      return innerView
 +    if let provider = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.ViewWrapper.self) {
-+      // getWrappedView() is @MainActor-isolated; Thread.isMainThread is already verified above.
-+      let wrapped = MainActor.assumeIsolated { UnsafelySendable(value: provider.getWrappedView()) }
-+      if let innerView = wrapped.value as? ViewType {
++      let wrapped = MainActor.assumeIsolated { provider.getWrappedView() }
++      if let innerView = wrapped as? ViewType {
 +        return innerView
 +      }
      }
@@ -43,25 +26,165 @@ index 586f261712216969182b6e4eca10b8319b6c79db..f1bc310811546ca43d63381affd09dba
        throw Exceptions.SwiftUIViewNotFound((tag: viewTag, type: innerType.self))
      }
 -    return view.getContentView()
-+    // getContentView() is @MainActor-isolated; Thread.isMainThread is already verified above.
-+    return MainActor.assumeIsolated { UnsafelySendable(value: view.getContentView()) }.value
++    return MainActor.assumeIsolated { view.getContentView() }
    }
  
    var description: String {
+diff --git a/ios/Core/Logging/PersistentFileLog.swift b/ios/Core/Logging/PersistentFileLog.swift
+index 5ddcbb6a3094760fa61b0049917d655b125f94b1..c978ae4f4f752248a8eac15fa7f0616d6cd6b288 100644
+--- a/ios/Core/Logging/PersistentFileLog.swift
++++ b/ios/Core/Logging/PersistentFileLog.swift
+@@ -2,8 +2,8 @@
+ 
+ import Foundation
+ 
+-public typealias PersistentFileLogFilter = (String) -> Bool
+-public typealias PersistentFileLogCompletionHandler = (Error?) -> Void
++public typealias PersistentFileLogFilter = @Sendable (String) -> Bool
++public typealias PersistentFileLogCompletionHandler = @Sendable (Error?) -> Void
+ 
+ /**
+  * A thread-safe class for reading and writing line-separated strings to a flat file.
+diff --git a/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift b/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift
+index b376a98d07fa4c8e8ccba8130e520760d5902d40..c311be044ee2ca7aeddef75c1bfd869dc1c445c9 100644
+--- a/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift
++++ b/ios/Core/Views/SwiftUI/ExpoSwiftUI.swift
+@@ -23,7 +23,7 @@ extension ExpoSwiftUI {
+    Protocol for wrapper views (e.g., UIBaseView) that wrap an inner view.
+    Used by DynamicSwiftUIViewType to resolve the underlying view through wrapper layers.
+    */
+-  public protocol ViewWrapper {
++  @MainActor public protocol ViewWrapper {
+     func getWrappedView() -> Any
+   }
+ }
+diff --git a/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift b/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
+index d4ff7a98b2a805190025fe5aff2f4b77a78f2cc2..85864d8ecbd8cd6f7f4cdd5bec263c06812ec691 100644
+--- a/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
++++ b/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
+@@ -5,7 +5,7 @@ import SwiftUI
+ /**
+  A type-erased protocol that hosting views must conform to.
+  */
+-internal protocol AnyExpoSwiftUIHostingView {
++@MainActor internal protocol AnyExpoSwiftUIHostingView {
+   func updateProps(_ rawProps: [String: Any])
+   func getContentView() -> any ExpoSwiftUI.View
+   func getProps() -> ExpoSwiftUI.ViewProps
+@@ -42,7 +42,7 @@ extension ExpoSwiftUI {
+   /**
+    A hosting view that renders a SwiftUI view inside the UIKit view hierarchy.
+    */
+-  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @MainActor AnyExpoSwiftUIHostingView {
++  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, AnyExpoSwiftUIHostingView {
+     /**
+      Props object that stores all the props for this particular view.
+      It's an environment object that is observed by the content view.
+diff --git a/ios/Core/Views/SwiftUI/SwiftUIViewFrameObserver.swift b/ios/Core/Views/SwiftUI/SwiftUIViewFrameObserver.swift
+index d62091c41748d46b21fed9c7b6d1bbc1475a6d54..9238c8f9e83f759c44bdb5a3ad1c3e4c9b6831bb 100644
+--- a/ios/Core/Views/SwiftUI/SwiftUIViewFrameObserver.swift
++++ b/ios/Core/Views/SwiftUI/SwiftUIViewFrameObserver.swift
+@@ -26,7 +26,7 @@ extension ExpoSwiftUI {
+ 
+         // Update layout metrics of the `Child` view. The `origin` needs to be frame's origin,
+         // as `bounds` refers to coordinates relative to view's own space (instead of the parent's space).
+-        callback(CGRect(origin: view.frame.origin, size: newValue.size))
++        callback(CGRect(origin: MainActor.assumeIsolated { view.frame.origin }, size: newValue.size))
+       }
+     }
+   }
+diff --git a/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift b/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
+index 6d653237f0d58fddd6d9828ca5e0791514c3d4a4..4fb0004e0c69ad78bd02014e76aa014fe84e2890 100644
+--- a/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
++++ b/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
+@@ -80,7 +80,7 @@ extension ExpoSwiftUI {
+     /**
+      Updates the environment object with props, based on the given dictionary with raw props.
+      */
+-    override func updateProps(_ rawProps: [String: Any]) {
++    @MainActor override func updateProps(_ rawProps: [String: Any]) {
+       guard let appContext else {
+         log.error("AppContext is not available, view props cannot be updated for \(self)")
+         return
+@@ -126,7 +126,7 @@ extension ExpoSwiftUI {
+     /**
+      Fabric calls this function when mounting (attaching) a child component view.
+      */
+-    override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
++    @MainActor override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
+       var children = props.children ?? []
+       let child: any AnyChild
+       if let view = childComponentView as AnyObject as? (any ExpoSwiftUI.View) {
+@@ -143,7 +143,7 @@ extension ExpoSwiftUI {
+     /**
+      Fabric calls this function when unmounting (detaching) a child component view.
+      */
+-    override func unmountChildComponentView(_ childComponentView: UIView, index: Int) {
++    @MainActor override func unmountChildComponentView(_ childComponentView: UIView, index: Int) {
+       // Make sure the view has no superview, React Native asserts against this.
+       childComponentView.removeFromSuperview()
+ 
+@@ -193,8 +193,8 @@ extension ExpoSwiftUI {
+ 
+ // MARK: - ViewWrapper
+ 
+-extension ExpoSwiftUI.SwiftUIVirtualView: @MainActor ExpoSwiftUI.ViewWrapper {
+-  func getWrappedView() -> Any {
++extension ExpoSwiftUI.SwiftUIVirtualView: ExpoSwiftUI.ViewWrapper {
++  @MainActor func getWrappedView() -> Any {
+     if let wrapper = contentView as? ExpoSwiftUI.ViewWrapper {
+       return wrapper.getWrappedView()
+     }
 diff --git a/ios/Core/Views/ViewDefinition.swift b/ios/Core/Views/ViewDefinition.swift
-index 5dc73e34a3c1c3687f2103ad9481ae5a0b9cae2c..a001b07e4d782ab7519b57df689fbf8338387104 100644
+index 5dc73e34a3c1c3687f2103ad9481ae5a0b9cae2c..384237b803523c10c3799b1bf9a9cd013c3a5683 100644
 --- a/ios/Core/Views/ViewDefinition.swift
 +++ b/ios/Core/Views/ViewDefinition.swift
-@@ -119,7 +119,11 @@ extension ConcurrentFunctionDefinition: ViewDefinitionFunctionElement {
+@@ -118,8 +118,8 @@ extension ConcurrentFunctionDefinition: ViewDefinitionFunctionElement {
+   public typealias ViewType = FirstArgType
  }
  
- extension UIView: @MainActor AnyArgument {
+-extension UIView: @MainActor AnyArgument {
 -  public static func getDynamicType() -> AnyDynamicType {
-+  // nonisolated: getDynamicType() returns pure type metadata (DynamicViewType wrapping
-+  // UIView.self). It accesses no UIView instance state, so main-actor isolation is
-+  // unnecessary. Making it nonisolated allows callers (e.g. Conversions.swift) that are
-+  // not on the main actor to invoke it without a Swift 6 strict-concurrency error.
++extension UIView: AnyArgument {
 +  nonisolated public static func getDynamicType() -> AnyDynamicType {
      return DynamicViewType(innerType: Self.self)
+   }
+ }
+diff --git a/ios/DevTools/URLAuthenticationChallengeForwardSender.swift b/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
+index 8c3efcbec2cc7fa26963ea0fe63a4919317c69d8..3ea385e0ef62eb740bf3ad91523d7227e6f491b7 100644
+--- a/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
++++ b/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
+@@ -3,7 +3,7 @@
+ /**
+  A helper class to forward URLAuthenticationChallenge completion handler to URLAuthenticationChallengeSender
+  */
+-internal final class URLAuthenticationChallengeForwardSender: NSObject, URLAuthenticationChallengeSender {
++internal final class URLAuthenticationChallengeForwardSender: NSObject, URLAuthenticationChallengeSender, @unchecked Sendable {
+   let completionHandler: (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+ 
+   init(completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+diff --git a/ios/DevTools/URLSessionSessionDelegateProxy.swift b/ios/DevTools/URLSessionSessionDelegateProxy.swift
+index dbc5b659dc9c0eaa5a268e2b268b5f94ae0bd1f0..1f2c9624d59e9f89266d5a4d258af2c5b8db959c 100644
+--- a/ios/DevTools/URLSessionSessionDelegateProxy.swift
++++ b/ios/DevTools/URLSessionSessionDelegateProxy.swift
+@@ -3,7 +3,7 @@
+ /**
+  Shared URLSessionDelegate instance and delete calls back to ExpoRequestInterceptorProtocol instances.
+  */
+-public final class URLSessionSessionDelegateProxy: NSObject, URLSessionDataDelegate {
++public final class URLSessionSessionDelegateProxy: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+   private let dispatchQueue: DispatchQueue
+   private var delegateMap: [AnyHashable: URLSessionDataDelegate] = [:]
+ 
+diff --git a/ios/ReactDelegates/ExpoReactDelegate.swift b/ios/ReactDelegates/ExpoReactDelegate.swift
+index 81871a094017afc57b272ff3716812a5d119e142..42d7950ced264ba7c33dbfe20258bfc8346eb90a 100644
+--- a/ios/ReactDelegates/ExpoReactDelegate.swift
++++ b/ios/ReactDelegates/ExpoReactDelegate.swift
+@@ -38,6 +38,6 @@ public class ExpoReactDelegate: NSObject {
+   public func createRootViewController() -> UIViewController {
+     return self.handlers.lazy
+       .compactMap { $0.createRootViewController() }
+-      .first(where: { _ in true }) ?? UIViewController()
++      .first(where: { _ in true }) ?? MainActor.assumeIsolated { UIViewController() }
    }
  }
