@@ -6,16 +6,19 @@ const path = require('path');
  * Config plugin: sets SWIFT_VERSION = 5.9 and SWIFT_STRICT_CONCURRENCY = minimal
  * for all CocoaPods targets.
  *
- * WHY SWIFT_VERSION: @MainActor was introduced in Swift 5.5. If pods are compiled
- * in an older Swift language mode (e.g. 5.0), the compiler reports "unknown attribute
- * 'MainActor'". Explicitly setting 5.9 fixes this without enabling Swift 6 mode.
+ * WHY SWIFT_VERSION: In Swift 6.x (Xcode 16.4+), `extension UIView: @MainActor Protocol`
+ * syntax is rejected. Setting SWIFT_VERSION = 5.9 reverts pods to Swift 5.9 language
+ * rules where this syntax is valid. This is different from SWIFT_STRICT_CONCURRENCY,
+ * which only controls concurrency-checking strictness, not the language version.
  *
- * WHY SWIFT_STRICT_CONCURRENCY: Xcode 26 defaults to Swift 6 strict concurrency.
+ * WHY SWIFT_STRICT_CONCURRENCY: Xcode 16.4 defaults to Swift 6 concurrency checking.
  * expo-modules-core@55.x uses Swift 5.x concurrency patterns that fail under
  * strict mode. Setting 'minimal' reverts to Swift 5.9 concurrency behaviour.
  *
- * Injected at the END of the post_install block so our settings override anything
- * set earlier (e.g. by react_native_post_install).
+ * Injected at the TOP of the post_install block (right after the opening line).
+ * NOTE: In RN 0.83, post_install is nested inside the target block, so injecting
+ * before the last 'end' in the file would land outside post_install. Always use
+ * string replacement on the opening line instead.
  */
 module.exports = function withSwiftConcurrency(config) {
   return withDangerousMod(config, [
@@ -29,7 +32,7 @@ module.exports = function withSwiftConcurrency(config) {
       }
 
       const swiftFix = [
-        '  # Fix Swift 6 / Xcode 26 build errors in expo-modules-core',
+        '  # Fix Swift 6.x / Xcode 16.4+ build errors in expo-modules-core',
         '  installer.pods_project.targets.each do |target|',
         '    target.build_configurations.each do |config|',
         "      config.build_settings['SWIFT_VERSION'] = '5.9'",
@@ -41,23 +44,15 @@ module.exports = function withSwiftConcurrency(config) {
       const postInstallMarker = 'post_install do |installer|';
 
       if (podfile.includes(postInstallMarker)) {
-        // Inject BEFORE the last `\nend` in the file (closes the post_install block).
-        // post_install is always the last block in an Expo-generated Podfile.
-        const lastEnd = podfile.lastIndexOf('\nend');
-        if (lastEnd >= 0) {
-          podfile =
-            podfile.slice(0, lastEnd) +
-            '\n' + swiftFix +
-            podfile.slice(lastEnd);
-        } else {
-          // Fallback: inject right after the post_install opening line
-          podfile = podfile.replace(
-            postInstallMarker,
-            postInstallMarker + '\n' + swiftFix,
-          );
-        }
+        // Inject at the TOP of the existing post_install block.
+        // Do NOT use lastIndexOf('\nend') — in RN 0.83, post_install is nested
+        // inside the target block, so the last 'end' closes target, not post_install.
+        podfile = podfile.replace(
+          postInstallMarker,
+          postInstallMarker + '\n' + swiftFix,
+        );
       } else {
-        // No existing block — append one
+        // No existing block — append one at the end of the file
         podfile += '\npost_install do |installer|\n' + swiftFix + '\nend\n';
       }
 
