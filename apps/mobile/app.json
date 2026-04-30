@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Go Virall",
-    "slug": "govirall",
+    "slug": "go-virall",
     "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
