@@ -12,5 +12,10 @@
     "turbo": "^2.5.0",
     "typescript": "^5.8.0"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "patchedDependencies": {
+      "expo-modules-core@55.0.23": "patches/expo-modules-core@55.0.23.patch"
+    }
+  }
 }

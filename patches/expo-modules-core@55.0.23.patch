@@ -1,0 +1,67 @@
+diff --git a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
+index 586f261712216969182b6e4eca10b8319b6c79db..f1bc310811546ca43d63381affd09dba4e464d1d 100644
+--- a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
++++ b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
+@@ -1,5 +1,14 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
++// Swift 6 strict-concurrency patch: `cast(_:appContext:)` is guarded by
++// Thread.isMainThread (throws NonMainThreadException if not on main thread),
++// so we know we are always on the main actor when the view methods are called.
++// `UnsafelySendable` lets us cross the actor boundary inside
++// `MainActor.assumeIsolated` without a Sendable constraint on the wrapped type.
++private struct UnsafelySendable<T>: @unchecked Sendable {
++  let value: T
++}
++
+ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicType {
+   let innerType: ViewType.Type
+ 
+@@ -37,20 +46,25 @@ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicTyp
+     // Direct match, the virtual view's content type matches exactly.
+     // e.g. View(SlotView.self)
+     if let view = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.SwiftUIVirtualView<ViewType.Props, ViewType>.self) {
+-      return view.contentView
++      // contentView is @MainActor-isolated; Thread.isMainThread is already verified above.
++      return MainActor.assumeIsolated { UnsafelySendable(value: view.contentView) }.value
+     }
+     // For wrapper types
+     // e.g. ExpoUIView(SecureFieldView.self)
+-    if let provider = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.ViewWrapper.self),
+-       let innerView = provider.getWrappedView() as? ViewType {
+-      return innerView
++    if let provider = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.ViewWrapper.self) {
++      // getWrappedView() is @MainActor-isolated; Thread.isMainThread is already verified above.
++      let wrapped = MainActor.assumeIsolated { UnsafelySendable(value: provider.getWrappedView()) }
++      if let innerView = wrapped.value as? ViewType {
++        return innerView
++      }
+     }
+     // For views using WithHostingView protocol.
+     // e.g. View(HostView.self) where HostView conforms to WithHostingView
+     guard let view = appContext.findView(withTag: viewTag, ofType: AnyExpoSwiftUIHostingView.self) else {
+       throw Exceptions.SwiftUIViewNotFound((tag: viewTag, type: innerType.self))
+     }
+-    return view.getContentView()
++    // getContentView() is @MainActor-isolated; Thread.isMainThread is already verified above.
++    return MainActor.assumeIsolated { UnsafelySendable(value: view.getContentView()) }.value
+   }
+ 
+   var description: String {
+diff --git a/ios/Core/Views/ViewDefinition.swift b/ios/Core/Views/ViewDefinition.swift
+index 5dc73e34a3c1c3687f2103ad9481ae5a0b9cae2c..a001b07e4d782ab7519b57df689fbf8338387104 100644
+--- a/ios/Core/Views/ViewDefinition.swift
++++ b/ios/Core/Views/ViewDefinition.swift
+@@ -119,7 +119,11 @@ extension ConcurrentFunctionDefinition: ViewDefinitionFunctionElement {
+ }
+ 
+ extension UIView: @MainActor AnyArgument {
+-  public static func getDynamicType() -> AnyDynamicType {
++  // nonisolated: getDynamicType() returns pure type metadata (DynamicViewType wrapping
++  // UIView.self). It accesses no UIView instance state, so main-actor isolation is
++  // unnecessary. Making it nonisolated allows callers (e.g. Conversions.swift) that are
++  // not on the main actor to invoke it without a Swift 6 strict-concurrency error.
++  nonisolated public static func getDynamicType() -> AnyDynamicType {
+     return DynamicViewType(innerType: Self.self)
+   }
+ }

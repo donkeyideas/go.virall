@@ -15,3 +15,9 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+# EAS credentials (sensitive - never commit)
+credentials.json
+credentials/
+*.pem
+*.jks
+release.keystore
