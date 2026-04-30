@@ -33,7 +33,8 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/withSwiftConcurrency"
     ],
     "experiments": {
       "typedRoutes": true
