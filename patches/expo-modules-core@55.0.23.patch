@@ -24,10 +24,10 @@ index 8fe764a9ee7555edb074854152d05ef2461c69bb..112e3b1bbb59699eee7df34e0e8a27d9
 +  init(_ value: any JavaScriptObjectBuilder) { self.value = value }
 +}
 diff --git a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
-index 586f261712216969182b6e4eca10b8319b6c79db..3fd04a4d56d5e3c9d04187a1a344a6b49fe3ef27 100644
+index 586f261712216969182b6e4eca10b8319b6c79db..d84166c9c0aecf6a5022c02feacc9e7a6536119a 100644
 --- a/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
 +++ b/ios/Core/DynamicTypes/DynamicSwiftUIViewType.swift
-@@ -37,20 +37,22 @@ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicTyp
+@@ -37,20 +37,24 @@ internal struct DynamicSwiftUIViewType<ViewType: ExpoSwiftUIView>: AnyDynamicTyp
      // Direct match, the virtual view's content type matches exactly.
      // e.g. View(SlotView.self)
      if let view = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.SwiftUIVirtualView<ViewType.Props, ViewType>.self) {
@@ -40,7 +40,8 @@ index 586f261712216969182b6e4eca10b8319b6c79db..3fd04a4d56d5e3c9d04187a1a344a6b4
 -       let innerView = provider.getWrappedView() as? ViewType {
 -      return innerView
 +    if let provider = appContext.findView(withTag: viewTag, ofType: ExpoSwiftUI.ViewWrapper.self) {
-+      let wrapped = MainActor.assumeIsolated { _AnyBox(provider.getWrappedView()) }.value
++      let providerBox = _ViewWrapperBox(provider)
++      let wrapped = MainActor.assumeIsolated { _AnyBox(providerBox.value.getWrappedView()) }.value
 +      if let innerView = wrapped as? ViewType {
 +        return innerView
 +      }
@@ -51,11 +52,12 @@ index 586f261712216969182b6e4eca10b8319b6c79db..3fd04a4d56d5e3c9d04187a1a344a6b4
        throw Exceptions.SwiftUIViewNotFound((tag: viewTag, type: innerType.self))
      }
 -    return view.getContentView()
-+    return MainActor.assumeIsolated { view.getContentView() }
++    let hostingViewBox = _HostingViewBox(view)
++    return MainActor.assumeIsolated { hostingViewBox.value.getContentView() }
    }
  
    var description: String {
-@@ -70,3 +72,9 @@ private func findViewTag(_ value: JavaScriptValue) -> Int? {
+@@ -70,3 +74,20 @@ private func findViewTag(_ value: JavaScriptValue) -> Int? {
    }
    return nil
  }
@@ -64,6 +66,17 @@ index 586f261712216969182b6e4eca10b8319b6c79db..3fd04a4d56d5e3c9d04187a1a344a6b4
 +private struct _AnyBox: @unchecked Sendable {
 +  let value: Any
 +  init(_ value: Any) { self.value = value }
++}
++
++// Boxes non-Sendable protocol existentials for MainActor.assumeIsolated captures.
++private struct _ViewWrapperBox: @unchecked Sendable {
++  let value: any ExpoSwiftUI.ViewWrapper
++  init(_ value: any ExpoSwiftUI.ViewWrapper) { self.value = value }
++}
++
++private struct _HostingViewBox: @unchecked Sendable {
++  let value: any AnyExpoSwiftUIHostingView
++  init(_ value: any AnyExpoSwiftUIHostingView) { self.value = value }
 +}
 diff --git a/ios/Core/Logging/PersistentFileLog.swift b/ios/Core/Logging/PersistentFileLog.swift
 index 5ddcbb6a3094760fa61b0049917d655b125f94b1..c978ae4f4f752248a8eac15fa7f0616d6cd6b288 100644
