@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ThemedSelect } from '@govirall/ui-web';
+import { ThemedSelect, AccountPicker } from '@govirall/ui-web';
 
 type PlatformAccount = {
   id: string;
@@ -45,8 +45,11 @@ export function ScriptsClient({ theme, platforms, previousResults, previousMeta 
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  const connectedAccount = platforms.find((p) => p.platform === selectedPlatform);
+  const connectedAccount = selectedAccountId
+    ? platforms.find((p) => p.id === selectedAccountId)
+    : platforms.find((p) => p.platform === selectedPlatform);
 
   const cardStyle: React.CSSProperties = isEditorial
     ? { border: '1.5px solid var(--ink)', borderRadius: 20, background: 'var(--paper)', padding: 24 }
@@ -203,6 +206,17 @@ export function ScriptsClient({ theme, platforms, previousResults, previousMeta 
           Structured video scripts with hooks, body, CTAs, and timing cues.
         </p>
       </div>
+
+      <AccountPicker
+        accounts={platforms}
+        selectedAccountId={selectedAccountId}
+        onSelect={(accountId, platform) => {
+          setSelectedAccountId(accountId);
+          if (platform) setSelectedPlatform(platform);
+        }}
+        theme={theme}
+        label="Generating for"
+      />
 
       {/* Platform strip — video-first order */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 24 }}>

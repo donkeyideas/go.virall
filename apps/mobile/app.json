@@ -2,7 +2,7 @@
   "expo": {
     "name": "Go Virall",
     "slug": "govirall",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "govirall",
@@ -15,7 +15,8 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.govirall.app"
+      "bundleIdentifier": "com.govirall.app",
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +24,8 @@
         "backgroundColor": "#0a0618"
       },
       "package": "com.govirall.app",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "versionCode": 5
     },
     "plugins": [
       "expo-router",

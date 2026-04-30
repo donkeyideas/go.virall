@@ -10,6 +10,12 @@ import { SmoCard } from '@/components/cards/SmoCard';
 import { NextPostCard } from '@/components/cards/NextPostCard';
 import { ActionCard } from '@/components/cards/ActionCard';
 import { WinCard } from '@/components/cards/WinCard';
+import { PlatformsCard } from '@/components/cards/PlatformsCard';
+import { ContentCard } from '@/components/cards/TopContentCard';
+import { QuickStatsCard } from '@/components/cards/QuickStatsCard';
+import { GrowthChart } from '@/components/charts/GrowthChart';
+import { StrategistChat } from '@/components/cards/StrategistChat';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -27,95 +33,42 @@ function getDateMeta(): string {
   return `${day} · ${month} ${date} · ${time}`;
 }
 
-// ── Section Header ─────────────────────────────────────────────────
-function SectionHeader({ number, title, emphasisWord, meta }: { number: string; title: string; emphasisWord?: string; meta?: string }) {
-  const t = useTokens();
-
-  if (isGlass(t)) {
-    return (
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingVertical: 10, marginTop: 12 }}>
-        <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, color: t.fg, letterSpacing: -0.3 }}>
-          {emphasisWord && title.includes(emphasisWord) ? (
-            <>
-              {title.split(emphasisWord)[0]}
-              <Text style={{ fontFamily: t.fontDisplayItalic, color: t.violetSoft }}>{emphasisWord}</Text>
-              {title.split(emphasisWord)[1]}
-            </>
-          ) : title}
-        </Text>
-        {meta && <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>{meta}</Text>}
-      </View>
-    );
-  }
-
-  if (isEditorial(t)) {
-    return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, marginTop: 12, gap: 10 }}>
-        <View style={{ backgroundColor: t.ink, paddingVertical: 2, paddingHorizontal: 6 }}>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1, color: t.bg }}>{number}</Text>
-        </View>
-        <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, letterSpacing: -0.3, color: t.ink }}>
-          {emphasisWord && title.includes(emphasisWord) ? (
-            <>
-              {title.split(emphasisWord)[0]}
-              <Text style={{ fontStyle: 'italic' }}>{emphasisWord}</Text>
-              {title.split(emphasisWord)[1]}
-            </>
-          ) : title}
-        </Text>
-        {meta && <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted, marginLeft: 'auto' }}>{meta}</Text>}
-      </View>
-    );
-  }
-
-  // Neumorphic
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingVertical: 10, marginTop: 12 }}>
-      <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, color: t.ink, letterSpacing: -0.4 }}>
-        {emphasisWord && title.includes(emphasisWord) ? (
-          <>
-            {title.split(emphasisWord)[0]}
-            <Text style={{ fontFamily: t.fontDisplayItalic, color: t.accent }}>{emphasisWord}</Text>
-            {title.split(emphasisWord)[1]}
-          </>
-        ) : title}
-      </Text>
-      {meta && <Text style={{ fontFamily: t.fontBodyExtraBold, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>{meta}</Text>}
-    </View>
-  );
-}
-
 // ── Main Screen ────────────────────────────────────────────────────
 export default function TodayScreen() {
   const t = useTokens();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
-  const { loading, error, user, pulse, smo, nextPost, actions, wins, refresh } = useTodayData();
+  const {
+    loading, error, user, pulse, smo, nextPost, actions, wins,
+    platforms, postCount, topPosts, scheduledPosts, connectedPlatformCount,
+    engagementRate, growthData, refresh,
+  } = useTodayData();
 
   const firstName = user?.displayName?.split(' ')[0]
     ?? authUser?.user_metadata?.display_name?.split(' ')[0]
     ?? 'there';
 
-  // Convert pulse data to PulseStat[] for PulseStats component
+  // Convert pulse data to PulseStat[] for PulseStats component — matches web KPI row
   const pulseStats: PulseStat[] = [
     { label: 'Followers', value: pulse.followers.formatted, delta: pulse.followers.delta, deltaVariant: pulse.followers.deltaVariant },
-    { label: 'Engage', value: pulse.engagement.formatted, delta: pulse.engagement.delta, deltaVariant: pulse.engagement.deltaVariant },
+    { label: 'Posts', value: postCount > 0 ? String(postCount) : '--', delta: postCount > 0 ? 'Total' : undefined, deltaVariant: 'flat' },
     { label: 'Revenue', value: pulse.revenueMtd.formatted, delta: pulse.revenueMtd.delta, deltaVariant: pulse.revenueMtd.deltaVariant },
     { label: 'Pipeline', value: pulse.pipeline.formatted, delta: pulse.pipeline.delta, deltaVariant: pulse.pipeline.deltaVariant },
+    { label: 'Platforms', value: String(connectedPlatformCount), delta: connectedPlatformCount > 0 ? 'connected' : undefined, deltaVariant: connectedPlatformCount > 0 ? 'good' : 'flat' },
   ];
 
   // Loading state
   if (loading) {
     const color = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
         <ActivityIndicator size="large" color={color} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40, paddingTop: insets.top + 10 }}
         refreshControl={
@@ -140,11 +93,18 @@ export default function TodayScreen() {
                   {firstName[0]?.toUpperCase() ?? 'G'}
                 </Text>
               </View>
+              {/* Online indicator dot */}
+              <View style={{
+                position: 'absolute', bottom: 0, right: 0,
+                width: 10, height: 10, borderRadius: 5,
+                backgroundColor: t.good,
+                borderWidth: 2, borderColor: t.bg,
+              }} />
             </View>
             <Text style={{ fontFamily: t.fontDisplay, fontSize: 38, color: t.fg, lineHeight: 40, letterSpacing: -0.5 }}>
-              {`${getGreeting()}, `}
-              <Text style={{ fontFamily: t.fontDisplayItalic, color: t.violetSoft }}>{`${firstName}`}</Text>
-              {'.'}
+              {`${getGreeting()},\n`}
+              <Text style={{ fontFamily: t.fontDisplayItalic, color: t.rose }}>{`${firstName}`}</Text>
+              <Text style={{ fontFamily: t.fontDisplayItalic, color: t.mint }}>{'.'}</Text>
             </Text>
             <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: t.subtle, marginTop: 8 }}>
               {getDateMeta()}
@@ -155,10 +115,9 @@ export default function TodayScreen() {
         {isEditorial(t) && (
           <View style={{ paddingLeft: 76, paddingRight: 20, paddingTop: 20, paddingBottom: 14, borderBottomWidth: 1.5, borderBottomColor: t.ink }}>
             {/* Kicker row */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, marginRight: 50 }}>
               <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.8, textTransform: 'uppercase', color: t.ink }}>Today's briefing</Text>
-              <View style={{ flex: 1, height: 1.5, backgroundColor: t.ink, marginHorizontal: 10 }} />
-              <Text style={{ fontFamily: t.fontMono, fontSize: 10, color: t.muted }}>{getDateMeta()}</Text>
+              <View style={{ flex: 1, height: 1.5, backgroundColor: t.ink, marginLeft: 10 }} />
             </View>
             {/* Avatar top-right */}
             <View style={{ position: 'absolute', right: 20, top: 20 }}>
@@ -179,6 +138,10 @@ export default function TodayScreen() {
               {`${getGreeting()}, `}
               <Text style={{ backgroundColor: t.lime, paddingHorizontal: 6 }}>{firstName}</Text>
               {'.'}
+            </Text>
+            {/* Date/time below headline */}
+            <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: t.muted, marginTop: 8 }}>
+              {getDateMeta()}
             </Text>
           </View>
         )}
@@ -230,6 +193,16 @@ export default function TodayScreen() {
             />
           </View>
         )}
+
+        {/* ── AI Strategist ─────────────────────────── */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <StrategistChat displayName={firstName} />
+        </View>
+
+        {/* ── Growth Chart ─────────────────────────── */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <GrowthChart data={growthData} currentFollowers={pulse.followers.value} />
+        </View>
 
         {/* ── Section: Your next post ───────────────── */}
         {nextPost && (
@@ -289,6 +262,22 @@ export default function TodayScreen() {
             </View>
           </View>
         )}
+
+        {/* ── Bottom cards: Platforms, Top Content, Quick Stats ── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+          <SectionHeader number="06" title="Your channels" emphasisWord="channels" meta={`${connectedPlatformCount} active`} />
+          <PlatformsCard platforms={platforms} />
+        </View>
+
+        <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+          <SectionHeader number="07" title="Content" emphasisWord="Content" />
+          <ContentCard topPosts={topPosts} scheduledPosts={scheduledPosts} />
+        </View>
+
+        <View style={{ paddingHorizontal: 20, marginTop: 8, marginBottom: 16 }}>
+          <SectionHeader number="08" title="Quick stats" emphasisWord="stats" />
+          <QuickStatsCard smoScore={smo?.score ?? null} connectedPlatformCount={connectedPlatformCount} engagementRate={engagementRate} />
+        </View>
 
         {/* ── Empty state ───────────────────────────── */}
         {!loading && !smo && actions.length === 0 && wins.length === 0 && !nextPost && (

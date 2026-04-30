@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AccountPicker, type AccountOption } from '@govirall/ui-web';
 
 type Factor = { label: string; value: number; tip: string };
 
@@ -11,14 +12,17 @@ type Props = {
   factors: Factor[] | null;
   computedAt: string | null;
   connectedCount: number;
+  platforms: AccountOption[];
+  selectedPlatformAccountId?: string | null;
 };
 
-export function SmoScoreClient({ theme, score, factors, computedAt, connectedCount }: Props) {
+export function SmoScoreClient({ theme, score, factors, computedAt, connectedCount, platforms, selectedPlatformAccountId }: Props) {
   const isEditorial = theme === 'neon-editorial';
   const isNeumorphic = theme === 'neumorphic';
   const router = useRouter();
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(selectedPlatformAccountId ?? null);
 
   const cardStyle: React.CSSProperties = isEditorial
     ? { border: '1.5px solid var(--ink)', borderRadius: 20, background: 'var(--paper)', padding: 28 }
@@ -125,6 +129,21 @@ export function SmoScoreClient({ theme, score, factors, computedAt, connectedCou
           )}
         </div>
       </div>
+
+      <AccountPicker
+        accounts={platforms}
+        selectedAccountId={selectedAccountId}
+        onSelect={(accountId) => {
+          setSelectedAccountId(accountId);
+          const params = new URLSearchParams(window.location.search);
+          if (accountId) params.set('platformAccountId', accountId);
+          else params.delete('platformAccountId');
+          router.push(`/smo-score${params.toString() ? `?${params}` : ''}`);
+        }}
+        theme={theme}
+        showAllOption
+        label="Analyzing"
+      />
 
       {error && (
         <div style={{

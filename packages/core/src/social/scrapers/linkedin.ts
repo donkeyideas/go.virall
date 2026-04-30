@@ -125,7 +125,32 @@ export async function scrapeLinkedInProfile(handle: string): Promise<LinkedInPro
 
   for (const url of urls) {
     const result = await fetchPage(url, clean);
-    if (result && (result.followersCount > 0 || result.displayName !== clean)) return result;
+    if (result && (result.followersCount > 0 || result.displayName !== clean)) {
+      // Try to detect verified from page HTML
+      if (!result.verified) {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+          const res = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)', Accept: 'text/html' },
+            signal: ctrl.signal, redirect: 'follow',
+          });
+          clearTimeout(t);
+          if (res.ok) {
+            const html = await res.text();
+            if (/"verified"\s*:\s*true/i.test(html) || /premium-icon/i.test(html)) {
+              result.verified = true;
+            }
+            // Try to get follower count if missing
+            if (!result.followersCount) {
+              const fMatch = html.match(/(\d[\d,]*)\s*(?:followers|connections)/i);
+              if (fMatch) result.followersCount = parseCount(fMatch[1]);
+            }
+          }
+        } catch { /* continue */ }
+      }
+      return result;
+    }
   }
   return null;
 }

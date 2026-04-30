@@ -1,5 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AccountPicker, type AccountOption } from '@govirall/ui-web';
+
 type SignalData = {
   name: string;
   score: number;
@@ -24,6 +28,8 @@ type Props = {
     postsAnalyzed: number;
     postsPerWeek: number;
   };
+  platforms: AccountOption[];
+  selectedPlatformAccountId?: string | null;
 };
 
 function scoreColor(score: number): string {
@@ -43,9 +49,11 @@ function shortDate(iso: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function GoVirallClient({ theme, overall, status, signals, trendData, actions, stats }: Props) {
+export function GoVirallClient({ theme, overall, status, signals, trendData, actions, stats, platforms, selectedPlatformAccountId }: Props) {
   const isEditorial = theme === 'neon-editorial';
   const isNeumorphic = theme === 'neumorphic';
+  const router = useRouter();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(selectedPlatformAccountId ?? null);
 
   const cardStyle: React.CSSProperties = isEditorial
     ? { border: '1.5px solid var(--ink)', borderRadius: 20, background: 'var(--paper)', padding: 24 }
@@ -106,6 +114,21 @@ export function GoVirallClient({ theme, overall, status, signals, trendData, act
           Your viral prediction engine. Most creators score 10&ndash;30. When this number climbs, something real is happening.
         </p>
       </div>
+
+      <AccountPicker
+        accounts={platforms}
+        selectedAccountId={selectedAccountId}
+        onSelect={(accountId) => {
+          setSelectedAccountId(accountId);
+          const params = new URLSearchParams(window.location.search);
+          if (accountId) params.set('platformAccountId', accountId);
+          else params.delete('platformAccountId');
+          router.push(`/go-virall${params.toString() ? `?${params}` : ''}`);
+        }}
+        theme={theme}
+        showAllOption
+        label="Analyzing"
+      />
 
       {/* ── Thermometer Gauge ── */}
       <div style={{ ...cardStyle, marginBottom: 24, padding: isEditorial ? 32 : 28 }}>

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { PLATFORM_CHAR_LIMITS } from '@govirall/core';
-import { ThemedSelect } from '@govirall/ui-web';
+import { ThemedSelect, AccountPicker } from '@govirall/ui-web';
 
 type PlatformAccount = {
   id: string;
@@ -45,8 +45,11 @@ export function CaptionsClient({ theme, platforms, previousResults, previousMeta
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  const connectedAccount = platforms.find((p) => p.platform === selectedPlatform);
+  const connectedAccount = selectedAccountId
+    ? platforms.find((p) => p.id === selectedAccountId)
+    : platforms.find((p) => p.platform === selectedPlatform);
   const charLimit = PLATFORM_CHAR_LIMITS[selectedPlatform]?.caption ?? 2200;
 
   const cardStyle: React.CSSProperties = isEditorial
@@ -193,6 +196,17 @@ export function CaptionsClient({ theme, platforms, previousResults, previousMeta
           Polished, ready-to-post captions crafted for your platform's character limits.
         </p>
       </div>
+
+      <AccountPicker
+        accounts={platforms}
+        selectedAccountId={selectedAccountId}
+        onSelect={(accountId, platform) => {
+          setSelectedAccountId(accountId);
+          if (platform) setSelectedPlatform(platform);
+        }}
+        theme={theme}
+        label="Generating for"
+      />
 
       {/* Platform selector — required here since captions are platform-specific */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>

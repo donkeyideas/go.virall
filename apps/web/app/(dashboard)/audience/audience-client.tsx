@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Input, Badge, ThemedSelect } from '@govirall/ui-web';
+import { Input, Badge, ThemedSelect, AccountPicker } from '@govirall/ui-web';
 import { useRouter } from 'next/navigation';
 
 type Platform = {
@@ -90,6 +90,19 @@ export function AudienceClient({
   const [addError, setAddError] = useState('');
   const [competitorPlatform, setCompetitorPlatform] = useState('instagram');
   const [competitorLabel, setCompetitorLabel] = useState('watch');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
+  // Client-side filtering by selected account
+  const selectedAccount = selectedAccountId
+    ? connectedPlatforms.find((p) => p.id === selectedAccountId)
+    : null;
+  const filteredPlatforms = selectedAccount
+    ? connectedPlatforms.filter((p) => p.id === selectedAccountId)
+    : connectedPlatforms;
+  const filteredCompetitors = selectedAccount
+    ? initialCompetitors.filter((c) => c.platform === selectedAccount.platform)
+    : initialCompetitors;
+  const filteredTotalFollowers = filteredPlatforms.reduce((sum, p) => sum + (p.follower_count ?? 0), 0);
 
   const cardStyle: React.CSSProperties = isEditorial
     ? { border: '1.5px solid var(--ink)', borderRadius: 20, background: 'var(--paper)', padding: 24 }
@@ -206,6 +219,15 @@ export function AudienceClient({
         </h1>
       </div>
 
+      <AccountPicker
+        accounts={connectedPlatforms}
+        selectedAccountId={selectedAccountId}
+        onSelect={(accountId) => setSelectedAccountId(accountId)}
+        theme={theme}
+        showAllOption
+        label="Analyzing"
+      />
+
       {/* Chapter 1: Who's watching */}
       <section style={{ marginBottom: 32 }}>
         <h2 style={sectionHeading('Who\'s watching')}>
@@ -217,7 +239,7 @@ export function AudienceClient({
             <h3 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 16 }}>
               Your reach
             </h3>
-            {connectedPlatforms.length > 0 ? (
+            {filteredPlatforms.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
                   <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase' as const, color: 'var(--muted)', marginBottom: 6 }}>
@@ -231,10 +253,10 @@ export function AudienceClient({
                     color: 'var(--fg)',
                     lineHeight: 1,
                   }}>
-                    {totalFollowers.toLocaleString()}
+                    {filteredTotalFollowers.toLocaleString()}
                   </div>
                 </div>
-                {connectedPlatforms.map((p) => {
+                {filteredPlatforms.map((p) => {
                   const meta = PLATFORM_META[p.platform];
                   return (
                     <div key={p.id} style={{ ...innerItemStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -545,7 +567,7 @@ export function AudienceClient({
           </div>
         )}
 
-        {initialCompetitors.length > 0 ? (
+        {filteredCompetitors.length > 0 ? (
           <div style={cardStyle}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
@@ -570,7 +592,7 @@ export function AudienceClient({
                   </tr>
                 </thead>
                 <tbody>
-                  {initialCompetitors.map((comp) => (
+                  {filteredCompetitors.map((comp) => (
                     <tr key={comp.id} style={{ borderBottom: '1px solid var(--line)' }}>
                       <td style={{ padding: '10px 12px', color: 'var(--fg)', fontWeight: 500 }}>@{comp.handle}</td>
                       <td style={{ padding: '10px 12px', color: 'var(--fg)' }}>

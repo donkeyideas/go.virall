@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Pressable, Modal, Text, ScrollView } from 'react-native';
 import { Stack, router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTokens, useTheme, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -43,28 +44,39 @@ export default function AppLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
-  // Fetch real user profile for display name + tier
-  const [profile, setProfile] = useState<{ displayName: string; tier: string; renewsAt: string | null } | null>(null);
+  // Fetch real user profile for display name
+  const [profile, setProfile] = useState<{ displayName: string } | null>(null);
   useEffect(() => {
     if (!user) return;
     api.get<any>('/user').then((res) => {
       setProfile({
         displayName: res.display_name || user?.user_metadata?.display_name || 'Creator',
-        tier: res.subscription_tier || 'free',
-        renewsAt: res.subscription_renews_at || null,
       });
     }).catch(() => {});
   }, [user]);
 
   const displayName = profile?.displayName ?? user?.user_metadata?.display_name ?? 'Creator';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-  const tierLabel = profile?.tier === 'pro' ? 'Pro' : profile?.tier === 'team' ? 'Team' : 'Free';
-  const renewsLabel = profile?.renewsAt
-    ? `Renews ${new Date(profile.renewsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-    : '';
 
   return (
-    <View style={{ flex: 1, backgroundColor: isGlass(t) ? t.bg : isEditorial(t) ? t.bg : t.bg }}>
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      {/* Gradient mesh background — glassmorphic depth */}
+      {isGlass(t) && (
+        <>
+          <LinearGradient
+            colors={['rgba(139,92,246,0.45)', 'transparent']}
+            start={{ x: 0.15, y: 0.1 }}
+            end={{ x: 0.7, y: 0.5 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60%', zIndex: 0 }}
+          />
+          <LinearGradient
+            colors={['rgba(255,113,168,0.3)', 'transparent']}
+            start={{ x: 0.85, y: 0 }}
+            end={{ x: 0.3, y: 0.45 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', zIndex: 0 }}
+          />
+        </>
+      )}
       {/* Stack navigation */}
       <Stack
         screenOptions={{
@@ -103,7 +115,7 @@ export default function AppLayout() {
           alignItems: 'center',
           // Theme-specific styling
           ...(isGlass(t) ? {
-            backgroundColor: 'rgba(255,255,255,0.08)',
+            backgroundColor: t.bgTop,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.18)',
             borderRadius: 16,
@@ -351,7 +363,7 @@ export default function AppLayout() {
                   fontSize: 10,
                   color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
                 }}>
-                  {tierLabel}{renewsLabel ? ` · ${renewsLabel}` : ''}
+                  @{displayName.toLowerCase().replace(/\s+/g, '')}
                 </Text>
               </View>
               {/* Sign out */}

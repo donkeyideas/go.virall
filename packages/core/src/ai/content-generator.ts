@@ -28,6 +28,14 @@ export interface ContentGeneratorInput {
   primaryGoal?: PrimaryGoal | null;
   platformHandle?: string | null;
   followerCount?: number | null;
+  /** The user's bio — describes what their account/brand is about */
+  userBio?: string | null;
+  /** The user's display name / brand name */
+  displayName?: string | null;
+  /** The user's handle on the platform */
+  userHandle?: string | null;
+  /** Comma-separated platform display names (fallback when no bio) */
+  nicheSummary?: string | null;
 }
 
 export interface ContentResult {
@@ -57,10 +65,27 @@ function goalDirective(primaryGoal?: PrimaryGoal | null): string {
   return directive ? `\n\n${directive}` : '';
 }
 
+function hasIdentity(input: ContentGeneratorInput): boolean {
+  return !!(input.userBio || input.nicheSummary || input.displayName);
+}
+
 function profileContext(input: ContentGeneratorInput): string {
-  const parts: string[] = [`PLATFORM: ${input.platform}`];
-  if (input.platformHandle) parts.push(`HANDLE: @${input.platformHandle}`);
+  const parts: string[] = [];
+  if (input.displayName) parts.push(`BRAND/ACCOUNT NAME: ${input.displayName}`);
+  if (input.userBio) {
+    parts.push(`ACCOUNT BIO: ${input.userBio}`);
+  }
+  if (input.nicheSummary) {
+    parts.push(`ACCOUNT IDENTITY (from connected platforms): ${input.nicheSummary}`);
+  }
+  parts.push(`PLATFORM: ${input.platform}`);
+  if (input.platformHandle || input.userHandle) parts.push(`HANDLE: @${input.platformHandle ?? input.userHandle}`);
   if (input.followerCount) parts.push(`FOLLOWERS: ${input.followerCount.toLocaleString()}`);
+
+  // Context reinforcement — the AI MUST generate content relevant to this account
+  if (hasIdentity(input)) {
+    parts.push(`\nCRITICAL: You are writing content for "${input.displayName ?? 'this account'}". All content MUST be directly relevant to this account's niche and audience. Do NOT generate generic content. Tailor every idea, hook, and caption to what this account actually covers.`);
+  }
   return parts.join('\n');
 }
 
@@ -73,7 +98,7 @@ TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
 ${getCharLimitNote(input.platform, 'caption')}${goalDirective(input.primaryGoal)}
 
-Generate exactly ${input.count} post ideas. For each idea include:
+Generate exactly ${input.count} post ideas that are directly relevant to the TOPIC/THEME${hasIdentity(input) ? ' and the account\'s niche' : ''}. For each idea include:
 - title: Catchy post title (5-10 words)
 - hook: Opening hook line that grabs attention
 - angle: The unique perspective or angle
@@ -91,7 +116,7 @@ TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
 ${getCharLimitNote(input.platform, 'caption')}${goalDirective(input.primaryGoal)}
 
-Generate exactly ${input.count} ready-to-post captions. For each caption include:
+Generate exactly ${input.count} ready-to-post captions that are directly relevant to the TOPIC/THEME${hasIdentity(input) ? ' and the account\'s niche' : ''}. For each caption include:
 - text: The full caption text (engaging, ${input.tone} tone, include line breaks for readability, no emojis). MUST respect the platform character limit.
 - callToAction: A compelling CTA at the end
 - hashtags: Array of 5-8 relevant hashtags (with #)
@@ -107,7 +132,7 @@ ${profileContext(input)}
 TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}${goalDirective(input.primaryGoal)}
 
-Generate exactly ${input.count} scripts optimized for ${input.platform}. For each script include:
+Generate exactly ${input.count} scripts optimized for ${input.platform} that are directly relevant to the TOPIC/THEME${hasIdentity(input) ? ' and the account\'s niche' : ''}. For each script include:
 - title: Script title
 - hook: Opening hook (first 3 seconds — most critical)
 - body: Main content (keep punchy, ${input.tone} tone)
@@ -125,7 +150,7 @@ TOPIC/THEME: ${input.topic}
 TONE: ${input.tone}
 ${getCharLimitNote(input.platform, 'bio')}${goalDirective(input.primaryGoal)}
 
-Generate exactly ${input.count} bio variations optimized for discovery and conversion. For each bio include:
+Generate exactly ${input.count} bio variations optimized for discovery and conversion${hasIdentity(input) ? ', using the account\'s identity and niche as context' : ''}. For each bio include:
 - text: The full bio text (MUST respect the platform character limit, use line breaks, no emojis)
 - style: The style approach (e.g. "Professional", "Creative", "Minimalist", "Authority", "Approachable")
 - callToAction: The CTA included in the bio (no emojis)

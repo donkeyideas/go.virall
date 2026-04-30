@@ -5,6 +5,8 @@ import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Kicker } from '@/components/ui/Kicker';
+import { AccountPicker } from '@/components/ui/AccountPicker';
+import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface Signal {
@@ -48,11 +50,14 @@ export default function GoVirallScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { accounts, loading: accountsLoading } = useConnectedAccounts();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       setError(null);
-      const result = await api.get<GoVirallData>('/go-virall');
+      const url = selectedAccountId ? `/go-virall?platformAccountId=${selectedAccountId}` : '/go-virall';
+      const result = await api.get<GoVirallData>(url);
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load');
@@ -60,7 +65,7 @@ export default function GoVirallScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedAccountId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -73,14 +78,14 @@ export default function GoVirallScreen() {
   // Loading
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: t.bg, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={accentColor} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColor} />}
@@ -117,6 +122,16 @@ export default function GoVirallScreen() {
             Viral momentum tracker
           </Text>
         </View>
+
+        {/* Account picker */}
+        <AccountPicker
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={(accountId) => setSelectedAccountId(accountId)}
+          showAllOption
+          loading={accountsLoading}
+          label="Analyzing"
+        />
 
         {error && (
           <View style={{ padding: 12, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: 12, marginBottom: 16 }}>

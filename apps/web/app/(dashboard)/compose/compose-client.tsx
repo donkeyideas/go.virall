@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Input } from '@govirall/ui-web';
+import { Input, AccountPicker } from '@govirall/ui-web';
 import { createPost, updatePost } from '@/lib/actions/posts';
 
 const PLATFORM_TABS = [
@@ -114,6 +114,10 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
   const [saveMessage, setSaveMessage] = useState('');
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState('');
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   // Platform-specific formats and limits
   const formatChips = PLATFORM_FORMATS[platform] ?? PLATFORM_FORMATS.instagram;
@@ -220,12 +224,75 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
     setSaving(false);
   }
 
+  async function handleSchedule() {
+    if (!scheduleDate || !scheduleTime) return;
+    if (!hook.trim()) {
+      setSaveMessage('Write a hook before scheduling');
+      setTimeout(() => setSaveMessage(''), 3000);
+      return;
+    }
+    setSaving(true);
+    setSaveMessage('');
+    const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+    const formData = new FormData();
+    formData.set('hook', hook);
+    formData.set('caption', caption);
+    formData.set('platform', platform);
+    formData.set('format', format);
+    formData.set('hashtags', hashtags.join(','));
+    formData.set('status', 'scheduled');
+    formData.set('scheduled_at', scheduledAt);
+
+    const result = draftId
+      ? await updatePost(draftId, formData)
+      : await createPost(formData);
+
+    if (!result.error && !draftId && result.data?.id) {
+      setDraftId(result.data.id);
+    }
+    setSaveMessage(result.error || 'Post scheduled');
+    setTimeout(() => setSaveMessage(''), 3000);
+    if (!result.error) setShowSchedule(false);
+    setSaving(false);
+  }
+
+  async function handlePublishNow() {
+    if (!hook.trim()) {
+      setSaveMessage('Write a hook before publishing');
+      setTimeout(() => setSaveMessage(''), 3000);
+      return;
+    }
+    setSaving(true);
+    setSaveMessage('');
+    const formData = new FormData();
+    formData.set('hook', hook);
+    formData.set('caption', caption);
+    formData.set('platform', platform);
+    formData.set('format', format);
+    formData.set('hashtags', hashtags.join(','));
+    formData.set('status', 'published');
+    formData.set('scheduled_at', new Date().toISOString());
+
+    const result = draftId
+      ? await updatePost(draftId, formData)
+      : await createPost(formData);
+
+    if (!result.error && !draftId && result.data?.id) {
+      setDraftId(result.data.id);
+    }
+    setSaveMessage(result.error || 'Post published');
+    setTimeout(() => setSaveMessage(''), 3000);
+    setSaving(false);
+  }
+
   async function handleGenerate() {
     setGenerating(true);
     setGenError('');
     try {
-      // Find the connected account for the selected platform
-      const account = connectedPlatforms.find((a) => a.platform === platform);
+      // Find the connected account — prefer explicit selection, fall back to platform match
+      const account = selectedAccountId
+        ? connectedPlatforms.find((a) => a.id === selectedAccountId)
+        : connectedPlatforms.find((a) => a.platform === platform);
       const topic = hook.trim() || caption.trim() || (mission ? `content about ${mission}` : `trending ${platform} content`);
       const res = await fetch('/api/content/generate', {
         method: 'POST',
@@ -322,6 +389,17 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
       <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: isEditorial ? 18 : 20 }}>
         {/* Left panel: Editor */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <AccountPicker
+            accounts={connectedPlatforms}
+            selectedAccountId={selectedAccountId}
+            onSelect={(accountId, accountPlatform) => {
+              setSelectedAccountId(accountId);
+              if (accountPlatform) handlePlatformChange(accountPlatform);
+            }}
+            theme={theme}
+            label="Posting as"
+          />
+
           {/* Platform selector */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {PLATFORM_TABS.map((p) => (
@@ -571,9 +649,9 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
               onClick={handleSaveDraft}
               disabled={saving}
               style={{
-                height: 40,
-                padding: '0 20px',
-                fontSize: 13,
+                flex: 1,
+                height: 44,
+                fontSize: 14,
                 fontWeight: 600,
                 borderRadius: isNeumorphic ? 14 : 12,
                 cursor: saving ? 'wait' : 'pointer',
@@ -589,50 +667,154 @@ export function ComposeClient({ theme, draft, mission, connectedPlatforms = [] }
               {saving ? 'Saving...' : 'Save draft'}
             </button>
             <button
-              disabled
+              onClick={() => setShowSchedule(!showSchedule)}
+              disabled={saving}
               style={{
-                height: 40,
-                padding: '0 20px',
-                fontSize: 13,
+                flex: 1,
+                height: 44,
+                fontSize: 14,
                 fontWeight: 600,
                 borderRadius: isNeumorphic ? 14 : 12,
-                cursor: 'not-allowed',
-                opacity: 0.45,
+                cursor: saving ? 'wait' : 'pointer',
+                transition: 'all .15s',
+                opacity: saving ? 0.6 : 1,
                 ...(isEditorial
-                  ? { border: '1.5px solid var(--ink)', background: 'transparent', color: 'var(--ink)' }
+                  ? showSchedule
+                    ? { border: '1.5px solid var(--ink)', background: 'var(--ink)', color: 'var(--bg)' }
+                    : { border: '1.5px solid var(--ink)', background: 'transparent', color: 'var(--ink)' }
                   : isNeumorphic
-                  ? { border: 'none', background: 'var(--surface, var(--bg))', color: 'var(--fg)', boxShadow: 'var(--out-sm)' }
-                  : { border: '1px solid var(--line)', background: 'rgba(255,255,255,.06)', color: 'var(--fg)' }),
+                  ? showSchedule
+                    ? { border: 'none', background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--in-sm)' }
+                    : { border: 'none', background: 'var(--surface, var(--bg))', color: 'var(--fg)', boxShadow: 'var(--out-sm)' }
+                  : showSchedule
+                    ? { background: 'rgba(139,92,246,.15)', border: '1px solid var(--violet, #8b5cf6)', color: 'var(--fg)' }
+                    : { border: 'none', background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
               }}
             >
               Schedule
             </button>
-            <button
-              disabled
-              style={{
-                height: 40,
-                padding: '0 20px',
-                fontSize: 13,
-                fontWeight: 600,
-                borderRadius: isNeumorphic ? 14 : 12,
-                border: 'none',
-                cursor: 'not-allowed',
-                opacity: 0.45,
-                ...(isEditorial
-                  ? { background: 'var(--ink)', color: 'var(--bg)' }
-                  : isNeumorphic
-                  ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
-                  : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
-              }}
-            >
-              Publish now
-            </button>
             {saveMessage && (
-              <span style={{ fontSize: 13, fontWeight: 500, color: saveMessage === 'Draft saved' ? 'var(--color-good)' : 'var(--color-bad)' }}>
+              <span style={{
+                fontSize: 13, fontWeight: 500,
+                color: saveMessage === 'Draft saved' || saveMessage === 'Post scheduled'
+                  ? 'var(--color-good)' : 'var(--color-bad)',
+              }}>
                 {saveMessage}
               </span>
             )}
           </div>
+
+          {/* Inline Schedule Panel */}
+          {showSchedule && (
+            <div style={{
+              ...cardStyle,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 14,
+              ...(isEditorial
+                ? { borderStyle: 'dashed' }
+                : isNeumorphic
+                ? { boxShadow: 'var(--in-sm)' }
+                : { border: '1px solid rgba(139,92,246,.25)' }),
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary, var(--fg))' }}>
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--fg)' }}>Schedule post</span>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 140 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted, var(--fg))', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Date</label>
+                  <input
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    style={{
+                      height: 40,
+                      padding: '0 12px',
+                      fontSize: 14,
+                      borderRadius: isNeumorphic ? 12 : 10,
+                      color: 'var(--fg)',
+                      fontFamily: 'inherit',
+                      ...(isEditorial
+                        ? { border: '1.5px solid var(--ink)', background: 'transparent' }
+                        : isNeumorphic
+                        ? { border: 'none', boxShadow: 'var(--in-sm)', background: 'var(--surface, var(--bg))' }
+                        : { border: '1px solid var(--line)', background: 'rgba(255,255,255,.06)' }),
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 120 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted, var(--fg))', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Time</label>
+                  <input
+                    type="time"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    style={{
+                      height: 40,
+                      padding: '0 12px',
+                      fontSize: 14,
+                      borderRadius: isNeumorphic ? 12 : 10,
+                      color: 'var(--fg)',
+                      fontFamily: 'inherit',
+                      ...(isEditorial
+                        ? { border: '1.5px solid var(--ink)', background: 'transparent' }
+                        : isNeumorphic
+                        ? { border: 'none', boxShadow: 'var(--in-sm)', background: 'var(--surface, var(--bg))' }
+                        : { border: '1px solid var(--line)', background: 'rgba(255,255,255,.06)' }),
+                    }}
+                  />
+                </div>
+              </div>
+              {scheduleDate && scheduleTime && (
+                <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>
+                  Scheduled for {new Date(`${scheduleDate}T${scheduleTime}`).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={handleSchedule}
+                  disabled={saving || !scheduleDate || !scheduleTime || !hook.trim()}
+                  style={{
+                    height: 38,
+                    padding: '0 24px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    borderRadius: isNeumorphic ? 14 : 12,
+                    border: 'none',
+                    cursor: saving || !scheduleDate || !scheduleTime || !hook.trim() ? 'not-allowed' : 'pointer',
+                    opacity: saving || !scheduleDate || !scheduleTime || !hook.trim() ? 0.45 : 1,
+                    transition: 'all .15s',
+                    ...(isEditorial
+                      ? { background: 'var(--ink)', color: 'var(--bg)' }
+                      : isNeumorphic
+                      ? { background: 'var(--bg)', color: 'var(--color-primary)', boxShadow: 'var(--out-sm)' }
+                      : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
+                  }}
+                >
+                  {saving ? 'Scheduling...' : 'Confirm schedule'}
+                </button>
+                <button
+                  onClick={() => setShowSchedule(false)}
+                  style={{
+                    height: 38,
+                    padding: '0 16px',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    borderRadius: isNeumorphic ? 14 : 12,
+                    cursor: 'pointer',
+                    background: 'transparent',
+                    color: 'var(--muted)',
+                    border: 'none',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right panel: Viral Score Lab */}

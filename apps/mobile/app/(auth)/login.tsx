@@ -33,7 +33,7 @@ export default function LoginScreen() {
     : t.surfaceLighter;
   const inputBorderWidth = isNeumorphic(t) ? 0 : isEditorial(t) ? t.border.width : 1;
   const inputBorderColor = isNeumorphic(t) ? 'transparent' : isEditorial(t) ? t.border.color : (isGlass(t) ? t.line : 'transparent');
-  const primaryColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
+  const primaryColor = isGlass(t) ? t.violet : isEditorial(t) ? t.accent : t.accent;
   const errorColor = isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad;
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted;

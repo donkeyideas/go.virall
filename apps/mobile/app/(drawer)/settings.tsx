@@ -22,13 +22,15 @@ import {
 import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Button } from '@/components/ui/Button';
 import { IconChevronRight } from '@/components/icons/Icons';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
-type TabKey = 'account' | 'platforms' | 'theme' | 'billing';
+type TabKey = 'account' | 'platforms' | 'theme';
 
 interface UserProfile {
   id: string;
@@ -40,8 +42,6 @@ interface UserProfile {
   theme: string | null;
   mission: string | null;
   avatar_url: string | null;
-  subscription_tier: string | null;
-  subscription_renews_at: string | null;
 }
 
 interface PlatformAccount {
@@ -56,7 +56,6 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: 'account', label: 'Account' },
   { key: 'platforms', label: 'Platforms' },
   { key: 'theme', label: 'Theme' },
-  { key: 'billing', label: 'Billing' },
 ];
 
 const THEME_OPTIONS: { key: ThemeName; label: string; desc: string; colors: string[] }[] = [
@@ -89,6 +88,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 export default function SettingsScreen() {
   const t = useTokens();
   const { theme, setTheme } = useTheme();
+  const { signOut } = useAuth();
   const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState<TabKey>('account');
@@ -191,11 +191,39 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleUpgrade = () => {
+  const deleteAccount = () => {
     Alert.alert(
-      'Upgrade Plan',
-      'Subscription management is available on the web at govirall.com. Please visit Settings > Billing to upgrade your plan.',
-      [{ text: 'OK' }],
+      'Delete Account',
+      'This will permanently delete your account and all associated data. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete My Account',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you sure?',
+              'Please confirm you want to permanently delete your Go Virall account.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Yes, Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await api.delete('/user');
+                      await signOut();
+                      router.replace('/(auth)/login');
+                    } catch {
+                      Alert.alert('Error', 'Failed to delete account. Please try again or contact support.');
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
     );
   };
 
@@ -214,11 +242,6 @@ export default function SettingsScreen() {
     return count.toString();
   };
 
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return 'N/A';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   // ── Tab pill styles (per-theme) ──────────────────────────────────────
 
@@ -440,6 +463,23 @@ export default function SettingsScreen() {
           onPress={saveProfile}
           disabled={saving}
         />
+
+        {/* Delete Account */}
+        <View style={{ marginTop: 24, paddingTop: 24, borderTopWidth: 1, borderTopColor: isGlass(t) ? t.line : isEditorial(t) ? t.border.color : t.surfaceDarker }}>
+          <Pressable
+            onPress={deleteAccount}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, alignItems: 'center', paddingVertical: 12 })}
+          >
+            <Text style={{
+              color: isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad,
+              fontFamily: isEditorial(t) ? t.fontMono : fontSemibold,
+              fontSize: 13,
+              ...(isEditorial(t) ? { textTransform: 'uppercase' as const, letterSpacing: 0.5 } : {}),
+            }}>
+              Delete Account
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -647,61 +687,11 @@ export default function SettingsScreen() {
     );
   }
 
-  function renderBillingTab() {
-    const tier = user?.subscription_tier ?? 'free';
-    const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
-    const renewsAt = user?.subscription_renews_at;
-
-    return (
-      <View style={{ gap: 16 }}>
-        <ThemedCard padding={20}>
-          <Text style={{ ...labelStyle }}>
-            Current Plan
-          </Text>
-          <Text style={{
-            color: fg,
-            fontFamily: fontDisplay,
-            fontSize: 28,
-            marginTop: 4,
-          }}>
-            {tierLabel}
-          </Text>
-
-          {renewsAt && (
-            <Text style={{
-              color: muted,
-              fontFamily: fontBody,
-              fontSize: 13,
-              marginTop: 8,
-            }}>
-              Renews {formatDate(renewsAt)}
-            </Text>
-          )}
-
-          {tier === 'free' && (
-            <Text style={{
-              color: muted,
-              fontFamily: fontBody,
-              fontSize: 13,
-              marginTop: 8,
-            }}>
-              Upgrade to unlock advanced analytics, AI features, and more.
-            </Text>
-          )}
-        </ThemedCard>
-
-        <Button
-          label={tier === 'free' ? 'Upgrade to Pro' : 'Manage Subscription'}
-          onPress={handleUpgrade}
-        />
-      </View>
-    );
-  }
 
   // ── Main render ──────────────────────────────────────────────────────
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}>
         {/* Page title */}
         <View style={{ paddingLeft: 56, paddingTop: 14, paddingBottom: 16 }}>
@@ -736,6 +726,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Tab pills */}
+        <SectionHeader number="01" title="Preferences" emphasisWord="Preferences" />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -757,10 +748,14 @@ export default function SettingsScreen() {
         </ScrollView>
 
         {/* Active tab content */}
+        <SectionHeader
+          number="02"
+          title={activeTab === 'account' ? 'Profile details' : activeTab === 'platforms' ? 'Connected platforms' : 'App theme'}
+          emphasisWord={activeTab === 'account' ? 'details' : activeTab === 'platforms' ? 'platforms' : 'theme'}
+        />
         {activeTab === 'account' && renderAccountTab()}
         {activeTab === 'platforms' && renderPlatformsTab()}
         {activeTab === 'theme' && renderThemeTab()}
-        {activeTab === 'billing' && renderBillingTab()}
       </ScrollView>
     </View>
   );

@@ -123,7 +123,7 @@ export default function ThemeSelectScreen() {
 
   const fg = isGlass(t) ? t.fg : t.ink;
   const muted = t.muted;
-  const primary = isGlass(t) ? t.violet : t.lime;
+  const primary = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: t.bg }}>

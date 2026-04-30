@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { PLATFORM_CHAR_LIMITS, PLATFORM_CONTENT_FORMATS } from '@govirall/core';
-import { ThemedSelect } from '@govirall/ui-web';
+import { ThemedSelect, AccountPicker } from '@govirall/ui-web';
 
 type PlatformAccount = {
   id: string;
@@ -46,8 +46,11 @@ export function IdeasClient({ theme, platforms, previousResults, previousMeta }:
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  const connectedAccount = platforms.find((p) => p.platform === selectedPlatform);
+  const connectedAccount = selectedAccountId
+    ? platforms.find((p) => p.id === selectedAccountId)
+    : platforms.find((p) => p.platform === selectedPlatform);
   const contentFormats = PLATFORM_CONTENT_FORMATS[selectedPlatform] ?? [];
 
   const cardStyle: React.CSSProperties = isEditorial
@@ -201,6 +204,18 @@ export function IdeasClient({ theme, platforms, previousResults, previousMeta }:
           Rapid-fire brainstorm — generate hooks, angles, and formats to fill your content pipeline.
         </p>
       </div>
+
+      {/* Account picker */}
+      <AccountPicker
+        accounts={platforms}
+        selectedAccountId={selectedAccountId}
+        onSelect={(accountId, platform) => {
+          setSelectedAccountId(accountId);
+          if (platform) setSelectedPlatform(platform);
+        }}
+        theme={theme}
+        label="Generating for"
+      />
 
       {/* Platform strip */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>

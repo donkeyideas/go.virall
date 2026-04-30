@@ -16,6 +16,9 @@ import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Button } from '@/components/ui/Button';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { AccountPicker } from '@/components/ui/AccountPicker';
+import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 
 // ── Types ───────────────────────────────────────────────────────────
 interface ConnectedPlatform {
@@ -112,6 +115,8 @@ export default function ComposeScreen() {
   const [scoring, setScoring] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const { accounts, loading: accountsLoading } = useConnectedAccounts();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   // ── Derived values ──────────────────────────────────────────────
   const formats = selectedPlatform ? (PLATFORM_FORMATS[selectedPlatform] ?? ['Post']) : [];
@@ -184,6 +189,7 @@ export default function ComposeScreen() {
         caption: caption.trim(),
         hashtags: hashtags.trim(),
         status,
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       setMessage({
         text: status === 'draft' ? 'Draft saved!' : 'Post scheduled!',
@@ -333,7 +339,7 @@ export default function ComposeScreen() {
   if (loadingPlatforms) {
     const loaderColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
         <ActivityIndicator size="large" color={loaderColor} />
       </View>
     );
@@ -341,7 +347,7 @@ export default function ComposeScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: t.bg }}
+      style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
@@ -435,10 +441,22 @@ export default function ComposeScreen() {
           </ThemedCard>
         )}
 
+        {/* Account picker */}
+        <AccountPicker
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={(accountId, accountPlatform) => {
+            setSelectedAccountId(accountId);
+            if (accountPlatform) handlePlatformSelect(accountPlatform);
+          }}
+          loading={accountsLoading}
+          label="Posting as"
+        />
+
         {platforms.length > 0 && (
           <>
-            {/* ── Platform selector ──────────────────────── */}
-            <Text style={labelStyle}>Platform</Text>
+            {/* ── Platform & format ──────────────────────── */}
+            <SectionHeader number="01" title="Platform & format" emphasisWord="format" meta={`${platforms.length} connected`} />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -461,7 +479,6 @@ export default function ComposeScreen() {
             {/* ── Format selector ────────────────────────── */}
             {formats.length > 0 && (
               <>
-                <Text style={labelStyle}>Format</Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -486,7 +503,8 @@ export default function ComposeScreen() {
               </>
             )}
 
-            {/* ── Hook input ─────────────────────────────── */}
+            {/* ── Content inputs ─────────────────────────── */}
+            <SectionHeader number="02" title="Your content" emphasisWord="content" />
             <Text style={labelStyle}>Hook</Text>
             <TextInput
               style={inputStyle()}
@@ -526,6 +544,7 @@ export default function ComposeScreen() {
 
             <View style={{ height: 24 }} />
 
+            <SectionHeader number="03" title="Viral score" emphasisWord="score" meta={viralScore !== null ? String(viralScore) : undefined} />
             {/* ── Viral score section ────────────────────── */}
             <ThemedCard padding={20}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -566,6 +585,7 @@ export default function ComposeScreen() {
 
             <View style={{ height: 24 }} />
 
+            <SectionHeader number="04" title="Save & publish" emphasisWord="publish" />
             {/* ── Action buttons ──────────────────────────── */}
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>

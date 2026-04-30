@@ -1,14 +1,14 @@
 import { handleRoute, ApiError } from '../../_lib/handler';
+import { createAdminClient } from '@govirall/db/admin';
 
-// DELETE /api/platforms/[id] -- disconnect platform
-export const DELETE = handleRoute(async ({ userId, supabase, params }) => {
+// DELETE /api/platforms/[id] -- disconnect and remove platform account
+export const DELETE = handleRoute(async ({ userId, params }) => {
+  const admin = createAdminClient();
 
-  const { error } = await supabase
+  // Delete the row entirely (no soft-delete — keeps the table clean)
+  const { error } = await admin
     .from('platform_accounts')
-    .update({
-      sync_status: 'disconnected',
-      disconnected_at: new Date().toISOString(),
-    })
+    .delete()
     .eq('id', params!.id)
     .eq('user_id', userId);
 

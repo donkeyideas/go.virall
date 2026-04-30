@@ -28,6 +28,13 @@ type TopPost = {
   published_at: string | null;
   total: number;
 };
+type ScheduledPost = {
+  id: string;
+  hook: string;
+  platform: string;
+  format: string;
+  scheduled_at: string | null;
+};
 type GrowthPoint = { date: string; followers: number; engagement: number; revenue: number };
 
 type ChatMessage = { role: 'ai' | 'user'; text: string };
@@ -48,6 +55,7 @@ type Props = {
   platforms: Platform[];
   hasNextPost: boolean;
   topPosts: TopPost[];
+  scheduledPosts: ScheduledPost[];
   growthData: GrowthPoint[];
   engagementRate: number;
   chatHistory: ChatMessage[];
@@ -107,6 +115,7 @@ function SidebarToday({
   platforms,
   hasNextPost,
   topPosts,
+  scheduledPosts,
   growthData,
   engagementRate,
   chatHistory,
@@ -224,8 +233,8 @@ function SidebarToday({
       {/* Bottom row */}
       <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: isEditorial ? 18 : 20 }}>
         <PlatformsList platforms={platforms} theme={theme} />
-        {/* Top content */}
-        <TopContentCard theme={theme} posts={topPosts} />
+        {/* Content card: scheduled + top posts */}
+        <ContentCard theme={theme} topPosts={topPosts} scheduledPosts={scheduledPosts} />
         {/* Engagement card */}
         <EngagementCard theme={theme} engagementRate={engagementRate} connectedPlatformCount={connectedPlatformCount} smoScore={smoScore} />
       </div>
@@ -233,9 +242,21 @@ function SidebarToday({
   );
 }
 
-function TopContentCard({ theme, posts }: { theme: string; posts: TopPost[] }) {
+function ContentCard({ theme, topPosts, scheduledPosts }: { theme: string; topPosts: TopPost[]; scheduledPosts: ScheduledPost[] }) {
   const isEditorial = theme === 'neon-editorial';
   const isNeumorphic = theme === 'neumorphic';
+  const isEmpty = scheduledPosts.length === 0 && topPosts.length === 0;
+
+  const rowStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'center',
+    padding: '10px 12px',
+    borderRadius: isNeumorphic ? 16 : 12,
+    ...(isNeumorphic
+      ? { background: 'var(--surface, var(--bg))', boxShadow: 'var(--in-sm)' }
+      : { background: isEditorial ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.03)', border: isEditorial ? '1px solid rgba(0,0,0,.08)' : '1px solid rgba(255,255,255,.05)' }),
+  };
 
   return (
     <div
@@ -264,24 +285,18 @@ function TopContentCard({ theme, posts }: { theme: string; posts: TopPost[] }) {
           color: isEditorial ? 'var(--ink)' : 'var(--fg)',
         }}
       >
-        Top content{isEditorial ? '.' : ''}
+        Content{isEditorial ? '.' : ''}
       </h3>
-      {posts.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {posts.map((post, i) => (
-            <div
-              key={post.id}
-              style={{
-                display: 'flex',
-                gap: 12,
-                alignItems: 'center',
-                padding: '10px 12px',
-                borderRadius: isNeumorphic ? 16 : 12,
-                ...(isNeumorphic
-                  ? { background: 'var(--surface, var(--bg))', boxShadow: 'var(--in-sm)' }
-                  : { background: isEditorial ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.03)', border: isEditorial ? '1px solid rgba(0,0,0,.08)' : '1px solid rgba(255,255,255,.05)' }),
-              }}
-            >
+
+      {isEmpty ? (
+        <p style={{ fontSize: 13, color: 'var(--muted)' }}>
+          No content yet. Head to Compose to create your first post.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Scheduled posts */}
+          {scheduledPosts.map((post) => (
+            <div key={post.id} style={rowStyle}>
               <div
                 style={{
                   width: 28,
@@ -290,8 +305,58 @@ function TopContentCard({ theme, posts }: { theme: string; posts: TopPost[] }) {
                   background: PLATFORM_COLORS[post.platform] ?? 'var(--muted)',
                   display: 'grid',
                   placeItems: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={post.platform === 'x' ? '#000' : '#fff'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 13, fontWeight: 500,
+                  color: isEditorial ? 'var(--ink)' : 'var(--fg)',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {post.hook}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                  {post.scheduled_at
+                    ? new Date(post.scheduled_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+                    : post.format}
+                  {' · '}{post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}
+                </div>
+              </div>
+              <span style={{
+                fontSize: 9, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase',
+                padding: '3px 8px', borderRadius: 6,
+                background: isEditorial ? 'var(--ink)' : isNeumorphic ? 'var(--accent, var(--color-primary))' : 'rgba(139,92,246,.25)',
+                color: isEditorial ? 'var(--bg)' : isNeumorphic ? '#fff' : 'var(--fg)',
+                flexShrink: 0,
+              }}>
+                Scheduled
+              </span>
+            </div>
+          ))}
+
+          {/* Divider when both sections have items */}
+          {scheduledPosts.length > 0 && topPosts.length > 0 && (
+            <div style={{
+              height: 1,
+              background: isEditorial ? 'rgba(0,0,0,.1)' : isNeumorphic ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.06)',
+              margin: '4px 0',
+            }} />
+          )}
+
+          {/* Top performing posts */}
+          {topPosts.map((post, i) => (
+            <div key={post.id} style={rowStyle}>
+              <div
+                style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  background: PLATFORM_COLORS[post.platform] ?? 'var(--muted)',
+                  display: 'grid', placeItems: 'center',
+                  fontSize: 12, fontWeight: 700,
                   color: post.platform === 'x' ? '#000' : '#fff',
                   flexShrink: 0,
                 }}
@@ -300,12 +365,9 @@ function TopContentCard({ theme, posts }: { theme: string; posts: TopPost[] }) {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 13,
-                  fontWeight: 500,
+                  fontSize: 13, fontWeight: 500,
                   color: isEditorial ? 'var(--ink)' : 'var(--fg)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {post.hook}
                 </div>
@@ -318,10 +380,6 @@ function TopContentCard({ theme, posts }: { theme: string; posts: TopPost[] }) {
             </div>
           ))}
         </div>
-      ) : (
-        <p style={{ fontSize: 13, color: 'var(--muted)' }}>
-          Publish content to see your top performers here.
-        </p>
       )}
     </div>
   );
@@ -486,6 +544,7 @@ function NeumorphicToday({
   smoFactors,
   platforms,
   topPosts,
+  scheduledPosts,
   growthData,
   engagementRate,
   chatHistory,
@@ -552,7 +611,7 @@ function NeumorphicToday({
       {/* Bottom row */}
       <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
         <PlatformsList platforms={platforms} theme="neumorphic" />
-        <TopContentCard theme="neumorphic" posts={topPosts} />
+        <ContentCard theme="neumorphic" topPosts={topPosts} scheduledPosts={scheduledPosts} />
         <EngagementCard theme="neumorphic" engagementRate={engagementRate} connectedPlatformCount={connectedPlatformCount} smoScore={smoScore} />
       </div>
     </>

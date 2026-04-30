@@ -16,7 +16,7 @@ type Post = {
 };
 type ViralScore = { score: number; confidence: number | null; created_at: string };
 type AudienceSnap = { platform_account_id: string; follower_count: number; engagement_rate: number | null; captured_at: string };
-type Platform = { id: string; platform: string; follower_count: number | null; following_count: number | null; sync_status: string };
+type Platform = { id: string; platform: string; follower_count: number | null; following_count: number | null; post_count: number | null; sync_status: string };
 type SmoHistory = { score: number; computed_at: string };
 
 /* ── Signal computation helpers (same as web page) ── */
@@ -127,14 +127,34 @@ function computeConsistency(posts: Post[]) {
 }
 
 /* ── GET /api/go-virall ── */
-export const GET = handleRoute(async ({ userId }) => {
+export const GET = handleRoute(async ({ userId, req }) => {
   const admin = createAdminClient();
+  const platformAccountId = req.nextUrl.searchParams.get('platformAccountId');
+
+  // If filtering by account, look up its platform type
+  let accountPlatform: string | null = null;
+  if (platformAccountId) {
+    const { data: acct } = await admin.from('platform_accounts_safe').select('platform').eq('id', platformAccountId).eq('user_id', userId).single();
+    accountPlatform = acct?.platform ?? null;
+  }
+
+  let platformsQ = admin.from('platform_accounts_safe').select('id, platform, follower_count, following_count, post_count, sync_status').eq('user_id', userId);
+  let postsQ = admin.from('posts').select('id, views, likes, comments, shares, saves, reach, published_at, platform, format').eq('user_id', userId).not('published_at', 'is', null).order('published_at', { ascending: false }).limit(100);
+  let audienceQ = admin.from('audience_snapshots').select('platform_account_id, follower_count, engagement_rate, captured_at').eq('user_id', userId).order('captured_at', { ascending: false }).limit(60);
+
+  if (accountPlatform) {
+    platformsQ = platformsQ.eq('platform', accountPlatform);
+    postsQ = postsQ.eq('platform', accountPlatform);
+  }
+  if (platformAccountId) {
+    audienceQ = audienceQ.eq('platform_account_id', platformAccountId);
+  }
 
   const [platformsRes, postsRes, viralScoresRes, audienceRes, smoHistoryRes] = await Promise.all([
-    admin.from('platform_accounts_safe').select('id, platform, follower_count, following_count, sync_status').eq('user_id', userId),
-    admin.from('posts').select('id, views, likes, comments, shares, saves, reach, published_at, platform, format').eq('user_id', userId).not('published_at', 'is', null).order('published_at', { ascending: false }).limit(100),
+    platformsQ,
+    postsQ,
     admin.from('viral_scores').select('score, confidence, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
-    admin.from('audience_snapshots').select('platform_account_id, follower_count, engagement_rate, captured_at').eq('user_id', userId).order('captured_at', { ascending: false }).limit(60),
+    audienceQ,
     admin.from('smo_scores').select('score, computed_at').eq('user_id', userId).order('computed_at', { ascending: false }).limit(30),
   ]);
 
@@ -181,7 +201,7 @@ export const GET = handleRoute(async ({ userId }) => {
     stats: {
       totalFollowers,
       connectedPlatforms: connected.length,
-      postsAnalyzed: posts.length,
+      postsAnalyzed: connected.reduce((s, p) => s + (p.post_count ?? 0), 0) || posts.length,
       postsPerWeek: Math.round(consistency.postsPerWeek * 10) / 10,
     },
   };

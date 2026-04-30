@@ -14,6 +14,7 @@ import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 // ── Types ─────────────────────────────────────────────────────────────
 type DealStage = 'lead' | 'pitched' | 'negotiating' | 'contract' | 'delivering' | 'paid' | 'done' | 'lost';
@@ -176,14 +177,14 @@ export default function RevenueScreen() {
   // ── Loading state ─────────────────────────────────────────────
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
         <ActivityIndicator size="large" color={accentColor} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}
         refreshControl={
@@ -228,6 +229,7 @@ export default function RevenueScreen() {
         </View>
 
         {/* ── KPI Row ───────────────────────────────────── */}
+        <SectionHeader number="01" title="Overview" emphasisWord="Overview" />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -240,6 +242,7 @@ export default function RevenueScreen() {
         </ScrollView>
 
         {/* ── Tab Pills ─────────────────────────────────── */}
+        <SectionHeader number="02" title="Pipeline" emphasisWord="Pipeline" meta={`${deals.length} total`} />
         <TabPills activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* ── Tab Content ───────────────────────────────── */}
@@ -415,16 +418,7 @@ function DealsTab({ activeDeals, completedDeals }: { activeDeals: Deal[]; comple
     <View style={{ gap: 16 }}>
       {activeDeals.length > 0 && (
         <View>
-          <Text style={{
-            fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodySemibold,
-            fontSize: 10,
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: t.muted,
-            marginBottom: 10,
-          }}>
-            Active
-          </Text>
+          <SectionHeader number="03" title="Active deals" emphasisWord="Active" meta={`${activeDeals.length}`} />
           <View style={{ gap: 10 }}>
             {activeDeals.map((deal) => (
               <DealCard key={deal.id} deal={deal} />
@@ -435,16 +429,7 @@ function DealsTab({ activeDeals, completedDeals }: { activeDeals: Deal[]; comple
 
       {completedDeals.length > 0 && (
         <View>
-          <Text style={{
-            fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodySemibold,
-            fontSize: 10,
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: t.muted,
-            marginBottom: 10,
-          }}>
-            Completed
-          </Text>
+          <SectionHeader number="04" title="Completed" emphasisWord="Completed" meta={`${completedDeals.length}`} />
           <View style={{ gap: 10 }}>
             {completedDeals.map((deal) => (
               <DealCard key={deal.id} deal={deal} />

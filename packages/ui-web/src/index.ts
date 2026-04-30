@@ -8,6 +8,7 @@ export { Card, type CardProps } from './primitives/Card';
 export { Badge, badgeVariants, type BadgeProps } from './primitives/Badge';
 export { EmptyState } from './primitives/EmptyState';
 export { ThemedSelect } from './primitives/ThemedSelect';
+export { AccountPicker, type AccountOption } from './primitives/AccountPicker';
 
 // Compound (dashboard)
 export { DashboardShell } from './compound/DashboardShell';

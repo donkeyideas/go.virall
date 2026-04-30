@@ -23,7 +23,7 @@ export default async function TodayPage() {
     await Promise.all([
       admin.from('users').select('display_name, bio, avatar_url, handle, mission, theme').eq('id', userId).single(),
       admin.from('platform_accounts_safe').select('id, platform, platform_username, follower_count, following_count, post_count, sync_status').eq('user_id', userId),
-      admin.from('posts').select('id, hook, caption, platform, format, status, published_at, views, likes, comments, shares, saves, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+      admin.from('posts').select('id, hook, caption, platform, format, status, scheduled_at, published_at, views, likes, comments, shares, saves, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
       admin.from('deals').select('id, stage, amount_cents, value').eq('user_id', userId),
       admin.from('invoices').select('id, status').eq('user_id', userId),
       admin.from('media_kits').select('id').eq('user_id', userId).single(),
@@ -44,6 +44,7 @@ export default async function TodayPage() {
   const connectedPlatforms = platforms.filter((p) => p.sync_status === 'healthy');
   const totalFollowers = connectedPlatforms.reduce((sum, p) => sum + (p.follower_count ?? 0), 0);
   const totalFollowing = connectedPlatforms.reduce((sum, p) => sum + (p.following_count ?? 0), 0);
+  const totalPlatformPosts = connectedPlatforms.reduce((sum, p) => sum + (p.post_count ?? 0), 0);
   const activeDealValue = deals
     .filter((d) => !['done', 'lost'].includes(d.stage))
     .reduce((sum, d) => sum + (d.amount_cents ?? d.value ?? 0), 0);
@@ -72,7 +73,7 @@ export default async function TodayPage() {
     hasMediaKit: !!mediaKitRes.data,
     hasDeal: deals.length > 0,
     hasInvoice: invoices.length > 0,
-    postCount: posts.length,
+    postCount: totalPlatformPosts || posts.length,
     lastSyncAt: null,
     daysSinceLastPost,
     followerCount: totalFollowers,
@@ -127,6 +128,18 @@ export default async function TodayPage() {
     .sort((a, b) => b.total - a.total)
     .slice(0, 3);
 
+  // Scheduled posts for the content card
+  const scheduledPosts = posts
+    .filter((p) => p.status === 'scheduled' && p.hook)
+    .map((p) => ({
+      id: p.id,
+      hook: p.hook ?? p.caption?.slice(0, 60) ?? 'Untitled',
+      platform: p.platform,
+      format: p.format,
+      scheduled_at: p.scheduled_at as string | null,
+    }))
+    .slice(0, 5);
+
   // Chat history
   const chatMessages = (chatRes.data ?? []).map((m: { role: string; content: string }) => ({
     role: m.role as 'ai' | 'user',
@@ -147,7 +160,7 @@ export default async function TodayPage() {
       theme={theme}
       displayName={displayName}
       totalFollowers={totalFollowers}
-      postCount={posts.length}
+      postCount={totalPlatformPosts || posts.length}
       wonDealValue={wonDealValue}
       activeDealValue={activeDealValue}
       connectedPlatformCount={connectedPlatforms.length}
@@ -159,6 +172,7 @@ export default async function TodayPage() {
       platforms={platformsWithShare}
       hasNextPost={hasNextPost}
       topPosts={topPosts}
+      scheduledPosts={scheduledPosts}
       growthData={growthData}
       engagementRate={engagementRate}
       chatHistory={chatMessages}

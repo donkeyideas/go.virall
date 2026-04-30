@@ -73,7 +73,7 @@ export async function scrapeProfile(
         const { scrapeTwitchProfile } = await import('./scrapers/twitch');
         const d = await scrapeTwitchProfile(clean);
         if (!d) return null;
-        return { ...d, recentPosts: [], platformData: { isLive: d.isLive, totalViews: d.totalViews } };
+        return { ...d, platformData: { isLive: d.isLive, totalViews: d.totalViews } };
       }
       default:
         return null;

@@ -75,15 +75,15 @@ export function ScoreRing({ value, size: sizeProp, label = '/ 100' }: Props) {
   }
 
   if (isEditorial(t)) {
-    // Editorial: 120px ring, stroke-width 14, solid lime, dashed bg, ink frame circles, pink end-dot
-    const size = sizeProp ?? 120;
+    // Editorial: 110px ring, stroke-width 10, solid lime, ink frame circles, pink end-dot
+    const size = sizeProp ?? 110;
     const center = size / 2;
-    const strokeWidth = 14;
-    const radius = (size - strokeWidth) / 2;
+    const strokeWidth = 10;
+    const radius = (size - strokeWidth) / 2 - 4;
     const circumference = 2 * Math.PI * radius;
     const progress = (value / 100) * circumference;
-    const innerFrameR = radius - strokeWidth / 2 - 2;
-    const outerFrameR = radius + strokeWidth / 2 + 2;
+    const innerFrameR = radius - strokeWidth / 2 - 1.5;
+    const outerFrameR = radius + strokeWidth / 2 + 1.5;
 
     // End dot position
     const angle = (value / 100) * 360 - 90;
@@ -98,12 +98,11 @@ export function ScoreRing({ value, size: sizeProp, label = '/ 100' }: Props) {
           <Circle cx={center} cy={center} r={outerFrameR} stroke={t.ink} strokeWidth={1.5} fill="transparent" />
           {/* Inner ink frame */}
           <Circle cx={center} cy={center} r={innerFrameR} stroke={t.ink} strokeWidth={1.5} fill="transparent" />
-          {/* Dashed background ring */}
+          {/* Track ring */}
           <Circle
             cx={center} cy={center} r={radius}
             stroke={t.surfaceAlt}
             strokeWidth={strokeWidth}
-            strokeDasharray="4 4"
             fill="transparent"
           />
           {/* Progress arc — solid lime */}
@@ -113,16 +112,17 @@ export function ScoreRing({ value, size: sizeProp, label = '/ 100' }: Props) {
             strokeWidth={strokeWidth}
             fill="transparent"
             strokeDasharray={`${progress} ${circumference - progress}`}
+            strokeLinecap="round"
             transform={`rotate(-90, ${center}, ${center})`}
           />
           {/* Pink end dot */}
-          <Circle cx={dotX} cy={dotY} r={5} fill={t.pink} />
+          <Circle cx={dotX} cy={dotY} r={4} fill={t.pink} />
         </Svg>
         {/* Center text */}
         <View style={{ position: 'absolute', alignItems: 'center' }}>
           <Text style={{
             fontFamily: t.fontDisplayItalic,
-            fontSize: size * 0.3,
+            fontSize: size * 0.28,
             color: t.ink,
             letterSpacing: -1.5,
           }}>

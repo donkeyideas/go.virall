@@ -18,6 +18,9 @@ export async function createPost(formData: FormData) {
   const hashtagsRaw = formData.get('hashtags') as string;
   const hashtags = hashtagsRaw ? hashtagsRaw.split(',').map((h) => h.trim()).filter(Boolean) : [];
 
+  const status = (formData.get('status') as string) || 'draft';
+  const scheduledAt = (formData.get('scheduled_at') as string) || null;
+
   const { data, error } = await supabase
     .from('posts')
     .insert({
@@ -27,8 +30,9 @@ export async function createPost(formData: FormData) {
       hook,
       caption: (formData.get('caption') as string) || '',
       hashtags,
-      scheduled_at: (formData.get('scheduled_at') as string) || null,
-      status: (formData.get('status') as string) || 'draft',
+      scheduled_at: scheduledAt,
+      published_at: status === 'published' ? (scheduledAt || new Date().toISOString()) : null,
+      status,
     })
     .select()
     .single();
@@ -56,7 +60,12 @@ export async function updatePost(postId: string, formData: FormData) {
   if (platform) updates.platform = platform;
   if (format) updates.format = format;
   if (scheduledAt) updates.scheduled_at = scheduledAt;
-  if (status) updates.status = status;
+  if (status) {
+    updates.status = status;
+    if (status === 'published') {
+      updates.published_at = scheduledAt || new Date().toISOString();
+    }
+  }
   if (hashtagsRaw !== null) {
     updates.hashtags = hashtagsRaw.split(',').map((h) => h.trim()).filter(Boolean);
   }

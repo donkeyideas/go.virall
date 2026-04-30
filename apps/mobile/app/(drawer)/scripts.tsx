@@ -13,6 +13,9 @@ import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { IconStar, IconChevronDown } from '@/components/icons/Icons';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { AccountPicker } from '@/components/ui/AccountPicker';
+import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 
 const TONES = ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational', 'Storytelling'];
 
@@ -50,6 +53,8 @@ export default function ScriptsScreen() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const { accounts, loading: accountsLoading } = useConnectedAccounts();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -68,6 +73,7 @@ export default function ScriptsScreen() {
         topic: topic.trim(),
         tone,
         count,
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       const inner = (raw as Record<string, unknown>).data ?? raw;
       const scripts = ((inner as Record<string, unknown>).scripts ?? []) as Script[];
@@ -102,7 +108,7 @@ export default function ScriptsScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}>
         {/* Title */}
         <View style={{ paddingLeft: 56, paddingTop: 14, paddingBottom: 16 }}>
@@ -126,7 +132,20 @@ export default function ScriptsScreen() {
           </Text>
         </View>
 
+        {/* Account picker */}
+        <AccountPicker
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={(accountId, accountPlatform) => {
+            setSelectedAccountId(accountId);
+            if (accountPlatform) setPlatform(accountPlatform);
+          }}
+          loading={accountsLoading}
+          label="Generating for"
+        />
+
         {/* Platform pills */}
+        <SectionHeader number="01" title="Target platform" emphasisWord="platform" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', gap: 6, paddingRight: 20 }}>
             {ALL_PLATFORMS.map((p) => (
@@ -162,6 +181,7 @@ export default function ScriptsScreen() {
         </ScrollView>
 
         {/* Input card */}
+        <SectionHeader number="02" title="Script details" emphasisWord="details" />
         <ThemedCard padding={16} style={{ marginBottom: 16 }}>
           <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 8 }}>
             Video topic
@@ -297,14 +317,14 @@ export default function ScriptsScreen() {
 
         {/* Results header */}
         {!loading && results.length > 0 && (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingHorizontal: 4 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody }}>
-              {results.length} Scripts
-            </Text>
-            <Pressable onPress={handleGenerate}>
-              <Text style={{ fontSize: 12, color: accent, fontFamily: t.fontBody }}>Regenerate</Text>
-            </Pressable>
-          </View>
+          <>
+            <SectionHeader number="03" title="Generated scripts" emphasisWord="scripts" meta={`${results.length} scripts`} />
+            <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
+              <Pressable onPress={handleGenerate}>
+                <Text style={{ fontSize: 12, color: accent, fontFamily: t.fontBody }}>Regenerate</Text>
+              </Pressable>
+            </View>
+          </>
         )}
 
         {/* Results — accordion style */}

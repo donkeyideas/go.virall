@@ -80,3 +80,5 @@ export const neumorphicTokens = {
   shadowOutMd: makeShadowStack(8, 8, 20),
   shadowOutLg: makeShadowStack(12, 14, 30),
 };
+
+export type NeumorphicTheme = typeof neumorphicTokens;

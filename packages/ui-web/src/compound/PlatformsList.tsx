@@ -85,29 +85,24 @@ export function PlatformsList({ platforms, theme }: Props) {
             color: isEditorial ? 'var(--ink)' : 'var(--ink, var(--fg))',
           }}
         >
-          Platforms{isEditorial ? '.' : ''}
+          Follower Share{isEditorial ? '.' : ''}
         </h3>
-        {isEditorial && (
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, padding: '4px 10px', border: '1.5px solid var(--ink)', borderRadius: 999, letterSpacing: '.14em' }}>
-            {platforms.length} CONNECTED
-          </span>
-        )}
-        {isNeumorphic && (
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              padding: '4px 10px',
-              borderRadius: 999,
-              letterSpacing: '.14em',
-              background: 'var(--surface, var(--bg))',
-              boxShadow: 'var(--in-sm)',
-              color: 'var(--muted)',
-            }}
-          >
-            {platforms.length} CONNECTED
-          </span>
-        )}
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            padding: '4px 10px',
+            borderRadius: 999,
+            letterSpacing: '.14em',
+            ...(isEditorial
+              ? { border: '1.5px solid var(--ink)' }
+              : isNeumorphic
+              ? { background: 'var(--surface, var(--bg))', boxShadow: 'var(--in-sm)', color: 'var(--muted)' }
+              : { background: 'var(--glass-2, rgba(255,255,255,.10))', color: 'var(--muted)' }),
+          }}
+        >
+          {platforms.length} CONNECTED
+        </span>
       </div>
 
       {platforms.map((p, i) => (

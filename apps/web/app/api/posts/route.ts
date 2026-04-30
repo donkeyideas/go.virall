@@ -7,7 +7,7 @@ export const GET = handleRoute(async ({ req, userId, supabase }) => {
 
   let q = supabase
     .from('posts')
-    .select('*, viral_scores(score, computed_at)')
+    .select('*, viral_scores(score, created_at)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(query.limit);

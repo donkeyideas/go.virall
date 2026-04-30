@@ -12,9 +12,12 @@ export function FactorBar({ label, value, variant = 'default' }: Props) {
   const abbrev = label.slice(0, 4);
 
   if (isGlass(t)) {
-    // Glass: height 34, radius 3, all bars use violet gradient, glow shadow
+    // Glass: height 34, radius 3, color varies by variant
     const maxHeight = 34;
     const fillHeight = (value / 100) * maxHeight;
+    const barColor = variant === 'good' ? t.good
+      : variant === 'warn' ? t.amber
+      : t.violet;
 
     return (
       <View style={{ alignItems: 'center', flex: 1 }}>
@@ -25,10 +28,9 @@ export function FactorBar({ label, value, variant = 'default' }: Props) {
         }}>
           <View style={{
             width: '100%', height: fillHeight,
-            backgroundColor: t.violet,
+            backgroundColor: barColor,
             borderRadius: 3,
-            // Gradient approximation — bottom-up violet gradient
-            shadowColor: t.violet,
+            shadowColor: barColor,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.5,
             shadowRadius: 8,

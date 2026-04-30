@@ -48,7 +48,7 @@ export const POST = handleRoute(async ({ userId }) => {
     hasAvatar: !!profile?.avatar_url,
     hasMission: !!profile?.mission,
     platformCount: platforms.length,
-    postCount: posts.length,
+    postCount: platforms.reduce((s, p) => s + (p.post_count ?? 0), 0) || posts.length,
     draftCount: posts.filter((p) => p.status === 'draft').length,
     scheduledCount: posts.filter((p) => p.status === 'scheduled').length,
     totalFollowers,

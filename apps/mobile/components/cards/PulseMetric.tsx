@@ -70,13 +70,18 @@ function EditorialPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
         paddingHorizontal: 20,
       }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {stats.slice(0, 4).map((s, i) => (
+          {stats.map((s, i) => {
+            const colCount = stats.length <= 4 ? 2 : 3;
+            const row = Math.floor(i / colCount);
+            const col = i % colCount;
+            const totalRows = Math.ceil(stats.length / colCount);
+            return (
             <View key={s.label} style={{
-              width: '50%',
+              width: stats.length <= 4 ? '50%' : `${100 / colCount}%`,
               paddingVertical: 14,
               paddingHorizontal: 12,
-              borderRightWidth: i % 2 === 0 ? 1 : 0,
-              borderBottomWidth: i < 2 ? 1 : 0,
+              borderRightWidth: col < colCount - 1 ? 1 : 0,
+              borderBottomWidth: row < totalRows - 1 ? 1 : 0,
               borderColor: 'rgba(244,236,222,0.15)',
             }}>
               <Text style={{
@@ -102,7 +107,8 @@ function EditorialPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
                 </Text>
               )}
             </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     </View>
@@ -115,11 +121,11 @@ function NeumorphicPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
     <View style={{ marginHorizontal: 20 }}>
       {/* Inset tray */}
       <NeumorphicView inset borderRadius={22} padding={8}>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          {stats.slice(0, 4).map((s, i) => {
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {stats.map((s, i) => {
             const isActive = i === 0;
             return (
-              <View key={s.label} style={{ flex: 1 }}>
+              <View key={s.label} style={{ flex: 1, minWidth: stats.length > 4 ? '28%' : undefined }}>
                 {isActive ? (
                   <NeumorphicView inset borderRadius={16} padding={10}>
                     <View style={{ alignItems: 'center' }}>

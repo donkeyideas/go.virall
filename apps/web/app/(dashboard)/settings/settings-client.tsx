@@ -422,6 +422,23 @@ export function SettingsClient({
     setAddingPlatform(null);
   }
 
+  async function handleDisconnectPlatform(accountId: string, platformLabel: string) {
+    setPlatformMsg(null);
+    try {
+      const res = await fetch(`/api/platforms/${accountId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const json = await res.json();
+        setPlatformMsg({ type: 'error', text: json?.error?.message || 'Failed to disconnect.' });
+      } else {
+        setPlatformMsg({ type: 'success', text: `${platformLabel} disconnected.` });
+        setConnectingPlatform(null);
+        startTransition(() => router.refresh());
+      }
+    } catch {
+      setPlatformMsg({ type: 'error', text: 'Network error. Please try again.' });
+    }
+  }
+
   async function handleDelete() {
     if (!deleteConfirm) {
       setDeleteConfirm(true);
@@ -745,7 +762,11 @@ export function SettingsClient({
                 </div>
               )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>
+                {platforms.length} account{platforms.length !== 1 ? 's' : ''} connected
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {([
                   { id: 'instagram', label: 'Instagram', placeholder: 'username or URL', color: '#E4405F',
                     icon: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> },
@@ -762,53 +783,33 @@ export function SettingsClient({
                   { id: 'twitch', label: 'Twitch', placeholder: 'channel name or URL', color: '#9146FF',
                     icon: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg> },
                 ]).map(({ id: platformId, label, placeholder, color, icon }) => {
-                  const connected = platforms.find((p) => p.platform === platformId);
+                  const connectedAccounts = platforms.filter((p) => p.platform === platformId);
                   const isAdding = addingPlatform === platformId;
                   const showInput = connectingPlatform === platformId;
                   return (
-                    <div
-                      key={platformId}
-                      style={{
-                        ...innerItemStyle,
-                        display: 'flex',
-                        flexDirection: showInput && !connected ? 'column' : 'row',
-                        alignItems: showInput && !connected ? 'stretch' : 'center',
-                        justifyContent: 'space-between',
-                        gap: showInput && !connected ? 10 : 0,
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div key={platformId} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {/* Platform header row */}
+                      <div
+                        style={{
+                          ...innerItemStyle,
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ color: isEditorial ? 'var(--ink)' : color, display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>
-                          {connected && (
-                            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-                              @{connected.platform_username ?? platformId} · <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{connected.follower_count?.toLocaleString() ?? 0}</span> followers
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)' }}>{label}</span>
+                          {connectedAccounts.length > 0 && (
+                            <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                              {connectedAccounts.length} account{connectedAccounts.length !== 1 ? 's' : ''}
                             </span>
                           )}
                         </div>
-                        {connected ? (
-                          <span
-                            style={{
-                              height: 32, padding: '0 14px', borderRadius: 10,
-                              fontSize: 13, fontWeight: 500,
-                              display: 'inline-flex', alignItems: 'center',
-                              ...(isEditorial
-                                ? { background: 'var(--ink)', color: 'var(--bg)' }
-                                : isNeumorphic
-                                ? { background: 'var(--surface, var(--bg))', color: 'var(--color-good, #22c55e)', boxShadow: 'var(--out-sm)' }
-                                : connected.sync_status === 'healthy'
-                                ? { background: 'rgba(34,197,94,.12)', color: 'var(--color-good, #22c55e)' }
-                                : { background: 'rgba(245,158,11,.12)', color: 'var(--color-warn, #f59e0b)' }),
-                            }}
-                          >
-                            {connected.sync_status === 'healthy' ? 'Connected' : connected.sync_status}
-                          </span>
-                        ) : !showInput ? (
+                        {!showInput ? (
                           <button
-                            onClick={() => { setConnectingPlatform(platformId); setPlatformMsg(null); }}
+                            onClick={() => { setConnectingPlatform(platformId); setPlatformMsg(null); setUsernameInputs((prev) => ({ ...prev, [platformId]: '' })); }}
                             style={{
-                              height: 32, padding: '0 14px', borderRadius: 10, border: 'none',
-                              fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all .15s',
+                              height: 30, padding: '0 12px', borderRadius: 8, border: 'none',
+                              fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all .15s',
                               ...(isEditorial
                                 ? { background: 'var(--ink)', color: 'var(--bg)' }
                                 : isNeumorphic
@@ -816,21 +817,21 @@ export function SettingsClient({
                                 : { background: 'rgba(255,255,255,.1)', color: 'var(--fg)' }),
                             }}
                           >
-                            Connect
+                            + Add account
                           </button>
                         ) : (
                           <button
                             onClick={() => setConnectingPlatform(null)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--muted)' }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--muted)' }}
                           >
                             Cancel
                           </button>
                         )}
                       </div>
 
-                      {/* Username input row */}
-                      {showInput && !connected && (
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {/* Add account input */}
+                      {showInput && (
+                        <div style={{ ...innerItemStyle, display: 'flex', gap: 8, alignItems: 'center' }}>
                           <input
                             type="text"
                             placeholder={placeholder}
@@ -868,10 +869,58 @@ export function SettingsClient({
                                 : { background: 'linear-gradient(135deg, #8b5cf6, #ff71a8)', color: '#fff' }),
                             }}
                           >
-                            {isAdding ? 'Adding…' : 'Add'}
+                            {isAdding ? 'Adding...' : 'Add'}
                           </button>
                         </div>
                       )}
+
+                      {/* Connected accounts list */}
+                      {connectedAccounts.map((acct) => (
+                        <div
+                          key={acct.id}
+                          style={{
+                            ...innerItemStyle,
+                            marginLeft: 20,
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          }}
+                        >
+                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+                            @{acct.platform_username ?? platformId} · <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{acct.follower_count?.toLocaleString() ?? 0}</span> followers
+                          </span>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <span
+                              style={{
+                                height: 28, padding: '0 10px', borderRadius: 8,
+                                fontSize: 11, fontWeight: 500,
+                                display: 'inline-flex', alignItems: 'center',
+                                ...(isEditorial
+                                  ? { background: 'var(--ink)', color: 'var(--bg)' }
+                                  : isNeumorphic
+                                  ? { background: 'var(--surface, var(--bg))', color: 'var(--color-good, #22c55e)', boxShadow: 'var(--out-sm)' }
+                                  : acct.sync_status === 'healthy'
+                                  ? { background: 'rgba(34,197,94,.12)', color: 'var(--color-good, #22c55e)' }
+                                  : { background: 'rgba(245,158,11,.12)', color: 'var(--color-warn, #f59e0b)' }),
+                              }}
+                            >
+                              {acct.sync_status === 'healthy' ? 'Connected' : acct.sync_status}
+                            </span>
+                            <button
+                              onClick={() => handleDisconnectPlatform(acct.id, `${label} @${acct.platform_username}`)}
+                              style={{
+                                height: 28, padding: '0 10px', borderRadius: 8,
+                                fontSize: 11, fontWeight: 500, cursor: 'pointer', transition: 'all .15s',
+                                ...(isEditorial
+                                  ? { background: 'none', color: 'var(--hot, #ff5c3a)', border: '1px solid var(--hot, #ff5c3a)' }
+                                  : isNeumorphic
+                                  ? { background: 'var(--surface, var(--bg))', color: 'var(--color-bad, #ef4444)', boxShadow: 'var(--in-sm)' }
+                                  : { background: 'rgba(239,68,68,.12)', color: 'var(--color-bad, #ef4444)' }),
+                              }}
+                            >
+                              Disconnect
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   );
                 })}

@@ -4,7 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
-import { Kicker } from '@/components/ui/Kicker';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { AccountPicker } from '@/components/ui/AccountPicker';
+import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 import {
   IconInstagram,
   IconTikTok,
@@ -84,6 +86,8 @@ export default function AudienceScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { accounts, loading: accountsLoading } = useConnectedAccounts();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -114,7 +118,14 @@ export default function AudienceScreen() {
 
   // ── Derived values ──────────────────────────────────────────────────
 
-  const totalFollowers = platforms.reduce((sum, p) => sum + (p.follower_count ?? 0), 0);
+  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+  const filteredPlatforms = selectedAccountId
+    ? platforms.filter((p) => p.platform === selectedAccount?.platform)
+    : platforms;
+  const filteredCompetitors = selectedAccountId
+    ? competitors.filter((c) => c.platform === selectedAccount?.platform)
+    : competitors;
+  const totalFollowers = filteredPlatforms.reduce((sum, p) => sum + (p.follower_count ?? 0), 0);
   const accentColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -123,7 +134,7 @@ export default function AudienceScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
         <ActivityIndicator size="large" color={accentColor} />
       </View>
     );
@@ -132,7 +143,7 @@ export default function AudienceScreen() {
   // ── Main render ─────────────────────────────────────────────────────
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView
         contentContainerStyle={{
           padding: 20,
@@ -179,6 +190,16 @@ export default function AudienceScreen() {
             {platforms.length} platform{platforms.length !== 1 ? 's' : ''} connected
           </Text>
         </View>
+
+        {/* Account picker */}
+        <AccountPicker
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={(accountId) => setSelectedAccountId(accountId)}
+          showAllOption
+          loading={accountsLoading}
+          label="Analyzing"
+        />
 
         {isEditorial(t) && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingLeft: 56 }}>
@@ -246,7 +267,13 @@ export default function AudienceScreen() {
         {/* ── Total Followers KPI ─────────────────────────── */}
         {platforms.length > 0 && (
           <ThemedCard padding={20} elevation="md">
-            <Kicker color={accentColor}>Total Followers</Kicker>
+            <Text style={{
+              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodySemibold,
+              fontSize: 10,
+              letterSpacing: 1.2,
+              textTransform: 'uppercase',
+              color: accentColor,
+            }}>Total Followers</Text>
             <Text style={{
               fontFamily: isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplayBold : t.fontDisplayBold,
               fontSize: 42,
@@ -270,38 +297,10 @@ export default function AudienceScreen() {
         {/* ── Platform Breakdown ──────────────────────────── */}
         {platforms.length > 0 && (
           <View style={{ marginTop: 24 }}>
-            {isGlass(t) && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-                <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, color: t.fg, letterSpacing: -0.3 }}>
-                  {'Platform '}
-                  <Text style={{ fontFamily: t.fontDisplayItalic, color: t.violetSoft }}>breakdown</Text>
-                </Text>
-              </View>
-            )}
-
-            {isEditorial(t) && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 10 }}>
-                <View style={{ backgroundColor: t.ink, paddingVertical: 2, paddingHorizontal: 6 }}>
-                  <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1, color: t.bg }}>01</Text>
-                </View>
-                <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, letterSpacing: -0.3, color: t.ink }}>
-                  {'Platform '}
-                  <Text style={{ fontStyle: 'italic' }}>breakdown</Text>
-                </Text>
-              </View>
-            )}
-
-            {isNeumorphic(t) && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-                <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, color: t.ink, letterSpacing: -0.4 }}>
-                  {'Platform '}
-                  <Text style={{ fontFamily: t.fontDisplayItalic, color: t.accent }}>breakdown</Text>
-                </Text>
-              </View>
-            )}
+            <SectionHeader number="01" title="Platform breakdown" emphasisWord="breakdown" />
 
             <View style={{ gap: 10 }}>
-              {platforms.map((p) => (
+              {filteredPlatforms.map((p) => (
                 <PlatformRow key={p.id} platform={p} />
               ))}
             </View>
@@ -309,49 +308,12 @@ export default function AudienceScreen() {
         )}
 
         {/* ── Competitors Section ─────────────────────────── */}
-        {competitors.length > 0 && (
+        {filteredCompetitors.length > 0 && (
           <View style={{ marginTop: 28 }}>
-            {isGlass(t) && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-                <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, color: t.fg, letterSpacing: -0.3 }}>
-                  {'Tracked '}
-                  <Text style={{ fontFamily: t.fontDisplayItalic, color: t.violetSoft }}>competitors</Text>
-                </Text>
-                <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>
-                  {competitors.length} tracked
-                </Text>
-              </View>
-            )}
-
-            {isEditorial(t) && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 10 }}>
-                <View style={{ backgroundColor: t.ink, paddingVertical: 2, paddingHorizontal: 6 }}>
-                  <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1, color: t.bg }}>02</Text>
-                </View>
-                <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, letterSpacing: -0.3, color: t.ink }}>
-                  {'Tracked '}
-                  <Text style={{ fontStyle: 'italic' }}>competitors</Text>
-                </Text>
-                <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted, marginLeft: 'auto' }}>
-                  {competitors.length} tracked
-                </Text>
-              </View>
-            )}
-
-            {isNeumorphic(t) && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-                <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, color: t.ink, letterSpacing: -0.4 }}>
-                  {'Tracked '}
-                  <Text style={{ fontFamily: t.fontDisplayItalic, color: t.accent }}>competitors</Text>
-                </Text>
-                <Text style={{ fontFamily: t.fontBodyBold, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>
-                  {competitors.length} tracked
-                </Text>
-              </View>
-            )}
+            <SectionHeader number="02" title="Tracked competitors" emphasisWord="competitors" meta={`${filteredCompetitors.length} tracked`} />
 
             <View style={{ gap: 10 }}>
-              {competitors.map((c) => (
+              {filteredCompetitors.map((c) => (
                 <CompetitorRow key={c.id} competitor={c} />
               ))}
             </View>

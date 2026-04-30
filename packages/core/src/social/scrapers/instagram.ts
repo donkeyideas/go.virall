@@ -142,10 +142,19 @@ async function scrapeProfilePage(handle: string): Promise<ScrapedProfile | null>
       const parsed = parseOgDesc(ogDesc);
       const ogTitle = extractMeta(html, 'og:title');
       const displayName = ogTitle ? ogTitle.replace(/\s*\(@[\w.]+\).*$/i, '').replace(/\s*[•·].*$/i, '').replace(/\s*Instagram\s*.*$/i, '').trim() : handle;
+
+      // Extract bio: strip the "X Followers, X Following, X Posts - " prefix from og:description
+      let bio = '';
+      const bioSplit = ogDesc.match(/^\d[\d,.]*[KMBkmb]?\s+Followers?,\s*\d[\d,.]*[KMBkmb]?\s+Following,\s*\d[\d,.]*[KMBkmb]?\s+Posts?\s*[-–—]\s*([\s\S]*)/i);
+      if (bioSplit) bio = bioSplit[1].trim();
+
+      // Detect verified from HTML
+      const verified = /["']is_verified["']\s*:\s*true/i.test(html) || html.includes('VerifiedBadge');
+
       return {
-        handle, displayName, bio: '', avatarUrl: extractMeta(html, 'og:image'),
+        handle, displayName, bio, avatarUrl: extractMeta(html, 'og:image'),
         followersCount: parsed.followersCount, followingCount: parsed.followingCount,
-        postsCount: parsed.postsCount, verified: false, recentPosts: [],
+        postsCount: parsed.postsCount, verified, recentPosts: [],
       };
     } catch { continue; }
   }

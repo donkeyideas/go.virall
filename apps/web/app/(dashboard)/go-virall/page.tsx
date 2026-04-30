@@ -19,7 +19,7 @@ type Post = {
 
 type ViralScore = { score: number; confidence: number | null; created_at: string };
 type AudienceSnap = { platform_account_id: string; follower_count: number; engagement_rate: number | null; captured_at: string };
-type Platform = { id: string; platform: string; follower_count: number | null; following_count: number | null; sync_status: string };
+type Platform = { id: string; platform: string; platform_username: string; follower_count: number | null; following_count: number | null; post_count: number | null; sync_status: string };
 type SmoHistory = { score: number; computed_at: string };
 
 /* ── Signal computation helpers ── */
@@ -360,7 +360,7 @@ function generateActions(
 
 /* ── Page ── */
 
-export default async function GoVirallPage() {
+export default async function GoVirallPage({ searchParams }: { searchParams: Promise<{ platformAccountId?: string }> }) {
   const supabase = await createServerClient();
   const {
     data: { user },
@@ -373,7 +373,7 @@ export default async function GoVirallPage() {
     admin.from('users').select('theme, display_name').eq('id', user.id).single(),
     admin
       .from('platform_accounts_safe')
-      .select('id, platform, platform_username, follower_count, following_count, sync_status')
+      .select('id, platform, platform_username, follower_count, following_count, post_count, sync_status')
       .eq('user_id', user.id),
     admin
       .from('posts')
@@ -403,11 +403,27 @@ export default async function GoVirallPage() {
   ]);
 
   const theme = profileRes.data?.theme ?? 'glassmorphic';
-  const platforms = (platformsRes.data ?? []) as Platform[];
-  const posts = (postsRes.data ?? []) as Post[];
+  const allPlatforms = (platformsRes.data ?? []) as Platform[];
+  const allPosts = (postsRes.data ?? []) as Post[];
   const viralScores = (viralScoresRes.data ?? []) as ViralScore[];
-  const snapshots = (audienceRes.data ?? []) as AudienceSnap[];
+  const allSnapshots = (audienceRes.data ?? []) as AudienceSnap[];
   const smoHistory = (smoHistoryRes.data ?? []) as SmoHistory[];
+
+  // Optional account-level filtering
+  const { platformAccountId } = await searchParams;
+  const selectedAccount = platformAccountId
+    ? allPlatforms.find((p) => p.id === platformAccountId)
+    : null;
+  const filterPlatform = selectedAccount?.platform ?? null;
+
+  const platforms = allPlatforms;
+  const posts = filterPlatform ? allPosts.filter((p) => p.platform === filterPlatform) : allPosts;
+  const snapshots = filterPlatform
+    ? allSnapshots.filter((s) => {
+        const acct = allPlatforms.find((p) => p.id === s.platform_account_id);
+        return acct?.platform === filterPlatform;
+      })
+    : allSnapshots;
 
   // Compute all 5 signals
   const contentHeat = computeContentHeat(viralScores);
@@ -477,9 +493,11 @@ export default async function GoVirallPage() {
       stats={{
         totalFollowers,
         connectedPlatforms: connected.length,
-        postsAnalyzed: posts.length,
+        postsAnalyzed: connected.reduce((s, p) => s + (p.post_count ?? 0), 0) || posts.length,
         postsPerWeek: Math.round(consistency.postsPerWeek * 10) / 10,
       }}
+      platforms={platforms}
+      selectedPlatformAccountId={platformAccountId ?? null}
     />
   );
 }

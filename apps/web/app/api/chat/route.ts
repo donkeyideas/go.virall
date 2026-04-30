@@ -139,7 +139,8 @@ export const POST = handleRoute(async ({ req, userId }) => {
     topPostInfo = `Best post: "${top.hook ?? 'Untitled'}" on ${top.platform} — ${(top.views ?? 0).toLocaleString()} views, ${(top.likes ?? 0).toLocaleString()} likes, ${(top.comments ?? 0).toLocaleString()} comments, ${(top.shares ?? 0).toLocaleString()} shares.`;
   }
 
-  const postsSummary = `${posts.length} total posts. ${publishedPosts.length} published, ${draftPosts.length} drafts, ${scheduledPosts.length} scheduled. ${daysSinceLastPost !== null ? `Last post: ${daysSinceLastPost} days ago.` : 'No published posts yet.'} ${topPostInfo}`;
+  const totalPlatformPosts = platforms.reduce((s: number, p: { post_count: number | null }) => s + (p.post_count ?? 0), 0);
+  const postsSummary = `${totalPlatformPosts} posts across platforms. ${posts.length} posts in app (${publishedPosts.length} published, ${draftPosts.length} drafts, ${scheduledPosts.length} scheduled). ${daysSinceLastPost !== null ? `Last post: ${daysSinceLastPost} days ago.` : 'No published posts yet.'} ${topPostInfo}`;
 
   // Growth trend from snapshots
   let growthTrend = '';
@@ -165,7 +166,16 @@ export const POST = handleRoute(async ({ req, userId }) => {
 
   const chatHistory = (recentMessages ?? [])
     .reverse()
-    .map((m: { role: string; content: string }) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`)
+    .map((m: { role: string; content: string }) => {
+      let text = m.content;
+      // Strip any internal path or navigation patterns from old AI messages
+      if (m.role === 'ai') {
+        text = text.replace(/\/?(?:app|dashboard|studio|api)\/?[^\s,.)!?]*/gi, '');
+        text = text.replace(/\w+\s*>\s*\w+/g, (match) => match.split('>').pop()!.trim());
+        text = text.replace(/\s{2,}/g, ' ').trim();
+      }
+      return `${m.role === 'user' ? 'User' : 'AI'}: ${text}`;
+    })
     .join('\n');
 
   const systemPrompt = `You are Virall AI, the personal social media strategist inside Go Virall. You have full access to the creator's real-time data below. Your job: give sharp, specific, data-backed advice. Never guess or make up numbers — only reference the actual data provided.
@@ -200,7 +210,7 @@ ${chatHistory || '(first message)'}
 2. Be specific: reference EXACT numbers from the data above (follower counts, scores, deal values, post stats). Never round or approximate — use the real figures.
 3. Be actionable: every response should include something the creator can do RIGHT NOW.
 4. Prioritize the weakest area: if their Consistency score is ${smo?.factor_consistency ?? '?'} and they haven't posted in ${daysSinceLastPost ?? '?'} days, tell them that directly.
-5. Guide to app features: Compose (write posts), Studio > Ideas/Captions/Scripts/Bio (AI content), Audience (analytics), Revenue (deals & invoices), Settings (connect platforms), SMO Score (optimization analysis).
+5. Guide to app features when relevant: Compose (write and score posts), Ideas (brainstorm content ideas), Captions (generate captions), Scripts (write video scripts), Bio (optimize profile bios), Audience (analytics and competitors), Revenue (deals and invoices), Settings (connect platforms), Go Virall (viral momentum tracker), SMO Score (optimization analysis). CRITICAL: Never use "Studio >" or path-style navigation like "Studio > Ideas". Each page is standalone — just say the page name directly (e.g. "check out the Ideas page"). Never expose internal paths, URLs, file routes, or code structure.
 6. Plain text only. No markdown, no asterisks, no hashtags, no bullet lists, no backticks. Write like a knowledgeable friend texting.
 7. Never hallucinate data. If something is 0 or not available, say so honestly.
 
@@ -216,15 +226,21 @@ User message: ${message}`;
     throw ApiError.badRequest('AI is temporarily unavailable. Please try again in a moment.');
   }
 
+  // Sanitize AI output — strip any leaked paths or navigation arrows before storing
+  let cleanReply = response.text;
+  cleanReply = cleanReply.replace(/\/?(?:app|dashboard|studio|api)\/?[^\s,.)!?]*/gi, '');
+  cleanReply = cleanReply.replace(/(\w+)\s*>\s*(\w+)/g, '$2');
+  cleanReply = cleanReply.replace(/\s{2,}/g, ' ').trim();
+
   // Save AI response
   await admin.from('chat_messages').insert({
     user_id: userId,
     role: 'ai',
-    content: response.text,
+    content: cleanReply,
   });
 
   return {
-    reply: response.text,
+    reply: cleanReply,
     provider: response.provider,
   };
 });

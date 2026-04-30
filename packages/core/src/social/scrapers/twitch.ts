@@ -5,7 +5,7 @@
  * 2. Profile page meta tags fallback
  */
 
-import type { ScrapedProfile } from '../scrape';
+import type { ScrapedProfile, ScrapedPost } from '../scrape';
 
 export interface TwitchProfile extends ScrapedProfile {
   isLive?: boolean;
@@ -115,11 +115,59 @@ async function fetchViaPage(login: string): Promise<TwitchProfile | null> {
   } catch { return null; }
 }
 
+/** Fetch recent VODs + clips via GQL to populate recentPosts */
+async function fetchRecentContent(login: string): Promise<{ posts: ScrapedPost[]; videoCount: number }> {
+  try {
+    const body = JSON.stringify({
+      query: `query { user(login: "${login}") { videos(first: 12, sort: TIME, type: ARCHIVE) { totalCount edges { node { id title previewThumbnailURL(width: 320, height: 180) viewCount createdAt } } } clips(first: 6, criteria: { period: LAST_MONTH }) { edges { node { id title thumbnailURL viewCount createdAt } } } } }`,
+    });
+    const res = await fetch('https://gql.twitch.tv/gql', {
+      method: 'POST',
+      headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Content-Type': 'application/json' },
+      body,
+    });
+    if (!res.ok) return { posts: [], videoCount: 0 };
+    const json = await res.json() as any;
+    const user = json?.data?.user;
+    if (!user) return { posts: [], videoCount: 0 };
+
+    const posts: ScrapedPost[] = [];
+    for (const edge of user.videos?.edges || []) {
+      const v = edge.node;
+      if (!v) continue;
+      posts.push({
+        id: v.id, imageUrl: v.previewThumbnailURL || '',
+        caption: v.title || '', likesCount: v.viewCount || 0,
+        commentsCount: 0, timestamp: v.createdAt || '', isVideo: true,
+      });
+    }
+    if (posts.length < 12) {
+      for (const edge of user.clips?.edges || []) {
+        if (posts.length >= 12) break;
+        const c = edge.node;
+        if (!c) continue;
+        posts.push({
+          id: c.id, imageUrl: c.thumbnailURL || '',
+          caption: c.title || '', likesCount: c.viewCount || 0,
+          commentsCount: 0, timestamp: c.createdAt || '', isVideo: true,
+        });
+      }
+    }
+    return { posts, videoCount: user.videos?.totalCount ?? 0 };
+  } catch { return { posts: [], videoCount: 0 }; }
+}
+
 export async function scrapeTwitchProfile(handle: string): Promise<TwitchProfile | null> {
   const clean = handle.replace(/^@/, '').trim().toLowerCase();
   if (!clean) return null;
 
   const gql = await fetchViaGQL(clean);
-  if (gql) return gql;
+  if (gql) {
+    // Enrich with recent VODs/clips
+    const { posts, videoCount } = await fetchRecentContent(clean);
+    gql.recentPosts = posts;
+    if (videoCount > 0) gql.postsCount = videoCount;
+    return gql;
+  }
   return await fetchViaPage(clean);
 }

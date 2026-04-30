@@ -41,18 +41,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.access_token) {
-        SecureStore.setItemAsync('access_token', s.access_token);
+    // Get initial session — clear stale tokens if refresh fails
+    supabase.auth.getSession().then(({ data: { session: s }, error }) => {
+      if (error?.message?.includes('Refresh Token')) {
+        // Stale token — wipe it so the user sees the login screen cleanly
+        supabase.auth.signOut().catch(() => {});
+        SecureStore.deleteItemAsync('access_token').catch(() => {});
+        setSession(null);
+        setUser(null);
+      } else {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.access_token) {
+          SecureStore.setItemAsync('access_token', s.access_token);
+        }
       }
       setLoading(false);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'TOKEN_REFRESHED' && !s) {
+        // Token refresh failed — sign out
+        SecureStore.deleteItemAsync('access_token').catch(() => {});
+        setSession(null);
+        setUser(null);
+        return;
+      }
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.access_token) {

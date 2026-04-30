@@ -6,7 +6,9 @@ import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
-import { Kicker } from '@/components/ui/Kicker';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { AccountPicker } from '@/components/ui/AccountPicker';
+import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -48,11 +50,14 @@ export default function SmoScoreScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { accounts, loading: accountsLoading } = useConnectedAccounts();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       setError(null);
-      const result = await api.get<SmoData>('/smo');
+      const url = selectedAccountId ? `/smo?platformAccountId=${selectedAccountId}` : '/smo';
+      const result = await api.get<SmoData>(url);
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load');
@@ -60,7 +65,7 @@ export default function SmoScoreScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedAccountId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -70,7 +75,9 @@ export default function SmoScoreScreen() {
     setComputing(true);
     setError(null);
     try {
-      await api.post('/smo/compute', {});
+      await api.post('/smo/compute', {
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
+      });
       await fetchData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Compute failed');
@@ -90,14 +97,14 @@ export default function SmoScoreScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: t.bg, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={accentColor} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColor} />}
@@ -135,6 +142,16 @@ export default function SmoScoreScreen() {
           </Text>
         </View>
 
+        {/* Account picker */}
+        <AccountPicker
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={(accountId) => setSelectedAccountId(accountId)}
+          showAllOption
+          loading={accountsLoading}
+          label="Analyzing"
+        />
+
         {error && (
           <View style={{ padding: 12, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: 12, marginBottom: 16 }}>
             <Text style={{ color: isGlass(t) ? t.bad : '#ef4444', fontSize: 13 }}>{error}</Text>
@@ -164,6 +181,7 @@ export default function SmoScoreScreen() {
         ) : data && (
           <>
             {/* ── Score gauge ──────────────────────── */}
+            <SectionHeader number="01" title="Your score" emphasisWord="score" meta={data.score != null ? `Grade ${getGrade(data.score)}` : undefined} />
             <ThemedCard padding={28} style={{ alignItems: 'center', marginBottom: 20 }}>
               <View style={{ width: 180, height: 180, marginBottom: 16 }}>
                 <Svg viewBox="0 0 160 160" width={180} height={180}>
@@ -257,7 +275,7 @@ export default function SmoScoreScreen() {
             </ThemedCard>
 
             {/* ── Factor breakdown ──────────────────── */}
-            <Kicker style={{ marginBottom: 12 }}>Factor breakdown</Kicker>
+            <SectionHeader number="02" title="Factor breakdown" emphasisWord="breakdown" meta={data.factors ? `${data.factors.length} factors` : undefined} />
             <ThemedCard padding={20}>
               {data.factors && data.factors.length > 0 ? (
                 <View style={{ gap: 18 }}>

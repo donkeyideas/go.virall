@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
           disconnected_at: null,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'user_id,platform' },
+        { onConflict: 'user_id,platform,platform_user_id' },
       );
 
     if (dbError) {
