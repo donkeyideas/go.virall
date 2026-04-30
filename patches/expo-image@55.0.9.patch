@@ -1,0 +1,110 @@
+diff --git a/ios/ImageModule.swift b/ios/ImageModule.swift
+index 6aa92cc0760c5b60a8c1f144daefc2098176d0c3..e7764de72b7512ff850c39e021081ca12be586ca 100644
+--- a/ios/ImageModule.swift
++++ b/ios/ImageModule.swift
+@@ -134,31 +134,41 @@ public final class ImageModule: Module {
+       }
+ 
+       AsyncFunction("startAnimating") { (view: ImageView) in
+-        if view.isSFSymbolSource {
+-          view.startSymbolAnimation()
+-        } else {
+-          view.sdImageView.startAnimating()
++        MainActor.assumeIsolated {
++          if view.isSFSymbolSource {
++            view.startSymbolAnimation()
++          } else {
++            view.sdImageView.startAnimating()
++          }
+         }
+       }
+ 
+       AsyncFunction("stopAnimating") { (view: ImageView) in
+-        if view.isSFSymbolSource {
+-          view.stopSymbolAnimation()
+-        } else {
+-          view.sdImageView.stopAnimating()
++        MainActor.assumeIsolated {
++          if view.isSFSymbolSource {
++            view.stopSymbolAnimation()
++          } else {
++            view.sdImageView.stopAnimating()
++          }
+         }
+       }
+ 
+       AsyncFunction("lockResourceAsync") { (view: ImageView) in
+-        view.lockResource = true
++        MainActor.assumeIsolated {
++          view.lockResource = true
++        }
+       }
+ 
+       AsyncFunction("unlockResourceAsync") { (view: ImageView) in
+-        view.lockResource = false
++        MainActor.assumeIsolated {
++          view.lockResource = false
++        }
+       }
+ 
+       AsyncFunction("reloadAsync") { (view: ImageView) in
+-        view.reload(force: true)
++        MainActor.assumeIsolated {
++          view.reload(force: true)
++        }
+       }
+ 
+       OnViewDidUpdateProps { view in
+diff --git a/ios/ImageView.swift b/ios/ImageView.swift
+index 034b66202525c056cf3d767c20a6aa2b4a6b9ee1..49c85f8b2624ae917d3dbd6d57f42dcd419e67e4 100644
+--- a/ios/ImageView.swift
++++ b/ios/ImageView.swift
+@@ -131,7 +131,9 @@ public final class ImageView: ExpoView {
+ 
+   deinit {
+     // Cancel pending requests when the view is deallocated.
+-    cancelPendingOperation()
++    MainActor.assumeIsolated {
++      cancelPendingOperation()
++    }
+   }
+ 
+   public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+@@ -655,28 +657,6 @@ public final class ImageView: ExpoView {
+       case .wholeSymbol: sdImageView.addSymbolEffect(.breathe.wholeSymbol, options: options)
+       case .none: sdImageView.addSymbolEffect(.breathe, options: options)
+       }
+-    default:
+-      if #available(iOS 26.0, tvOS 26.0, *) {
+-        applySymbolEffectiOS26(effect: effect, scope: scope, options: options)
+-      }
+-    }
+-  }
+-
+-  @available(iOS 26.0, tvOS 26.0, *)
+-  private func applySymbolEffectiOS26(effect: SFSymbolEffectType, scope: SFSymbolEffectScope?, options: SymbolEffectOptions) {
+-    switch effect {
+-    case .drawOn:
+-      switch scope {
+-      case .byLayer: sdImageView.addSymbolEffect(.drawOn.byLayer, options: options)
+-      case .wholeSymbol: sdImageView.addSymbolEffect(.drawOn.wholeSymbol, options: options)
+-      case .none: sdImageView.addSymbolEffect(.drawOn, options: options)
+-      }
+-    case .drawOff:
+-      switch scope {
+-      case .byLayer: sdImageView.addSymbolEffect(.drawOff.byLayer, options: options)
+-      case .wholeSymbol: sdImageView.addSymbolEffect(.drawOff.wholeSymbol, options: options)
+-      case .none: sdImageView.addSymbolEffect(.drawOff, options: options)
+-      }
+     default:
+       break
+     }
+@@ -841,3 +821,8 @@ public final class ImageView: ExpoView {
+   }
+ #endif
+ }
++
++#if !os(tvOS)
++@available(iOS 16.0, macCatalyst 17.0, *)
++extension ImageAnalysis: @unchecked Sendable {}
++#endif
