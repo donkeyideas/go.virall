@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 
 // ── Supabase setup ─────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://nwxuatrpnugvhytjcltk.supabase.co';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'MISSING_KEY';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eHVhdHJwbnVndmh5dGpjbHRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODgzNjksImV4cCI6MjA5MjM2NDM2OX0.S4S7a-TI6pusI2nlT3ujZ9po0juTRCFhuuMSjcQ_Hr8';
 
 // SecureStore adapter for Supabase auth
 const ExpoSecureStoreAdapter = {
