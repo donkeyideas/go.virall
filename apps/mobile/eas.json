@@ -16,7 +16,8 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "6761445990"
+        "ascAppId": "6761445990",
+        "appleId": "info@donkeyideas.com"
       }
     }
   }
