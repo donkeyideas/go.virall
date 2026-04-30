@@ -9,16 +9,10 @@ const config = getDefaultConfig(projectRoot);
 // Watch all files in the monorepo
 config.watchFolders = [monorepoRoot];
 
-// Resolve packages from monorepo root node_modules
+// Resolve packages from monorepo root and mobile node_modules
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
 ];
-
-// Force resolution to this project's react/react-native
-config.resolver.disableHierarchicalLookup = true;
-
-// Enable symlinks for pnpm monorepo
-config.resolver.unstable_enableSymlinks = true;
 
 module.exports = config;
