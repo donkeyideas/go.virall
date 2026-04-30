@@ -34,7 +34,8 @@
       "expo-router",
       "expo-font",
       "expo-secure-store",
-      "./plugins/withSwiftConcurrency"
+      "./plugins/withSwiftConcurrency",
+      "./plugins/withAndroidGradleMemory"
     ],
     "experiments": {
       "typedRoutes": true
