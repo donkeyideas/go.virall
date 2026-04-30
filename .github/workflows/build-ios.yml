@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-ios:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: ./apps/mobile
@@ -41,11 +41,23 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: .
 
-      - name: Build iOS on EAS cloud
-        run: eas build --profile ${{ inputs.profile || 'preview' }} --platform ios --non-interactive --no-wait
+      - name: Build iOS locally (preview/dev → IPA)
+        if: ${{ inputs.profile != 'production' }}
+        run: eas build --local --profile ${{ inputs.profile || 'preview' }} --platform ios --non-interactive --output ./go-virall.ipa
 
-      - name: Build and submit to App Store (production only)
+      - name: Build iOS locally (production → IPA)
         if: ${{ inputs.profile == 'production' }}
-        run: eas submit --profile production --platform ios --latest --non-interactive
+        run: eas build --local --profile production --platform ios --non-interactive --output ./go-virall.ipa
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-virall-ios
+          path: apps/mobile/go-virall.ipa
+          retention-days: 90
+
+      - name: Submit to App Store (production only)
+        if: ${{ inputs.profile == 'production' }}
+        run: eas submit --profile production --platform ios --path ./go-virall.ipa --non-interactive
         env:
           EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
