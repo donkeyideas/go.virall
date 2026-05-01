@@ -82,7 +82,7 @@ export default function AppLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
-          animation: 'fade',
+          animation: 'default',
         }}
       >
         <Stack.Screen name="index" />
