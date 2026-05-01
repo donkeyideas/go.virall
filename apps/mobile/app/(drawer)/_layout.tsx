@@ -82,7 +82,7 @@ export default function AppLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
-          animation: 'default',
+          animation: 'none',
         }}
       >
         <Stack.Screen name="index" />
@@ -367,8 +367,16 @@ export default function AppLayout() {
                 </Text>
               </View>
               {/* Sign out */}
-              <Pressable onPress={async () => { setDrawerOpen(false); await signOut(); router.replace('/(auth)/login'); }}>
-                <IconLogOut size={16} color={isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad} />
+              <Pressable
+                onPress={async () => {
+                  setDrawerOpen(false);
+                  await signOut();
+                  router.replace('/');
+                }}
+                hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+                style={{ padding: 8 }}
+              >
+                <IconLogOut size={20} color={isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad} />
               </Pressable>
             </View>
           </View>
