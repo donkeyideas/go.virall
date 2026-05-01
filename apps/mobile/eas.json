@@ -12,7 +12,7 @@
       "distribution": "internal"
     },
     "production": {
-      "credentialsSource": "local"
+      "credentialsSource": "remote"
     }
   },
   "submit": {
