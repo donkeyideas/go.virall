@@ -42,7 +42,7 @@ const contentH = maxY - minY + 1;
 console.log(`Content bounds: ${minX},${minY} → ${maxX},${maxY} (${contentW}×${contentH})`);
 
 // Scale factor: fit content within TARGET with 8% padding on each side
-const padding = Math.round(TARGET * 0.08);
+const padding = Math.round(TARGET * 0.02);
 const fitSize = TARGET - padding * 2;
 const scale = Math.min(fitSize / contentW, fitSize / contentH);
 const dstW = Math.round(contentW * scale);
