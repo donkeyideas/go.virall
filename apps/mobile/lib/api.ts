@@ -1,7 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
-
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { supabase } from './auth';
 
 // In dev: Android emulator uses 10.0.2.2, physical devices use the host machine IP.
 // Expo sets debuggerHost to "IP:PORT" — extract the IP from that.
@@ -31,7 +30,8 @@ class ApiError extends Error {
 
 async function getToken(): Promise<string | null> {
   try {
-    return await SecureStore.getItemAsync('access_token');
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
   } catch {
     return null;
   }
