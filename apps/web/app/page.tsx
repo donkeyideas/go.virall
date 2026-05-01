@@ -6,10 +6,20 @@ import { MarketingFooter } from '../components/marketing/Footer';
 import { CustomPlanCard } from '../components/marketing/CustomPlanCard';
 
 export const metadata: Metadata = {
-  title: 'Go Virall - Social Intelligence Platform for Creators',
+  title: 'Go Virall - The Fintech Creator Platform | Social Intelligence for Creators',
   description:
-    'Stop guessing, start growing. Viral score predictions, AI content studio, and audience intelligence across 7 platforms. Free to start.',
+    'The best fintech social media platform for creators. Predict viral posts with AI-powered social intelligence, cross-platform creator metrics, and content strategy tools across 7 platforms. Free to start.',
   keywords: [
+    'fintech creator platform',
+    'fintech social intelligence',
+    'social intelligence platform',
+    'fintech social media analytics tool',
+    'predict fintech viral posts',
+    'fintech viral content analyzer',
+    'fintech cross-platform creator metrics',
+    'fintech content strategy AI',
+    'financial influencer growth insights',
+    'best fintech social media platform',
     'creator tools',
     'social media analytics',
     'viral score',
@@ -17,17 +27,14 @@ export const metadata: Metadata = {
     'AI content studio',
     'influencer analytics',
     'social media optimization',
-    'Instagram analytics',
-    'TikTok analytics',
-    'YouTube analytics',
     'audience intelligence',
     'creator economy',
   ],
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Go Virall - The Creator OS',
+    title: 'Go Virall - The Fintech Creator Platform',
     description:
-      'The social intelligence platform for creators. Viral score 0-100, AI content studio, audience analytics across 7 platforms.',
+      'The fintech social intelligence platform for creators. Predict viral posts 0-100, AI content studio, cross-platform creator metrics across 7 platforms.',
     type: 'website',
   },
 };
@@ -92,6 +99,7 @@ export default async function LandingPage() {
             { label: 'Creators', href: '/creators' },
             { label: 'Pricing', href: '/pricing' },
             { label: 'Stories', href: '/stories' },
+            { label: 'Blog', href: '/blog' },
           ].map((item) => (
             <li key={item.label}>
               <Link href={item.href} style={{ color: 'inherit', textDecoration: 'none' }}>
@@ -276,19 +284,6 @@ export default async function LandingPage() {
             </div>
           </div>
           <aside>
-            <p
-              style={{
-                borderLeft: '3px solid var(--ink)',
-                paddingLeft: 18,
-                maxWidth: 420,
-                fontSize: 17,
-                lineHeight: 1.5,
-                fontWeight: 400,
-                color: '#1a1a1a',
-              }}
-            >
-              Go Virall is the <b>social intelligence engine</b> built for creators who refuse to be average. Seven platforms, one dashboard, a private AI strategist &mdash; and a viral score that predicts the hit before you post.
-            </p>
             <div style={{ position: 'relative', height: 640 }}>
               {/* Sticker */}
               <div
@@ -509,7 +504,7 @@ export default async function LandingPage() {
             Your <span style={{ fontStyle: 'normal', fontWeight: 900 }}>unfair</span><br />advantage.
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.55, color: '#333', maxWidth: 340, justifySelf: 'end' }}>
-            Every lever you need to compound an audience &mdash; deep analytics, an always-on AI strategist, audience intelligence, and a viral score that calls the shot before you post.
+            Every lever you need to compound an audience &mdash; fintech social media analytics, an always-on AI content strategist, financial influencer growth insights, and a viral content analyzer that calls the shot before you post.
           </p>
         </div>
 
@@ -745,6 +740,64 @@ export default async function LandingPage() {
               <p style={{ fontSize: 14, lineHeight: 1.55, opacity: 0.7 }}>{s.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Fintech Creator Platform — SEO section */}
+      <section style={{ padding: '80px 28px 40px', borderTop: '1.5px solid rgba(243,239,230,.2)' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+          <div
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 12,
+              letterSpacing: '.2em',
+              opacity: 0.5,
+              marginBottom: 20,
+              color: 'var(--ink)',
+            }}
+          >
+            THE FINTECH CREATOR PLATFORM
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontWeight: 300,
+              fontStyle: 'italic',
+              fontSize: 'clamp(32px, 4vw, 52px)',
+              lineHeight: 1.1,
+              letterSpacing: '-.02em',
+              marginBottom: 20,
+            }}
+          >
+            Social intelligence,{' '}
+            <span style={{ fontWeight: 900, fontStyle: 'normal' }}>built for fintech creators.</span>
+          </h2>
+          <p style={{ fontSize: 16, lineHeight: 1.7, opacity: 0.8, marginBottom: 20 }}>
+            Go Virall is the fintech social intelligence platform that gives creators an unfair advantage. Predict fintech viral posts before you publish with our AI-powered viral content analyzer. Track cross-platform creator metrics across Instagram, TikTok, YouTube, X, LinkedIn, Facebook, and Twitch &mdash; all from one dashboard.
+          </p>
+          <p style={{ fontSize: 16, lineHeight: 1.7, opacity: 0.8 }}>
+            Whether you need fintech social media analytics, AI content strategy, or financial influencer growth insights &mdash; Go Virall delivers the data and tools to help you grow faster and earn more. Start your fintech creator analytics free trial today.
+          </p>
+          <div style={{ display: 'flex', gap: 24, marginTop: 28, flexWrap: 'wrap' }}>
+            <Link
+              href="/product"
+              style={{ color: 'var(--ink)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: '.1em', textDecoration: 'underline', opacity: 0.6 }}
+            >
+              Explore Features
+            </Link>
+            <Link
+              href="/intelligence"
+              style={{ color: 'var(--ink)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: '.1em', textDecoration: 'underline', opacity: 0.6 }}
+            >
+              Social Intelligence
+            </Link>
+            <Link
+              href="/creators"
+              style={{ color: 'var(--ink)', fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: '.1em', textDecoration: 'underline', opacity: 0.6 }}
+            >
+              For Creators
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -2,9 +2,19 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Intelligence',
+  title: 'Fintech Social Intelligence | AI Content Strategy for Creators',
   description:
-    'AI-powered social intelligence: viral predictions, content optimization, audience insights, and trend detection across 7 platforms.',
+    'Fintech social intelligence and AI-powered content strategy for creators. Predict fintech viral posts, optimize content with fintech content strategy AI, and get financial influencer growth insights across 7 platforms.',
+  keywords: [
+    'fintech social intelligence',
+    'fintech content strategy AI',
+    'predict fintech viral posts',
+    'financial influencer growth insights',
+    'social intelligence platform',
+    'AI content strategy',
+    'viral predictions',
+    'audience insights',
+  ],
 };
 
 const PILLARS = [
@@ -12,13 +22,13 @@ const PILLARS = [
     number: '01',
     title: 'Viral Prediction Engine',
     description:
-      'Our scoring model analyzes your content against platform-specific signals \u2014 format, length, hook quality, hashtag relevance, posting time, and historical audience engagement \u2014 to assign a 0\u2013100 viral score before you hit publish.',
+      'Predict fintech viral posts before you hit publish. Our scoring model analyzes your content against platform-specific signals \u2014 format, length, hook quality, hashtag relevance, posting time, and historical engagement \u2014 to assign a 0\u2013100 viral score across all connected platforms.',
   },
   {
     number: '02',
     title: 'AI Content Strategist',
     description:
-      'Trained on your content history, the strategist generates captions in your voice, flags high-potential ideas, and suggests optimal posting windows. It learns what works for your specific audience.',
+      'Fintech content strategy AI trained on your content history. Generates captions in your voice, flags high-potential ideas, and suggests optimal posting windows. It learns what works for your specific audience and delivers actionable growth insights.',
   },
   {
     number: '03',
@@ -80,9 +90,8 @@ export default function IntelligencePage() {
             color: '#555',
           }}
         >
-          Go Virall\u2019s intelligence layer turns raw social data into actionable
-          insights. Five AI-powered pillars work together so you post smarter,
-          grow faster, and earn more.
+          Go Virall\u2019s fintech social intelligence layer turns raw social data into actionable
+          insights. Five pillars of fintech content strategy AI work together to predict viral posts, deliver financial influencer growth insights, and help you earn more.
         </p>
       </section>
 
@@ -154,7 +163,7 @@ export default function IntelligencePage() {
           Intelligence, on tap.
         </h3>
         <p style={{ fontSize: 15, opacity: 0.7, marginBottom: 28, maxWidth: 420, margin: '0 auto 28px' }}>
-          Free plan includes viral scoring and AI Studio. No credit card required.
+          Free plan includes fintech social media analytics, viral scoring, and AI Studio. No credit card required.
         </p>
         <Link
           href="/signup"
@@ -174,6 +183,30 @@ export default function IntelligencePage() {
         >
           Start free &rarr;
         </Link>
+        <nav
+          style={{
+            marginTop: 40,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 28,
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '.1em',
+          }}
+        >
+          <Link href="/product" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Product Features
+          </Link>
+          <Link href="/creators" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            For Creators
+          </Link>
+          <Link href="/pricing" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Pricing &amp; Free Trial
+          </Link>
+          <Link href="/stories" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Creator Stories
+          </Link>
+        </nav>
       </section>
     </main>
   );

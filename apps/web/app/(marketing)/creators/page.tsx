@@ -2,9 +2,17 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'For Creators',
+  title: 'Fintech Creator Platform | Financial Influencer Growth Insights',
   description:
-    'Go Virall is built for creators who refuse to be average. Social intelligence across 7 platforms, AI content studio, and viral predictions.',
+    'The fintech creator platform built for influencers who refuse to be average. Get financial influencer growth insights, cross-platform creator metrics, and AI content strategy across 7 platforms. Free to start.',
+  keywords: [
+    'fintech creator platform',
+    'financial influencer growth insights',
+    'fintech cross-platform creator metrics',
+    'fintech creator analytics free trial',
+    'content creator platform',
+    'influencer analytics',
+  ],
 };
 
 const CREATOR_TYPES = [
@@ -18,7 +26,7 @@ const CREATOR_TYPES = [
   {
     title: 'Influencers',
     description:
-      'Pitch brands with real audience intelligence \u2014 demographics, interest graphs, engagement quality. Close deals faster with a media kit that updates automatically.',
+      'Get financial influencer growth insights and pitch brands with real audience intelligence \u2014 demographics, interest graphs, engagement quality. Close deals faster with a media kit powered by fintech social media analytics.',
     stat: '7',
     statLabel: 'Platforms',
   },
@@ -88,9 +96,8 @@ export default function CreatorsPage() {
             color: '#555',
           }}
         >
-          Whether you have 500 followers or 5 million \u2014 Go Virall gives you the
-          same intelligence tools the top 1% use. Seven platforms, one dashboard,
-          zero guesswork.
+          Whether you have 500 followers or 5 million \u2014 this fintech creator platform gives you the
+          same financial influencer growth insights the top 1% use. Seven platforms, cross-platform creator metrics, zero guesswork.
         </p>
       </section>
 
@@ -213,6 +220,30 @@ export default function CreatorsPage() {
         >
           Start free &mdash; no card &rarr;
         </Link>
+        <nav
+          style={{
+            marginTop: 40,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 28,
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '.1em',
+          }}
+        >
+          <Link href="/product" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Fintech Analytics Tools
+          </Link>
+          <Link href="/intelligence" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Social Intelligence
+          </Link>
+          <Link href="/pricing" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Free Trial
+          </Link>
+          <Link href="/stories" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Creator Growth Stories
+          </Link>
+        </nav>
       </section>
     </main>
   );

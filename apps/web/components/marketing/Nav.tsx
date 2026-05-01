@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { label: 'Creators', href: '/creators' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Stories', href: '/stories' },
+  { label: 'Blog', href: '/blog' },
 ];
 
 export function MarketingNav() {

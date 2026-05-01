@@ -90,6 +90,7 @@ export function MarketingFooter({ showCTA = true }: { showCTA?: boolean }) {
           title="Company"
           links={[
             { label: 'About', href: '/about' },
+            { label: 'Blog', href: '/blog' },
             { label: 'FAQ', href: '/faq' },
             { label: 'Contact', href: '/contact' },
           ]}

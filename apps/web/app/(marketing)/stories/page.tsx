@@ -2,9 +2,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Creator Stories',
+  title: 'Creator Stories | Financial Influencer Growth Insights & Results',
   description:
-    'See how creators use Go Virall to grow their audience, land brand deals, and create smarter content.',
+    'See how creators use Go Virall\u2019s fintech social intelligence platform to grow their audience, land brand deals, and get financial influencer growth insights that drive real results.',
+  keywords: [
+    'financial influencer growth insights',
+    'fintech creator platform results',
+    'creator success stories',
+    'social media growth case studies',
+    'influencer analytics results',
+  ],
 };
 
 const STORIES = [
@@ -98,7 +105,7 @@ export default function StoriesPage() {
             color: '#555',
           }}
         >
-          Real creators. Real results. See how they use Go Virall to grow smarter.
+          Real creators. Real financial influencer growth insights. See how they use Go Virall\u2019s fintech creator platform to grow smarter.
         </p>
       </section>
 
@@ -232,7 +239,7 @@ export default function StoriesPage() {
           Your story starts here.
         </h3>
         <p style={{ fontSize: 15, opacity: 0.7, maxWidth: 420, margin: '0 auto 28px' }}>
-          Join thousands of creators using intelligence to grow.
+          Join thousands of creators using fintech social intelligence to grow.
         </p>
         <Link
           href="/signup"
@@ -252,6 +259,27 @@ export default function StoriesPage() {
         >
           Start free &rarr;
         </Link>
+        <nav
+          style={{
+            marginTop: 40,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 28,
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '.1em',
+          }}
+        >
+          <Link href="/product" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Product Features
+          </Link>
+          <Link href="/intelligence" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Fintech Social Intelligence
+          </Link>
+          <Link href="/pricing" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Pricing &amp; Free Trial
+          </Link>
+        </nav>
       </section>
     </main>
   );

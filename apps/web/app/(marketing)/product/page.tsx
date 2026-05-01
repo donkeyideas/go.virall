@@ -2,9 +2,18 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Product',
+  title: 'Fintech Social Media Analytics Tool | Go Virall Product Features',
   description:
-    'Explore Go Virall features: Viral Score predictions, AI Studio, Audience Intelligence, SMO Score, and Revenue Tracking across 7 platforms.',
+    'The fintech viral content analyzer and cross-platform creator metrics tool. Predict viral posts, track fintech social media analytics, AI content strategy, and audience intelligence across 7 platforms.',
+  keywords: [
+    'fintech social media analytics tool',
+    'fintech viral content analyzer',
+    'fintech cross-platform creator metrics',
+    'predict fintech viral posts',
+    'fintech creator platform',
+    'social media analytics',
+    'viral score predictions',
+  ],
 };
 
 const FEATURES = [
@@ -14,7 +23,7 @@ const FEATURES = [
     title: 'Viral Score',
     headline: 'Predict the hit before you post.',
     description:
-      'Score every piece of content 0\u2013100 before you publish. Our engine analyzes format, length, hook quality, posting window, and audience patterns to predict performance across Instagram, TikTok, YouTube, X, LinkedIn, Facebook, and Twitch.',
+      'Predict fintech viral posts before you publish. Score every piece of content 0\u2013100 with our fintech viral content analyzer. It analyzes format, hook quality, posting window, and cross-platform creator metrics across Instagram, TikTok, YouTube, X, LinkedIn, Facebook, and Twitch.',
     color: 'var(--ink)',
     bg: 'var(--paper)',
     stats: ['0\u2013100 score', '7 platforms', 'Real-time analysis'],
@@ -105,9 +114,7 @@ export default function ProductPage() {
             color: '#555',
           }}
         >
-          Every lever you need to compound an audience \u2014 deep analytics, an
-          always-on AI strategist, audience intelligence, and a viral score that
-          calls the shot before you post.
+          The fintech social media analytics tool built for creators. Cross-platform creator metrics, an AI content strategist, audience intelligence, and a fintech viral content analyzer that predicts the hit before you post.
         </p>
       </section>
 
@@ -224,6 +231,30 @@ export default function ProductPage() {
         >
           Start free &mdash; no card &rarr;
         </Link>
+        <nav
+          style={{
+            marginTop: 40,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 28,
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '.1em',
+          }}
+        >
+          <Link href="/intelligence" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Fintech Social Intelligence
+          </Link>
+          <Link href="/creators" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            For Creators
+          </Link>
+          <Link href="/pricing" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Pricing &amp; Free Trial
+          </Link>
+          <Link href="/stories" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.6 }}>
+            Creator Stories
+          </Link>
+        </nav>
       </section>
     </main>
   );

@@ -4,9 +4,17 @@ import { getPublicPlans } from '../../../lib/actions/admin/plans';
 import { CustomPlanCard } from '../../../components/marketing/CustomPlanCard';
 
 export const metadata: Metadata = {
-  title: 'Pricing',
+  title: 'Fintech Creator Analytics Free Trial | Go Virall Pricing',
   description:
-    'Go Virall pricing: free to start, no credit card. Scale when you\u2019re ready. Viral scoring, AI Studio, audience intel, and revenue tracking.',
+    'Start your fintech creator analytics free trial today. Buy the social intelligence platform trusted by creators. Viral scoring, AI Studio, cross-platform metrics, and audience intel. No credit card required.',
+  keywords: [
+    'fintech creator analytics free trial',
+    'buy social intelligence platform',
+    'best fintech social media platform',
+    'fintech creator platform pricing',
+    'social media analytics pricing',
+    'creator tools pricing',
+  ],
 };
 
 export default async function PricingPage() {
@@ -52,7 +60,7 @@ export default async function PricingPage() {
             color: '#555',
           }}
         >
-          No contracts, no credit card for free. Scale when you&apos;re ready.
+          Start your fintech creator analytics free trial. No contracts, no credit card. Scale when you&apos;re ready.
         </p>
       </section>
 
@@ -225,7 +233,7 @@ export default async function PricingPage() {
         {[
           {
             q: 'Can I start for free?',
-            a: 'Yes. The free plan includes viral scoring, AI Studio, and basic audience insights. No credit card required.',
+            a: 'Yes. The fintech creator analytics free trial includes viral scoring, AI Studio, cross-platform creator metrics, and basic audience insights. No credit card required.',
           },
           {
             q: 'Can I cancel anytime?',
