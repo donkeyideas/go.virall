@@ -11,6 +11,8 @@ interface UserProfile {
 interface PulseData {
   followers: { value: number; formatted: string; delta: string; deltaVariant: 'good' | 'flat' | 'bad' };
   engagement: { value: number; formatted: string; delta: string; deltaVariant: 'good' | 'flat' | 'bad' };
+  revenueMtd: { value: number; formatted: string; delta: string; deltaVariant: 'good' | 'flat' | 'bad' };
+  pipeline: { value: number; formatted: string; delta: string; deltaVariant: 'good' | 'flat' | 'bad' };
 }
 
 interface SmoData {
@@ -110,6 +112,13 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
+function formatCurrency(cents: number): string {
+  // Match web's fmt(): if cents >= 100, treat as cents → dollars; otherwise treat as raw dollars
+  const dollars = cents >= 100 ? cents / 100 : cents;
+  if (dollars >= 1_000) return `$${(dollars / 1_000).toFixed(1)}K`;
+  return `$${Math.round(dollars).toLocaleString('en-US')}`;
+}
+
 function formatTime(date: string): string {
   const d = new Date(date);
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
@@ -122,7 +131,12 @@ function getFactorLabel(value: number, label: string): string {
 const EMPTY_PULSE: PulseData = {
   followers: { value: 0, formatted: '0', delta: '—', deltaVariant: 'flat' },
   engagement: { value: 0, formatted: '0%', delta: '—', deltaVariant: 'flat' },
+  revenueMtd: { value: 0, formatted: '$0', delta: '—', deltaVariant: 'flat' },
+  pipeline: { value: 0, formatted: '$0', delta: '0 deals', deltaVariant: 'flat' },
 };
+
+// Match web: active = everything except done/lost (avoids hardcoding stage names)
+const TERMINAL_DEAL_STAGES = ['done', 'lost'];
 
 // ── Hook ───────────────────────────────────────────────────────────────
 
@@ -148,12 +162,15 @@ export function useTodayData(): TodayData {
       setError(null);
 
       // Parallel fetch — use allSettled so partial data still shows
+      // Single /posts call (like web page.tsx) — derive scheduled/published in JS
       const results = await Promise.allSettled([
         api.get<any>('/user'),                                    // 0
         api.get<any[]>('/platforms'),                             // 1
         api.post<any>('/smo/compute', {}),                       // 2
-        api.get<{ items: any[] }>('/posts?limit=50'),            // 3
-        api.get<any[]>('/audience/growth'),                      // 4
+        api.get<{ items: any[] }>('/posts?limit=50'),            // 3 — all posts (matches web)
+        api.get<{ items: any[] }>('/deals?limit=50'),            // 4
+        api.get<{ items: any[] }>('/invoices?limit=50'),         // 5
+        api.get<any[]>('/audience/growth'),                      // 6
       ]);
 
       const val = <T,>(r: PromiseSettledResult<T>): T | null =>
@@ -163,10 +180,12 @@ export function useTodayData(): TodayData {
       const platformsRes = val(results[1]) as any[] | null;
       const smoRes = val(results[2]);
       const allPostsRes = val(results[3]) as { items: any[] } | null;
-      const growthRes = val(results[4]) as any[] | null;
+      const dealsRes = val(results[4]) as { items: any[] } | null;
+      const invoicesRes = val(results[5]) as { items: any[] } | null;
+      const growthRes = val(results[6]) as any[] | null;
 
       // Log individual failures for debugging
-      const labels = ['user', 'platforms', 'smo', 'posts', 'growth'];
+      const labels = ['user', 'platforms', 'smo', 'posts', 'deals', 'invoices', 'growth'];
       results.forEach((r, i) => {
         if (r.status === 'rejected') console.warn(`[Today] ${labels[i]} failed:`, r.reason);
       });
@@ -186,9 +205,20 @@ export function useTodayData(): TodayData {
       }
 
       // ── Platforms / Pulse ──
+      // Match web: only count platforms with sync_status='healthy'
       const allPlatforms = platformsRes ?? [];
       const connectedPlatforms = allPlatforms.filter((p: any) => p.sync_status === 'healthy');
       const totalFollowers = connectedPlatforms.reduce((s: number, p: any) => s + (p.follower_count ?? 0), 0);
+
+      // Revenue: match web — won deal value (stage=done or paid)
+      const deals = dealsRes?.items ?? [];
+      const wonDealValue = deals
+        .filter((d: any) => d.stage === 'done' || d.stage === 'paid')
+        .reduce((s: number, d: any) => s + (d.amount_cents ?? d.value ?? 0), 0);
+
+      // Pipeline: active deals — match web: exclude done/lost
+      const pipelineDeals = deals.filter((d: any) => !TERMINAL_DEAL_STAGES.includes(d.stage));
+      const pipelineValue = pipelineDeals.reduce((s: number, d: any) => s + (d.amount_cents ?? d.value ?? 0), 0);
 
       setPulse({
         followers: {
@@ -203,9 +233,22 @@ export function useTodayData(): TodayData {
           delta: connectedPlatforms.length > 0 ? 'Sync to track' : '—',
           deltaVariant: 'flat',
         },
+        revenueMtd: {
+          value: wonDealValue,
+          formatted: formatCurrency(wonDealValue),
+          delta: wonDealValue > 0 ? 'Won deals' : '—',
+          deltaVariant: wonDealValue > 0 ? 'good' : 'flat',
+        },
+        pipeline: {
+          value: pipelineValue,
+          formatted: formatCurrency(pipelineValue),
+          delta: `${pipelineDeals.length} deal${pipelineDeals.length !== 1 ? 's' : ''}`,
+          deltaVariant: pipelineDeals.length > 0 ? 'good' : 'flat',
+        },
       });
 
       // ── Platform Items for cards ──
+      // Match web: only connected (healthy) platforms
       setConnectedPlatformCount(connectedPlatforms.length);
       setPlatformItems(
         connectedPlatforms.map((p: any) => ({
@@ -217,12 +260,12 @@ export function useTodayData(): TodayData {
         })),
       );
 
-      // ── All posts ──
+      // ── All posts — derive everything from single fetch (matches web page.tsx) ──
       const allPosts = allPostsRes?.items ?? [];
       const totalPlatformPosts = connectedPlatforms.reduce((s: number, p: any) => s + (p.post_count ?? 0), 0);
       setPostCount(totalPlatformPosts || allPosts.length);
 
-      // ── Top Posts ──
+      // ── Top Posts — filter by published_at truthy (matches web line 55) ──
       const publishedPosts = allPosts.filter((p: any) => p.published_at);
       const rankedPosts = publishedPosts
         .map((p: any) => ({
@@ -238,8 +281,9 @@ export function useTodayData(): TodayData {
         .slice(0, 3);
       setTopPosts(rankedPosts);
 
-      // ── Engagement Rate (F/F ratio) ──
+      // ── Engagement Rate (F/F ratio) — match web: use connected platforms only ──
       const totalFollowing = connectedPlatforms.reduce((s: number, p: any) => s + (p.following_count ?? 0), 0);
+      // Match web: Math.round((totalFollowers / totalFollowing) * 100) / 100
       const rate = totalFollowers > 0 && totalFollowing > 0
         ? Math.round((totalFollowers / totalFollowing) * 100) / 100
         : 0;
@@ -263,6 +307,7 @@ export function useTodayData(): TodayData {
           { label: 'Consistency', value: smoRes.factor_consistency },
           { label: 'Engagement', value: smoRes.factor_engagement },
           { label: 'Growth', value: smoRes.factor_growth },
+          { label: 'Monetization', value: smoRes.factor_monetization },
         ];
         const sorted = [...factors].sort((a, b) => b.value - a.value);
         const strongest = sorted[0];
@@ -278,7 +323,7 @@ export function useTodayData(): TodayData {
         setSmo(null);
       }
 
-      // ── Next Post + Scheduled Posts ──
+      // ── Next Post + Scheduled Posts — filter from allPosts (matches web line 131) ──
       const scheduledPosts = allPosts.filter((p: any) => p.status === 'scheduled' && p.hook);
       setScheduledPostItems(
         scheduledPosts.slice(0, 5).map((p: any) => ({
@@ -303,11 +348,56 @@ export function useTodayData(): TodayData {
         setNextPost(null);
       }
 
-      // ── Action Items (content-focused only, no deals/invoices) ──
-      setActions([]);
+      // ── Action Items ──
+      const actionItems: ActionItem[] = [];
+      const now = new Date();
+      const invoices = invoicesRes?.items ?? [];
+
+      // Overdue invoices → urgent
+      const overdueInvoices = invoices.filter(
+        (inv: any) => inv.status === 'overdue' || (inv.status === 'sent' && inv.due_date && new Date(inv.due_date) < now),
+      );
+      for (const inv of overdueInvoices.slice(0, 2)) {
+        const daysPast = inv.due_date ? Math.floor((now.getTime() - new Date(inv.due_date).getTime()) / 86400000) : 0;
+        actionItems.push({
+          id: `inv-${inv.id}`,
+          variant: 'urgent',
+          kicker: `Overdue · ${daysPast} day${daysPast !== 1 ? 's' : ''}`,
+          eyebrow: `Invoice ${inv.invoice_number ?? inv.id}`,
+          title: `Nudge ${inv.brand_name ?? 'client'} on the ${formatCurrency(inv.amount_cents ?? 0)} invoice.`,
+          emphasisWord: inv.brand_name ?? 'client',
+          meta: inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}` : '',
+          primaryCta: 'Send nudge',
+          skipCta: 'Tomorrow',
+        });
+      }
+
+      // Deals closing soon → warm
+      const closingSoon = deals.filter((d: any) => {
+        if (!d.due_date) return false;
+        const hoursUntil = (new Date(d.due_date).getTime() - now.getTime()) / 3600000;
+        return hoursUntil > 0 && hoursUntil < 72 && !TERMINAL_DEAL_STAGES.includes(d.stage);
+      });
+      for (const deal of closingSoon.slice(0, 2)) {
+        const hoursUntil = Math.floor((new Date(deal.due_date).getTime() - now.getTime()) / 3600000);
+        actionItems.push({
+          id: `deal-${deal.id}`,
+          variant: 'warm',
+          kicker: `Closing in ${hoursUntil}h · ${deal.probability ?? 0}% match`,
+          eyebrow: deal.title ?? deal.brand_name,
+          title: `Apply to ${deal.title ?? deal.brand_name}.`,
+          emphasisWord: deal.title ?? deal.brand_name,
+          meta: `${formatCurrency(deal.amount_cents ?? 0)} · ${deal.format ?? 'Content'} · deadline ${new Date(deal.due_date).toLocaleDateString('en-US', { weekday: 'long' })}`,
+          primaryCta: 'Apply',
+        });
+      }
+
+      setActions(actionItems);
 
       // ── Wins ──
       const winItems: WinItem[] = [];
+
+      // Follower milestone
       if (totalFollowers > 0) {
         winItems.push({
           id: 'win-followers',
@@ -318,6 +408,22 @@ export function useTodayData(): TodayData {
           iconName: 'trending-up',
         });
       }
+
+      // Recent paid deals
+      const recentPaid = deals
+        .filter((d: any) => d.stage === 'paid' || d.stage === 'done')
+        .slice(0, 1);
+      for (const deal of recentPaid) {
+        winItems.push({
+          id: `win-deal-${deal.id}`,
+          kicker: 'Deal closed',
+          text: `${deal.brand_name ?? 'Brand'} paid in full`,
+          emphasisText: deal.brand_name ?? 'Brand',
+          number: formatCurrency(deal.amount_cents ?? 0),
+          iconName: 'dollar-sign',
+        });
+      }
+
       setWins(winItems);
     } catch (err: any) {
       console.error('Today data fetch error:', err);

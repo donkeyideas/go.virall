@@ -52,6 +52,8 @@ export default function TodayScreen() {
   const pulseStats: PulseStat[] = [
     { label: 'Followers', value: pulse.followers.formatted, delta: pulse.followers.delta, deltaVariant: pulse.followers.deltaVariant },
     { label: 'Posts', value: postCount > 0 ? String(postCount) : '--', delta: postCount > 0 ? 'Total' : undefined, deltaVariant: 'flat' },
+    { label: 'Revenue', value: pulse.revenueMtd.formatted, delta: pulse.revenueMtd.delta, deltaVariant: pulse.revenueMtd.deltaVariant },
+    { label: 'Pipeline', value: pulse.pipeline.formatted, delta: pulse.pipeline.delta, deltaVariant: pulse.pipeline.deltaVariant },
     { label: 'Platforms', value: String(connectedPlatformCount), delta: connectedPlatformCount > 0 ? 'connected' : undefined, deltaVariant: connectedPlatformCount > 0 ? 'good' : 'flat' },
   ];
 

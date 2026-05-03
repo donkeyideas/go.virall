@@ -14,6 +14,7 @@ import {
   IconStar,
   IconEdit,
   IconUsers,
+  IconDollarSign,
   IconLightbulb,
   IconFilm,
   IconUser,
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { label: 'SMO Score', route: '/(drawer)/smo-score', Icon: IconStar },
   { label: 'Compose', route: '/(drawer)/compose', Icon: IconEdit },
   { label: 'Audience', route: '/(drawer)/audience', Icon: IconUsers },
+  { label: 'Revenue', route: '/(drawer)/revenue', Icon: IconDollarSign },
   { label: 'Ideas', route: '/(drawer)/ideas', Icon: IconLightbulb },
   { label: 'Captions', route: '/(drawer)/captions', Icon: IconEdit },
   { label: 'Scripts', route: '/(drawer)/scripts', Icon: IconFilm },
@@ -88,11 +90,13 @@ export default function AppLayout() {
         <Stack.Screen name="smo-score" />
         <Stack.Screen name="compose" />
         <Stack.Screen name="audience" />
+        <Stack.Screen name="revenue" />
         <Stack.Screen name="studio" />
         <Stack.Screen name="ideas" />
         <Stack.Screen name="captions" />
         <Stack.Screen name="scripts" />
         <Stack.Screen name="bio" />
+        <Stack.Screen name="deals" />
         <Stack.Screen name="chat" />
         <Stack.Screen name="settings" />
       </Stack>
