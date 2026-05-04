@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useMemo } from 'react';
+
 type Platform = {
   id: string;
   platform: string;
@@ -12,6 +14,8 @@ type Props = {
   platforms: Platform[];
   theme: string;
 };
+
+const PAGE_SIZE = 3;
 
 const PLATFORM_ICONS: Record<string, { svg: string; bg: string }> = {
   instagram: {
@@ -57,6 +61,16 @@ const PLATFORM_LABELS: Record<string, string> = {
 export function PlatformsList({ platforms, theme }: Props) {
   const isEditorial = theme === 'neon-editorial';
   const isNeumorphic = theme === 'neumorphic';
+
+  // Sort by follower count descending
+  const sorted = useMemo(
+    () => [...platforms].sort((a, b) => (b.follower_count ?? 0) - (a.follower_count ?? 0)),
+    [platforms],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const [page, setPage] = useState(0);
+  const visible = sorted.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div
@@ -105,7 +119,7 @@ export function PlatformsList({ platforms, theme }: Props) {
         </span>
       </div>
 
-      {platforms.map((p, i) => (
+      {visible.map((p, i) => (
         <div
           key={p.id}
           style={{
@@ -115,7 +129,7 @@ export function PlatformsList({ platforms, theme }: Props) {
             alignItems: 'center',
             padding: isEditorial ? '11px 0' : isNeumorphic ? '11px 0' : '10px 0',
             borderBottom:
-              i < platforms.length - 1
+              i < visible.length - 1
                 ? `1px ${isNeumorphic ? 'solid' : 'dashed'} ${isEditorial ? 'var(--rule)' : isNeumorphic ? 'var(--faint, rgba(0,0,0,.06))' : 'var(--line)'}`
                 : 'none',
             fontSize: isEditorial ? 13.5 : 13,
@@ -196,6 +210,65 @@ export function PlatformsList({ platforms, theme }: Props) {
           </div>
         </div>
       ))}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: `1px ${isNeumorphic ? 'solid' : 'dashed'} ${isEditorial ? 'var(--rule)' : isNeumorphic ? 'var(--faint, rgba(0,0,0,.06))' : 'var(--line)'}`,
+          }}
+        >
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: page === 0 ? 'default' : 'pointer',
+              opacity: page === 0 ? 0.3 : 1,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              letterSpacing: '.08em',
+              color: isEditorial ? 'var(--ink)' : 'var(--muted)',
+              padding: '4px 0',
+            }}
+          >
+            PREV
+          </button>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              color: isEditorial ? '#666' : 'var(--muted)',
+              letterSpacing: '.08em',
+            }}
+          >
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: page >= totalPages - 1 ? 'default' : 'pointer',
+              opacity: page >= totalPages - 1 ? 0.3 : 1,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              letterSpacing: '.08em',
+              color: isEditorial ? 'var(--ink)' : 'var(--muted)',
+              padding: '4px 0',
+            }}
+          >
+            NEXT
+          </button>
+        </div>
+      )}
     </div>
   );
 }
