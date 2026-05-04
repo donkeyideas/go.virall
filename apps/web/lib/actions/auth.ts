@@ -3,6 +3,20 @@
 import { createServerClient } from '@govirall/db/server';
 import { redirect } from 'next/navigation';
 
+// Detect gibberish: long runs of mixed-case with no spaces/vowel patterns
+function looksLikeGibberish(name: string): boolean {
+  if (!name || name.length < 3) return false;
+  // More than 12 chars with no spaces and heavy mixed case → likely bot
+  if (name.length > 12 && !name.includes(' ') && /[A-Z].*[a-z].*[A-Z]/.test(name)) {
+    const upper = (name.match(/[A-Z]/g) || []).length;
+    const ratio = upper / name.length;
+    if (ratio > 0.3 && ratio < 0.8) return true;
+  }
+  // Pure random characters — no vowels in a long string
+  if (name.length > 8 && !/[aeiouAEIOU]/.test(name)) return true;
+  return false;
+}
+
 export async function signUp(formData: FormData) {
   const supabase = await createServerClient();
 
@@ -10,8 +24,20 @@ export async function signUp(formData: FormData) {
   const password = formData.get('password') as string;
   const displayName = formData.get('displayName') as string;
 
+  // Honeypot — bots fill this hidden field, real users don't
+  const website = formData.get('website') as string;
+  if (website) {
+    // Silently reject — don't reveal this is a bot trap
+    return { success: true, message: 'Check your email to verify your account.' };
+  }
+
   if (!email || !password) {
     return { error: 'Email and password are required' };
+  }
+
+  // Reject gibberish display names (common bot pattern)
+  if (looksLikeGibberish(displayName)) {
+    return { error: 'Please enter a valid display name' };
   }
 
   const { error } = await supabase.auth.signUp({

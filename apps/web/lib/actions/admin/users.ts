@@ -53,3 +53,17 @@ export async function grantTier(userId: string, tier: 'free' | 'creator' | 'pro'
   await writeAuditLog(admin, user.id, 'grant_tier', 'user', userId, { tier });
   return { success: true };
 }
+
+export async function deleteUser(userId: string) {
+  const { user, admin } = await requireAdmin();
+
+  // Prevent self-deletion
+  if (userId === user.id) return { error: 'You cannot delete your own account' };
+
+  // Delete from auth.users — cascades to public.users via ON DELETE CASCADE
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { error: error.message };
+
+  await writeAuditLog(admin, user.id, 'delete_user', 'user', userId);
+  return { success: true };
+}

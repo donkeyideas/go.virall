@@ -5,7 +5,7 @@ import { Users, Shield, Search, X, Loader2 } from 'lucide-react';
 import { AdminTable, type AdminColumn } from '../_components/AdminTable';
 import { AdminStatusBadge } from '../_components/AdminStatusBadge';
 import { AdminModal } from '../_components/AdminModal';
-import { banUser, restoreUser, changeUserRole, grantTier } from '../../../lib/actions/admin/users';
+import { banUser, restoreUser, changeUserRole, grantTier, deleteUser } from '../../../lib/actions/admin/users';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -409,6 +409,15 @@ export function UsersClient({ users: initialUsers, roleCounts }: Props) {
               showToast(`Tier changed to ${value}`, 'success');
             }
             break;
+
+          case 'delete':
+            result = await deleteUser(selected.id);
+            if (result.success) {
+              setUsers((prev) => prev.filter((u) => u.id !== selected.id));
+              setSelected(null);
+              showToast(`User permanently deleted`, 'success');
+            }
+            break;
         }
 
         if (result && 'error' in result && result.error) {
@@ -431,6 +440,18 @@ export function UsersClient({ users: initialUsers, roleCounts }: Props) {
     );
     setConfirmAction(() => () => {
       handleAction('ban');
+      setConfirmAction(null);
+    });
+  }, [selected, handleAction]);
+
+  /* -- Delete with confirmation -- */
+  const handleDeleteClick = useCallback(() => {
+    if (!selected) return;
+    setConfirmMessage(
+      `PERMANENTLY DELETE ${selected.displayName} (@${selected.handle})? This removes the user from auth and all their data. This cannot be undone.`,
+    );
+    setConfirmAction(() => () => {
+      handleAction('delete');
       setConfirmAction(null);
     });
   }, [selected, handleAction]);
@@ -944,6 +965,14 @@ export function UsersClient({ users: initialUsers, roleCounts }: Props) {
                     accent="red"
                   />
                 )}
+                <div style={{ marginTop: 8 }}>
+                  <ActionBtn
+                    label="Delete User"
+                    onClick={handleDeleteClick}
+                    loading={actionLoading}
+                    accent="red"
+                  />
+                </div>
               </div>
             </div>
           </div>
