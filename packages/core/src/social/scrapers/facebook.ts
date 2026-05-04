@@ -232,9 +232,14 @@ export async function scrapeFacebookProfile(handle: string): Promise<ScrapedProf
   const clean = handle.replace(/^@/, '').trim();
   if (!clean) return null;
 
-  const pageUrl = `https://www.facebook.com/${encodeURIComponent(clean)}/`;
+  // Try multiple Facebook domains — mbasic is less aggressive at blocking
+  const urls = [
+    `https://www.facebook.com/${encodeURIComponent(clean)}/`,
+    `https://mbasic.facebook.com/${encodeURIComponent(clean)}/`,
+    `https://m.facebook.com/${encodeURIComponent(clean)}/`,
+  ];
 
-  // Accumulate best data across all UA attempts
+  // Accumulate best data across all UA + URL attempts
   let bestDisplayName = '';
   let bestBio = '';
   let bestAvatar = '';
@@ -244,47 +249,53 @@ export async function scrapeFacebookProfile(handle: string): Promise<ScrapedProf
   let bestPosts: ScrapedPost[] = [];
   let foundPage = false;
 
-  for (const ua of USER_AGENTS) {
-    const html = await fetchPage(pageUrl, ua);
-    if (!html) continue;
+  for (const pageUrl of urls) {
+    if (foundPage && bestFollowers > 0) break;
+    for (const ua of USER_AGENTS) {
+      const html = await fetchPage(pageUrl, ua);
+      if (!html) continue;
 
-    const ogTitle = extractMeta(html, 'og:title');
-    if (!ogTitle || ogTitle.toLowerCase() === 'facebook') continue;
-    foundPage = true;
+      const ogTitle = extractMeta(html, 'og:title');
+      // mbasic pages may have <title> instead of og:title
+      const titleMatch = !ogTitle ? html.match(/<title[^>]*>([^<]+)<\/title>/i) : null;
+      const pageTitle = ogTitle || (titleMatch ? decodeHtml(titleMatch[1]) : '');
+      if (!pageTitle || pageTitle.toLowerCase() === 'facebook' || pageTitle.toLowerCase().includes('log in')) continue;
+      foundPage = true;
 
-    const ogDesc = extractMeta(html, 'og:description');
-    const ogImage = extractMeta(html, 'og:image');
+      const ogDesc = extractMeta(html, 'og:description');
+      const ogImage = extractMeta(html, 'og:image');
 
-    // Display name
-    const displayName = ogTitle
-      .replace(/\s*[|–-]\s*Facebook.*$/i, '')
-      .replace(/\s*\|\s*[\w\s]+$/i, '')
-      .trim();
-    if (!bestDisplayName || displayName !== clean) bestDisplayName = displayName;
+      // Display name
+      const displayName = pageTitle
+        .replace(/\s*[|–-]\s*Facebook.*$/i, '')
+        .replace(/\s*\|\s*[\w\s]+$/i, '')
+        .trim();
+      if (!bestDisplayName || displayName !== clean) bestDisplayName = displayName;
 
-    // Avatar
-    if (!bestAvatar && ogImage) bestAvatar = ogImage;
+      // Avatar
+      if (!bestAvatar && ogImage) bestAvatar = ogImage;
 
-    // Counts
-    const { followers } = extractCounts(html, ogDesc);
-    if (followers > bestFollowers) bestFollowers = followers;
+      // Counts
+      const { followers } = extractCounts(html, ogDesc);
+      if (followers > bestFollowers) bestFollowers = followers;
 
-    // Post count from HTML
-    const postCount = extractPostCount(html);
-    if (postCount > bestPostCount) bestPostCount = postCount;
+      // Post count from HTML
+      const postCount = extractPostCount(html);
+      if (postCount > bestPostCount) bestPostCount = postCount;
 
-    // Verified
-    if (!bestVerified) bestVerified = detectVerified(html);
+      // Verified
+      if (!bestVerified) bestVerified = detectVerified(html);
 
-    // Bio
-    if (!bestBio) bestBio = extractBio(html, ogDesc);
+      // Bio
+      if (!bestBio) bestBio = extractBio(html, ogDesc);
 
-    // Posts
-    const htmlPosts = extractPosts(html);
-    if (htmlPosts.length > bestPosts.length) bestPosts = htmlPosts;
+      // Posts
+      const htmlPosts = extractPosts(html);
+      if (htmlPosts.length > bestPosts.length) bestPosts = htmlPosts;
 
-    // If we got followers + posts, good enough
-    if (bestFollowers > 0 && bestPostCount > 0) break;
+      // If we got followers + posts, good enough
+      if (bestFollowers > 0 && bestPostCount > 0) break;
+    }
   }
 
   if (!foundPage || !bestDisplayName || bestDisplayName === 'Facebook') return null;

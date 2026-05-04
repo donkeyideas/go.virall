@@ -32,8 +32,10 @@ export const POST = handleRoute(async ({ req, userId }) => {
   // Scrape public profile
   const profile = await scrapeProfile(platform, username);
   if (!profile) {
+    // Show cleaned handle in error, not the raw URL
+    const cleanHandle = username.replace(/^@/, '').replace(/^https?:\/\/[^/]+\//, '').replace(/\/$/, '') || username;
     throw ApiError.badRequest(
-      `Could not find @${username} on ${platform}. Check the username and try again.`,
+      `Could not find @${cleanHandle} on ${platform}. Check the username and try again.`,
     );
   }
 
