@@ -36,3 +36,4 @@ coverage/
 
 # vercel
 .vercel
+app.json

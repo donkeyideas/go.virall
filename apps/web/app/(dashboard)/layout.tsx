@@ -1,7 +1,12 @@
+import type { Metadata } from 'next';
 import { createServerClient } from '@govirall/db/server';
 import { createAdminClient } from '@govirall/db/admin';
 import { redirect } from 'next/navigation';
 import { DashboardShell } from '@govirall/ui-web';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardLayout({
   children,
