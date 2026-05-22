@@ -21,6 +21,9 @@ import {
   IconSettings,
   IconX,
   IconLogOut,
+  IconMoon,
+  IconSun,
+  IconCloud,
 } from '@/components/icons/Icons';
 
 const NAV_ITEMS = [
@@ -329,52 +332,36 @@ export default function AppLayout() {
               </Pressable>
 
               {/* Theme toggle */}
-              <View style={{ paddingHorizontal: 20, paddingVertical: 12, marginHorizontal: 8 }}>
-                <Kicker>Theme</Kicker>
-                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                  {([
-                    { key: 'glassmorphic' as ThemeName, label: 'Glass', colors: ['#8B5CF6', '#1e1b3a'] },
-                    { key: 'neon-editorial' as ThemeName, label: 'Editorial', colors: ['#d4ff00', '#f5f0e8'] },
-                    { key: 'neumorphic' as ThemeName, label: 'Soft', colors: ['#d0d0d8', '#e8e8ee'] },
-                  ]).map((opt) => {
-                    const active = theme === opt.key;
-                    return (
-                      <Pressable
-                        key={opt.key}
-                        onPress={() => setTheme(opt.key)}
-                        style={{
-                          flex: 1,
-                          alignItems: 'center',
-                          paddingVertical: 10,
-                          borderRadius: isEditorial(t) ? 2 : 10,
-                          borderWidth: active ? 2 : 1,
-                          borderColor: active
-                            ? (isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent)
-                            : (isGlass(t) ? 'rgba(255,255,255,0.1)' : isEditorial(t) ? t.border.color : 'rgba(0,0,0,0.08)'),
-                          backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.04)' : 'transparent',
-                        }}
-                      >
-                        <View style={{
-                          width: 20, height: 20, borderRadius: 10, marginBottom: 4,
-                          backgroundColor: opt.colors[0],
-                          borderWidth: 2,
-                          borderColor: opt.colors[1],
-                        }} />
-                        <Text style={{
-                          fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontMono,
-                          fontSize: 9,
-                          color: active
-                            ? (isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.accent)
-                            : (isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted),
-                          letterSpacing: 0.5,
-                          textTransform: 'uppercase',
-                        }}>
-                          {opt.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 12, marginHorizontal: 8 }}>
+                {([
+                  { key: 'glassmorphic' as ThemeName, Icon: IconMoon },
+                  { key: 'neon-editorial' as ThemeName, Icon: IconSun },
+                  { key: 'neumorphic' as ThemeName, Icon: IconCloud },
+                ] as const).map((opt) => {
+                  const active = theme === opt.key;
+                  return (
+                    <Pressable
+                      key={opt.key}
+                      onPress={() => setTheme(opt.key)}
+                      style={{
+                        width: 40, height: 40, borderRadius: 20,
+                        justifyContent: 'center', alignItems: 'center',
+                        backgroundColor: active
+                          ? (isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent)
+                          : (isGlass(t) ? 'rgba(255,255,255,0.06)' : isEditorial(t) ? t.surfaceAlt : t.surfaceLighter),
+                        borderWidth: active ? 0 : 1,
+                        borderColor: isGlass(t) ? 'rgba(255,255,255,0.1)' : isEditorial(t) ? t.border.color : 'rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <opt.Icon
+                        size={18}
+                        color={active
+                          ? (isGlass(t) ? '#fff' : isEditorial(t) ? t.bg : '#fff')
+                          : (isGlass(t) ? t.muted : isEditorial(t) ? t.ink : t.muted)}
+                      />
+                    </Pressable>
+                  );
+                })}
               </View>
             </ScrollView>
 

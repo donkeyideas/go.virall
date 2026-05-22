@@ -138,6 +138,13 @@ const EMPTY_PULSE: PulseData = {
 // Match web: active = everything except done/lost (avoids hardcoding stage names)
 const TERMINAL_DEAL_STAGES = ['done', 'lost'];
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Request timeout')), ms)),
+  ]);
+}
+
 // ── Hook ───────────────────────────────────────────────────────────────
 
 export function useTodayData(): TodayData {
@@ -161,16 +168,15 @@ export function useTodayData(): TodayData {
     try {
       setError(null);
 
-      // Parallel fetch — use allSettled so partial data still shows
-      // Single /posts call (like web page.tsx) — derive scheduled/published in JS
+      const T = 15000;
       const results = await Promise.allSettled([
-        api.get<any>('/user'),                                    // 0
-        api.get<any[]>('/platforms'),                             // 1
-        api.post<any>('/smo/compute', {}),                       // 2
-        api.get<{ items: any[] }>('/posts?limit=50'),            // 3 — all posts (matches web)
-        api.get<{ items: any[] }>('/deals?limit=50'),            // 4
-        api.get<{ items: any[] }>('/invoices?limit=50'),         // 5
-        api.get<any[]>('/audience/growth'),                      // 6
+        withTimeout(api.get<any>('/user'), T),                          // 0
+        withTimeout(api.get<any[]>('/platforms'), T),                   // 1
+        withTimeout(api.post<any>('/smo/compute', {}), T),             // 2
+        withTimeout(api.get<{ items: any[] }>('/posts?limit=50'), T),  // 3
+        withTimeout(api.get<{ items: any[] }>('/deals?limit=50'), T),  // 4
+        withTimeout(api.get<{ items: any[] }>('/invoices?limit=50'), T), // 5
+        withTimeout(api.get<any[]>('/audience/growth'), T),            // 6
       ]);
 
       const val = <T,>(r: PromiseSettledResult<T>): T | null =>
