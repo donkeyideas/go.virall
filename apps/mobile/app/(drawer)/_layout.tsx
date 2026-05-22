@@ -378,7 +378,7 @@ export default function AppLayout() {
               </View>
             </ScrollView>
 
-            {/* Footer: avatar + name + plan */}
+            {/* Footer: avatar + name */}
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',

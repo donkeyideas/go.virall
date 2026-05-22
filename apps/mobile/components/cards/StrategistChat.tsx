@@ -32,7 +32,7 @@ export function StrategistChat({ displayName }: Props) {
   const bgInput = isGlass(t) ? 'rgba(255,255,255,0.05)' : isEditorial(t) ? t.surfaceAlt : t.surfaceLighter;
   const borderColor = isGlass(t) ? 'rgba(255,255,255,0.12)' : isEditorial(t) ? t.border.color : 'transparent';
 
-  const quickActions = ['Draft captions', 'Hashtag set', 'Weekly plan'];
+  const quickActions = ['Draft captions', 'Hashtag set', 'Weekly strategy'];
 
   const handleSend = async (text?: string) => {
     const msg = (text ?? input).trim();

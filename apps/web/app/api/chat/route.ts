@@ -52,7 +52,7 @@ export const POST = handleRoute(async ({ req, userId }) => {
 
   // Fetch ALL user context for truly personalized responses
   const [profileRes, platformsRes, smoRes, dealsRes, invoicesRes, postsRes, mediaKitRes, snapshotsRes] = await Promise.all([
-    admin.from('users').select('display_name, bio, avatar_url, handle, mission, subscription_tier, created_at').eq('id', userId).single(),
+    admin.from('users').select('display_name, bio, avatar_url, handle, mission, created_at').eq('id', userId).single(),
     admin.from('platform_accounts_safe').select('platform, platform_username, follower_count, following_count, post_count, sync_status').eq('user_id', userId),
     admin.from('smo_scores').select('score, factor_profile, factor_content, factor_consistency, factor_engagement, factor_growth, factor_monetization').eq('user_id', userId).order('computed_at', { ascending: false }).limit(1).single(),
     admin.from('deals').select('id, brand_name, title, amount_cents, stage, updated_at').eq('user_id', userId).order('updated_at', { ascending: false }).limit(20),
@@ -183,7 +183,6 @@ export const POST = handleRoute(async ({ req, userId }) => {
 === CREATOR DATA ===
 Name: ${profile?.display_name ?? 'Creator'}
 Mission: ${profile?.mission ?? 'not set'}
-Plan: ${profile?.subscription_tier ?? 'free'}
 ${profileSummary}
 
 PLATFORMS (${platforms.length} connected):
@@ -213,6 +212,7 @@ ${chatHistory || '(first message)'}
 5. Guide to app features when relevant: Compose (write and score posts), Ideas (brainstorm content ideas), Captions (generate captions), Scripts (write video scripts), Bio (optimize profile bios), Audience (analytics and competitors), Revenue (deals and invoices), Settings (connect platforms), Go Virall (viral momentum tracker), SMO Score (optimization analysis). CRITICAL: Never use "Studio >" or path-style navigation like "Studio > Ideas". Each page is standalone — just say the page name directly (e.g. "check out the Ideas page"). Never expose internal paths, URLs, file routes, or code structure.
 6. Plain text only. No markdown, no asterisks, no hashtags, no bullet lists, no backticks. Write like a knowledgeable friend texting.
 7. Never hallucinate data. If something is 0 or not available, say so honestly.
+8. NEVER mention plans, pricing, subscriptions, upgrades, tiers, premium features, or anything related to payments. All features are fully available. Do not suggest the user upgrade or pay for anything.
 
 User message: ${message}`;
 
