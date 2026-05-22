@@ -1,22 +1,53 @@
-const config = require('./app.json');
-
-module.exports = ({ config: expoConfig }) => {
+module.exports = ({ config }) => {
   return {
-    ...config.expo,
-    ...expoConfig,
-    name: config.expo.name,
-    slug: config.expo.slug,
-    version: config.expo.version,
-    icon: config.expo.icon,
-    scheme: config.expo.scheme,
-    splash: config.expo.splash,
-    ios: config.expo.ios,
-    android: config.expo.android,
+    ...config,
+    name: 'Go Virall',
+    slug: 'go-virall',
+    version: '1.4.0',
+    orientation: 'portrait',
+    icon: './assets/images/icon.png',
+    scheme: 'govirall',
+    userInterfaceStyle: 'automatic',
+    newArchEnabled: true,
+    splash: {
+      image: './assets/images/splash-icon.png',
+      resizeMode: 'contain',
+      backgroundColor: '#0a0618',
+    },
+    ios: {
+      supportsTablet: false,
+      bundleIdentifier: 'com.govirall.app',
+      buildNumber: '9',
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: './assets/images/adaptive-icon.png',
+        backgroundColor: '#0a0618',
+      },
+      package: 'com.govirall.app',
+      softwareKeyboardLayoutMode: 'pan',
+      versionCode: 8,
+    },
     plugins: [
-      ...config.expo.plugins,
+      'expo-router',
+      'expo-font',
+      'expo-secure-store',
+      './plugins/withAndroidGradleMemory',
       './plugins/withSwiftConcurrency',
     ],
-    experiments: config.expo.experiments,
-    extra: config.expo.extra,
+    experiments: {
+      typedRoutes: true,
+    },
+    extra: {
+      router: {
+        origin: false,
+      },
+      eas: {
+        projectId: '85107608-44ab-474c-b20a-95461271cced',
+      },
+    },
   };
 };
