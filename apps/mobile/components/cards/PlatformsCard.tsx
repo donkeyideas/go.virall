@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Kicker } from '@/components/ui/Kicker';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
@@ -40,17 +40,24 @@ function fmtK(n: number): string {
   return String(n);
 }
 
+const PAGE_SIZE = 5;
+
 interface Props {
   platforms: PlatformItem[];
 }
 
 export function PlatformsCard({ platforms }: Props) {
   const t = useTokens();
+  const [page, setPage] = useState(0);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : (t as any).ink;
   const muted = (t as any).muted as string;
   const fontBody = (t as any).fontBody as string;
   const fontBold = (t as any).fontBodySemibold ?? (t as any).fontBodyBold ?? fontBody;
+  const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.pink : (t as any).accent;
+
+  const totalPages = Math.ceil(platforms.length / PAGE_SIZE);
+  const visible = platforms.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <ThemedCard padding={isEditorial(t) ? 18 : 20}>
@@ -62,7 +69,7 @@ export function PlatformsCard({ platforms }: Props) {
         </Text>
       ) : (
         <View style={{ marginTop: 14, gap: 10 }}>
-          {platforms.map((p) => (
+          {visible.map((p) => (
             <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={{
                 width: 32, height: 32, borderRadius: 8,
@@ -91,6 +98,28 @@ export function PlatformsCard({ platforms }: Props) {
               </View>
             </View>
           ))}
+
+          {totalPages > 1 && (
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 8 }}>
+              <Pressable
+                onPress={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                style={{ opacity: page === 0 ? 0.3 : 1, paddingHorizontal: 12, paddingVertical: 6 }}
+              >
+                <Text style={{ fontFamily: fontBold, fontSize: 12, color: accent }}>Prev</Text>
+              </Pressable>
+              <Text style={{ fontFamily: (t as any).fontMono, fontSize: 10, color: muted }}>
+                {page + 1} / {totalPages}
+              </Text>
+              <Pressable
+                onPress={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page === totalPages - 1}
+                style={{ opacity: page === totalPages - 1 ? 0.3 : 1, paddingHorizontal: 12, paddingVertical: 6 }}
+              >
+                <Text style={{ fontFamily: fontBold, fontSize: 12, color: accent }}>Next</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       )}
     </ThemedCard>

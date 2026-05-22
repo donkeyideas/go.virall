@@ -3,7 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator,
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Kicker } from '@/components/ui/Kicker';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
-import { IconSend, IconBot } from '@/components/icons/Icons';
+import { IconSend } from '@/components/icons/Icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '@/lib/api';
 
 interface ChatMessage {
@@ -44,10 +45,7 @@ export function StrategistChat({ displayName }: Props) {
 
     try {
       const res = await api.post<{ reply: string }>('/chat', {
-        messages: [...messages, userMsg].map((m) => ({
-          role: m.role === 'ai' ? 'assistant' : 'user',
-          content: m.text,
-        })),
+        message: msg,
       });
       setMessages((prev) => [...prev, { role: 'ai', text: res.reply ?? 'I could not generate a response.' }]);
     } catch {
@@ -61,14 +59,23 @@ export function StrategistChat({ displayName }: Props) {
   return (
     <ThemedCard padding={isEditorial(t) ? 18 : 20}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <View style={{
-          width: 28, height: 28, borderRadius: 14,
-          backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.08)' : isEditorial(t) ? t.surfaceAlt : t.surfaceLighter,
-          justifyContent: 'center', alignItems: 'center',
-        }}>
-          <IconBot size={14} color={accent} />
+        <LinearGradient
+          colors={['#F97316', '#EC4899', '#8B5CF6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text style={{ color: '#fff', fontSize: 16, fontFamily: t.fontDisplayItalic, fontWeight: '700' }}>V</Text>
+        </LinearGradient>
+        <View>
+          <Text style={{ fontFamily: t.fontDisplay, fontSize: 14, color: fg }}>
+            Virall <Text style={{ fontFamily: t.fontDisplayItalic, color: accent }}>AI</Text>
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' }} />
+            <Text style={{ fontFamily: t.fontMono, fontSize: 9, color: '#22C55E', letterSpacing: 0.5 }}>online</Text>
+          </View>
         </View>
-        <Kicker>Virall AI Strategist</Kicker>
       </View>
 
       {/* Chat messages */}
@@ -143,7 +150,7 @@ export function StrategistChat({ displayName }: Props) {
           ref={inputRef}
           value={input}
           onChangeText={setInput}
-          placeholder="Ask your strategist..."
+          placeholder="Ask Virall AI..."
           placeholderTextColor={muted}
           returnKeyType="send"
           onSubmitEditing={() => handleSend()}
