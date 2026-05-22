@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { ThemedCard } from '@/components/ui/ThemedCard';
 import { IconStar, IconChevronDown } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
-import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
+import { useAccount } from '@/lib/account-context';
 
 const TONES = ['Professional', 'Creative', 'Minimalist', 'Authoritative', 'Approachable', 'Humorous'];
 
@@ -50,8 +50,9 @@ export default function BioScreen() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
-  const { accounts, loading: accountsLoading } = useConnectedAccounts();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
+
+  useEffect(() => { setResults([]); setError(null); }, [selectedAccountId]);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -79,7 +80,7 @@ export default function BioScreen() {
     } finally {
       setLoading(false);
     }
-  }, [platform, topic, tone, count]);
+  }, [platform, topic, tone, count, selectedAccountId]);
 
   const suggestTopic = useCallback(async () => {
     setSuggesting(true);
@@ -130,7 +131,7 @@ export default function BioScreen() {
           accounts={accounts}
           selectedAccountId={selectedAccountId}
           onSelect={(accountId, accountPlatform) => {
-            setSelectedAccountId(accountId);
+            setSelectedAccount(accountId, accountPlatform ?? null);
             if (accountPlatform) setPlatform(accountPlatform);
           }}
           loading={accountsLoading}

@@ -147,7 +147,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 // ── Hook ───────────────────────────────────────────────────────────────
 
-export function useTodayData(): TodayData {
+export function useTodayData(selectedAccountId?: string | null): TodayData {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -169,14 +169,18 @@ export function useTodayData(): TodayData {
       setError(null);
 
       const T = 15000;
+      const qs = selectedAccountId ? `platformAccountId=${selectedAccountId}` : '';
+      const q = (base: string) => qs ? `${base}${base.includes('?') ? '&' : '?'}${qs}` : base;
       const results = await Promise.allSettled([
         withTimeout(api.get<any>('/user'), T),                          // 0
         withTimeout(api.get<any[]>('/platforms'), T),                   // 1
-        withTimeout(api.post<any>('/smo/compute', {}), T),             // 2
-        withTimeout(api.get<{ items: any[] }>('/posts?limit=50'), T),  // 3
+        withTimeout(api.post<any>('/smo/compute', {
+          ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
+        }), T),                                                        // 2
+        withTimeout(api.get<{ items: any[] }>(q('/posts?limit=50')), T),  // 3
         withTimeout(api.get<{ items: any[] }>('/deals?limit=50'), T),  // 4
         withTimeout(api.get<{ items: any[] }>('/invoices?limit=50'), T), // 5
-        withTimeout(api.get<any[]>('/audience/growth'), T),            // 6
+        withTimeout(api.get<any[]>(q('/audience/growth')), T),            // 6
       ]);
 
       const val = <T,>(r: PromiseSettledResult<T>): T | null =>
@@ -437,7 +441,7 @@ export function useTodayData(): TodayData {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedAccountId]);
 
   useEffect(() => {
     fetchAll();

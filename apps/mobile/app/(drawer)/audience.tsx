@@ -3,10 +3,10 @@ import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
+import { useAccount } from '@/lib/account-context';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
-import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 import {
   IconInstagram,
   IconTikTok,
@@ -86,15 +86,15 @@ export default function AudienceScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { accounts, loading: accountsLoading } = useConnectedAccounts();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   const fetchData = useCallback(async () => {
     try {
       setError(null);
+      const qs = selectedAccountId ? `?platformAccountId=${selectedAccountId}` : '';
       const [platformsData, competitorsData] = await Promise.all([
-        api.get<PlatformAccount[]>('/platforms'),
-        api.get<Competitor[]>('/audience/competitors').catch(() => [] as Competitor[]),
+        api.get<PlatformAccount[]>(`/platforms${qs}`),
+        api.get<Competitor[]>(`/audience/competitors${qs}`).catch(() => [] as Competitor[]),
       ]);
       setPlatforms(platformsData ?? []);
       setCompetitors(competitorsData ?? []);
@@ -105,7 +105,7 @@ export default function AudienceScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedAccountId]);
 
   useEffect(() => {
     fetchData();
@@ -195,7 +195,7 @@ export default function AudienceScreen() {
         <AccountPicker
           accounts={accounts}
           selectedAccountId={selectedAccountId}
-          onSelect={(accountId) => setSelectedAccountId(accountId)}
+          onSelect={(accountId, platform) => setSelectedAccount(accountId, platform ?? null)}
           showAllOption
           loading={accountsLoading}
           label="Analyzing"

@@ -5,10 +5,10 @@ import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
+import { useAccount } from '@/lib/account-context';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
-import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -50,8 +50,7 @@ export default function SmoScoreScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { accounts, loading: accountsLoading } = useConnectedAccounts();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   const fetchData = useCallback(async () => {
     try {
@@ -146,7 +145,7 @@ export default function SmoScoreScreen() {
         <AccountPicker
           accounts={accounts}
           selectedAccountId={selectedAccountId}
-          onSelect={(accountId) => setSelectedAccountId(accountId)}
+          onSelect={(accountId, platform) => setSelectedAccount(accountId, platform ?? null)}
           showAllOption
           loading={accountsLoading}
           label="Analyzing"

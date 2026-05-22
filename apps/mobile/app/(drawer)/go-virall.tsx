@@ -3,10 +3,10 @@ import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
+import { useAccount } from '@/lib/account-context';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Kicker } from '@/components/ui/Kicker';
 import { AccountPicker } from '@/components/ui/AccountPicker';
-import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface Signal {
@@ -50,8 +50,7 @@ export default function GoVirallScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { accounts, loading: accountsLoading } = useConnectedAccounts();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   const fetchData = useCallback(async () => {
     try {
@@ -127,7 +126,7 @@ export default function GoVirallScreen() {
         <AccountPicker
           accounts={accounts}
           selectedAccountId={selectedAccountId}
-          onSelect={(accountId) => setSelectedAccountId(accountId)}
+          onSelect={(accountId, platform) => setSelectedAccount(accountId, platform ?? null)}
           showAllOption
           loading={accountsLoading}
           label="Analyzing"

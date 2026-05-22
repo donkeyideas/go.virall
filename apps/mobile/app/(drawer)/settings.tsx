@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  RefreshControl,
   Pressable,
   TextInput,
   Alert,
@@ -105,6 +106,7 @@ export default function SettingsScreen() {
   // Platforms state
   const [platforms, setPlatforms] = useState<PlatformAccount[]>([]);
   const [loadingPlatforms, setLoadingPlatforms] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // ── Data fetching ────────────────────────────────────────────────────
 
@@ -139,6 +141,12 @@ export default function SettingsScreen() {
   useEffect(() => {
     fetchUser();
     fetchPlatforms();
+  }, [fetchUser, fetchPlatforms]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([fetchUser(), fetchPlatforms()]);
+    setRefreshing(false);
   }, [fetchUser, fetchPlatforms]);
 
   // ── Actions ──────────────────────────────────────────────────────────
@@ -692,7 +700,16 @@ export default function SettingsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}>
+      <ScrollView
+        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent}
+          />
+        }
+      >
         {/* Page title */}
         <View style={{ paddingLeft: 56, paddingTop: 14, paddingBottom: 16 }}>
           <Text

@@ -4,6 +4,7 @@ import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { neumorphicRaisedStyle, neumorphicInsetCircleStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { useAuth } from '@/lib/auth';
+import { useAccount } from '@/lib/account-context';
 import { useTodayData } from '@/hooks/useTodayData';
 import { PulseStats, type PulseStat } from '@/components/cards/PulseMetric';
 import { SmoCard } from '@/components/cards/SmoCard';
@@ -38,11 +39,12 @@ export default function TodayScreen() {
   const t = useTokens();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
+  const { selectedAccountId } = useAccount();
   const {
     loading, error, user, pulse, smo, nextPost, actions, wins,
     platforms, postCount, topPosts, scheduledPosts, connectedPlatformCount,
     engagementRate, growthData, refresh,
-  } = useTodayData();
+  } = useTodayData(selectedAccountId);
 
   const firstName = user?.displayName?.split(' ')[0]
     ?? authUser?.user_metadata?.display_name?.split(' ')[0]

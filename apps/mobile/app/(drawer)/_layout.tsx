@@ -23,7 +23,6 @@ import {
   IconLogOut,
   IconMoon,
   IconSun,
-  IconCloud,
 } from '@/components/icons/Icons';
 
 const NAV_ITEMS = [
@@ -336,7 +335,6 @@ export default function AppLayout() {
                 {([
                   { key: 'glassmorphic' as ThemeName, Icon: IconMoon },
                   { key: 'neon-editorial' as ThemeName, Icon: IconSun },
-                  { key: 'neumorphic' as ThemeName, Icon: IconCloud },
                 ] as const).map((opt) => {
                   const active = theme === opt.key;
                   return (

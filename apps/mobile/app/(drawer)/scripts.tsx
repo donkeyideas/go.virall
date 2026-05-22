@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { ThemedCard } from '@/components/ui/ThemedCard';
 import { IconStar, IconChevronDown } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
-import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
+import { useAccount } from '@/lib/account-context';
 
 const TONES = ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational', 'Storytelling'];
 
@@ -53,8 +53,9 @@ export default function ScriptsScreen() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
-  const { accounts, loading: accountsLoading } = useConnectedAccounts();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
+
+  useEffect(() => { setResults([]); setError(null); setExpandedIndex(null); }, [selectedAccountId]);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -84,7 +85,7 @@ export default function ScriptsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [platform, topic, tone, count]);
+  }, [platform, topic, tone, count, selectedAccountId]);
 
   const suggestTopic = useCallback(async () => {
     setSuggesting(true);
@@ -137,7 +138,7 @@ export default function ScriptsScreen() {
           accounts={accounts}
           selectedAccountId={selectedAccountId}
           onSelect={(accountId, accountPlatform) => {
-            setSelectedAccountId(accountId);
+            setSelectedAccount(accountId, accountPlatform ?? null);
             if (accountPlatform) setPlatform(accountPlatform);
           }}
           loading={accountsLoading}

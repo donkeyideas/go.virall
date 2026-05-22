@@ -18,7 +18,7 @@ import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Button } from '@/components/ui/Button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
-import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
+import { useAccount } from '@/lib/account-context';
 
 // ── Types ───────────────────────────────────────────────────────────
 interface ConnectedPlatform {
@@ -115,8 +115,7 @@ export default function ComposeScreen() {
   const [scoring, setScoring] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  const { accounts, loading: accountsLoading } = useConnectedAccounts();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   // ── Derived values ──────────────────────────────────────────────
   const formats = selectedPlatform ? (PLATFORM_FORMATS[selectedPlatform] ?? ['Post']) : [];
@@ -446,7 +445,7 @@ export default function ComposeScreen() {
           accounts={accounts}
           selectedAccountId={selectedAccountId}
           onSelect={(accountId, accountPlatform) => {
-            setSelectedAccountId(accountId);
+            setSelectedAccount(accountId, accountPlatform ?? null);
             if (accountPlatform) handlePlatformSelect(accountPlatform);
           }}
           loading={accountsLoading}

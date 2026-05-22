@@ -2,17 +2,17 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { glassmorphicTokens } from './tokens/glassmorphic';
 import { neonEditorialTokens } from './tokens/neon-editorial';
-import { neumorphicTokens } from './tokens/neumorphic';
+import type { NeumorphicTheme } from './tokens/neumorphic';
 
 // ── Types ──────────────────────────────────────────────────────────────
-export type ThemeName = 'glassmorphic' | 'neon-editorial' | 'neumorphic';
+export type ThemeName = 'glassmorphic' | 'neon-editorial';
 
 // The full token set for each theme — components consume this via useTheme()
 export type GlassmorphicTheme = typeof glassmorphicTokens;
 export type NeonEditorialTheme = typeof neonEditorialTokens;
-export type NeumorphicTheme = typeof neumorphicTokens;
+export type { NeumorphicTheme };
 
-// Union token type — components check theme.name to narrow
+// Keep NeumorphicTheme in union so else branches in ternaries type-check as dead code
 export type ThemeTokens = GlassmorphicTheme | NeonEditorialTheme | NeumorphicTheme;
 
 // Helper type guards
@@ -23,14 +23,13 @@ export function isEditorial(t: ThemeTokens): t is NeonEditorialTheme {
   return t.name === 'neon-editorial';
 }
 export function isNeumorphic(t: ThemeTokens): t is NeumorphicTheme {
-  return t.name === 'neumorphic';
+  return false;
 }
 
 // ── Theme map ──────────────────────────────────────────────────────────
 const THEME_MAP = {
   glassmorphic: glassmorphicTokens,
   'neon-editorial': neonEditorialTokens,
-  neumorphic: neumorphicTokens,
 } as const;
 
 // ── Context ────────────────────────────────────────────────────────────

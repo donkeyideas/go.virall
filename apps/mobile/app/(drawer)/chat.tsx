@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
+import { useAccount } from '@/lib/account-context';
 import { IconSend } from '@/components/icons/Icons';
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
 
+  const { selectedAccountId } = useAccount();
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -130,7 +132,10 @@ export default function ChatScreen() {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
-      const data = await api.post<{ reply: string }>('/chat', { message: text });
+      const data = await api.post<{ reply: string }>('/chat', {
+        message: text,
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
+      });
       const assistantMsg: Message = {
         id: nextId(),
         role: 'assistant',
@@ -150,7 +155,7 @@ export default function ChatScreen() {
       setSending(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [input, sending]);
+  }, [input, sending, selectedAccountId]);
 
   // ── Render ──────────────────────────────────────────────────
   return (
