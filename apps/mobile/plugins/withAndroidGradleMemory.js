@@ -18,11 +18,23 @@ module.exports = function withAndroidGradleMemory(config) {
       (item) => !(item.type === 'property' && item.key === 'org.gradle.jvmargs'),
     );
 
-    filtered.push({
-      type: 'property',
-      key: 'org.gradle.jvmargs',
-      value: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError',
-    });
+    filtered.push(
+      {
+        type: 'property',
+        key: 'org.gradle.jvmargs',
+        value: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError',
+      },
+      {
+        type: 'property',
+        key: 'org.gradle.parallel',
+        value: 'true',
+      },
+      {
+        type: 'property',
+        key: 'org.gradle.caching',
+        value: 'true',
+      },
+    );
 
     cfg.modResults = filtered;
     return cfg;

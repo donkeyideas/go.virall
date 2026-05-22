@@ -12,7 +12,10 @@
       "distribution": "internal"
     },
     "production": {
-      "credentialsSource": "remote"
+      "credentialsSource": "remote",
+      "android": {
+        "gradleCommand": ":app:bundleRelease -x lintVitalAnalyzeRelease -x lintVitalRelease"
+      }
     }
   },
   "submit": {
