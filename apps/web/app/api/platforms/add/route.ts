@@ -29,8 +29,11 @@ export const POST = handleRoute(async ({ req, userId }) => {
     throw ApiError.badRequest(`Your ${tier} plan allows up to ${maxAccounts} accounts. Upgrade to add more.`);
   }
 
-  // Scrape public profile
-  const profile = await scrapeProfile(platform, username);
+  // Scrape public profile (20s hard cap)
+  const profile = await Promise.race([
+    scrapeProfile(platform, username),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 20_000)),
+  ]);
   if (!profile) {
     // Show cleaned handle in error, not the raw URL
     const cleanHandle = username.replace(/^@/, '').replace(/^https?:\/\/[^/]+\//, '').replace(/\/$/, '') || username;

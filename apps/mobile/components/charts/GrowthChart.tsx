@@ -93,8 +93,8 @@ export function GrowthChart({ data, currentFollowers }: Props) {
         <View>
           <MiniChart data={data} width={chartWidth} height={chartHeight} t={t} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, color: muted, letterSpacing: 0.5 }}>{startLabel}</Text>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, color: muted, letterSpacing: 0.5 }}>{endLabel}</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, color: muted, letterSpacing: 0.5 }}>{startLabel}</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, color: muted, letterSpacing: 0.5 }}>{endLabel}</Text>
           </View>
         </View>
       ) : (

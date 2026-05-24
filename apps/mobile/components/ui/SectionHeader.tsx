@@ -24,7 +24,7 @@ export function SectionHeader({ number, title, emphasisWord, meta }: SectionHead
             </>
           ) : title}
         </Text>
-        {meta && <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>{meta}</Text>}
+        {meta && <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>{meta}</Text>}
       </View>
     );
   }
@@ -33,7 +33,7 @@ export function SectionHeader({ number, title, emphasisWord, meta }: SectionHead
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, marginTop: 12, gap: 10 }}>
         <View style={{ backgroundColor: t.ink, paddingVertical: 2, paddingHorizontal: 6 }}>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1, color: t.bg }}>{number}</Text>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1, color: t.bg }}>{number}</Text>
         </View>
         <Text style={{ fontFamily: t.fontDisplay, fontSize: 22, letterSpacing: -0.3, color: t.ink }}>
           {emphasisWord && title.includes(emphasisWord) ? (
@@ -44,7 +44,7 @@ export function SectionHeader({ number, title, emphasisWord, meta }: SectionHead
             </>
           ) : title}
         </Text>
-        {meta && <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted, marginLeft: 'auto' }}>{meta}</Text>}
+        {meta && <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted, marginLeft: 'auto' }}>{meta}</Text>}
       </View>
     );
   }

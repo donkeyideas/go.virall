@@ -28,6 +28,9 @@ import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Button } from '@/components/ui/Button';
 import { IconChevronRight } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
+import { useAccount } from '@/lib/account-context';
+import { PlatformConnectForm } from '@/components/forms/PlatformConnectForm';
+import { PaywallGate } from '@/components/ui/PaywallGate';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -43,6 +46,7 @@ interface UserProfile {
   theme: string | null;
   mission: string | null;
   avatar_url: string | null;
+  subscription_tier: string | null;
 }
 
 interface PlatformAccount {
@@ -90,6 +94,7 @@ export default function SettingsScreen() {
   const t = useTokens();
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
+  const { refreshAccounts } = useAccount();
   const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState<TabKey>('account');
@@ -107,6 +112,8 @@ export default function SettingsScreen() {
   const [platforms, setPlatforms] = useState<PlatformAccount[]>([]);
   const [loadingPlatforms, setLoadingPlatforms] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showConnectForm, setShowConnectForm] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // ── Data fetching ────────────────────────────────────────────────────
 
@@ -192,11 +199,11 @@ export default function SettingsScreen() {
   };
 
   const connectPlatform = () => {
-    Alert.alert(
-      'Connect Platform',
-      'Platform connections are managed via the web app at govirall.com. Please visit Settings on the web to connect a new platform.',
-      [{ text: 'OK' }],
-    );
+    if (platforms.length >= 1) {
+      setShowPaywall(true);
+    } else {
+      setShowConnectForm(true);
+    }
   };
 
   const deleteAccount = () => {
@@ -305,7 +312,7 @@ export default function SettingsScreen() {
     if (isEditorial(t)) {
       return {
         color: selected ? t.surface : t.ink,
-        fontFamily: t.fontMono,
+        fontFamily: t.fontBody,
         fontSize: 10,
         fontWeight: '700' as const,
         textTransform: 'uppercase' as const,
@@ -480,7 +487,7 @@ export default function SettingsScreen() {
           >
             <Text style={{
               color: isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad,
-              fontFamily: isEditorial(t) ? t.fontMono : fontSemibold,
+              fontFamily: isEditorial(t) ? t.fontBody : fontSemibold,
               fontSize: 13,
               ...(isEditorial(t) ? { textTransform: 'uppercase' as const, letterSpacing: 0.5 } : {}),
             }}>
@@ -543,7 +550,7 @@ export default function SettingsScreen() {
                         }} />
                         <Text style={{
                           color: statusColor,
-                          fontFamily: isEditorial(t) ? t.fontMono : fontBody,
+                          fontFamily: isEditorial(t) ? t.fontBody : fontBody,
                           fontSize: 10,
                           ...(isEditorial(t) ? { textTransform: 'uppercase' as const, letterSpacing: 0.5 } : {}),
                         }}>
@@ -594,7 +601,7 @@ export default function SettingsScreen() {
                   >
                     <Text style={{
                       color: isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad,
-                      fontFamily: isEditorial(t) ? t.fontMono : fontSemibold,
+                      fontFamily: isEditorial(t) ? t.fontBody : fontSemibold,
                       fontSize: 11,
                       ...(isEditorial(t) ? { textTransform: 'uppercase' as const, letterSpacing: 0.5 } : {}),
                     }}>
@@ -607,10 +614,36 @@ export default function SettingsScreen() {
           })
         )}
 
-        {/* Connect Platform button */}
-        <View style={{ marginTop: 4 }}>
-          <Button label="Connect Platform" variant="ghost" onPress={connectPlatform} />
-        </View>
+        {/* Connect Platform button or inline form */}
+        {showConnectForm ? (
+          <View style={{ marginTop: 4 }}>
+            <PlatformConnectForm
+              onSuccess={(data) => {
+                setPlatforms((prev) => [
+                  ...prev,
+                  {
+                    id: data.account.id,
+                    platform: data.account.platform,
+                    platform_username: data.account.platform_username,
+                    followers: data.profile.followersCount ?? data.account.follower_count ?? null,
+                    sync_status: 'healthy',
+                  },
+                ]);
+                refreshAccounts();
+                setShowConnectForm(false);
+              }}
+              onCancel={() => setShowConnectForm(false)}
+              onLimitReached={() => {
+                setShowConnectForm(false);
+                setShowPaywall(true);
+              }}
+            />
+          </View>
+        ) : (
+          <View style={{ marginTop: 4 }}>
+            <Button label="Connect Platform" variant="ghost" onPress={connectPlatform} />
+          </View>
+        )}
       </View>
     );
   }
@@ -732,7 +765,7 @@ export default function SettingsScreen() {
             style={{
               color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -774,6 +807,7 @@ export default function SettingsScreen() {
         {activeTab === 'platforms' && renderPlatformsTab()}
         {activeTab === 'theme' && renderThemeTab()}
       </ScrollView>
+      <PaywallGate visible={showPaywall} onClose={() => setShowPaywall(false)} />
     </View>
   );
 }

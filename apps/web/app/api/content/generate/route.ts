@@ -8,8 +8,8 @@ export const POST = handleRoute(async ({ req, userId }) => {
 
   const admin = createAdminClient();
 
-  // Fetch user profile + ALL connected platform accounts in parallel
-  const [userRes, platformsRes] = await Promise.all([
+  // Fetch user profile, connected platforms, AND recent posts for niche context
+  const [userRes, platformsRes, postsRes] = await Promise.all([
     admin
       .from('users')
       .select('mission, bio, display_name, handle')
@@ -17,17 +17,25 @@ export const POST = handleRoute(async ({ req, userId }) => {
       .single(),
     admin
       .from('platform_accounts')
-      .select('id, platform, platform_username, platform_display_name, follower_count')
+      .select('id, platform, platform_username, platform_display_name, platform_bio, follower_count')
       .eq('user_id', userId)
       .is('disconnected_at', null),
+    admin
+      .from('posts')
+      .select('caption, hook, hashtags, platform')
+      .eq('user_id', userId)
+      .order('published_at', { ascending: false })
+      .limit(15),
   ]);
 
   const user = userRes.data;
   const allPlatforms = platformsRes.data ?? [];
+  const recentPosts = postsRes.data ?? [];
 
   // Find the specific platform account for this generation
   let platformHandle: string | null = null;
   let platformDisplayName: string | null = null;
+  let platformBio: string | null = null;
   let followerCount: number | null = null;
 
   if (body.platformAccountId) {
@@ -35,6 +43,7 @@ export const POST = handleRoute(async ({ req, userId }) => {
     if (account) {
       platformHandle = account.platform_username;
       platformDisplayName = account.platform_display_name;
+      platformBio = account.platform_bio;
       followerCount = account.follower_count;
     }
   } else {
@@ -43,6 +52,7 @@ export const POST = handleRoute(async ({ req, userId }) => {
     if (account) {
       platformHandle = account.platform_username;
       platformDisplayName = account.platform_display_name;
+      platformBio = account.platform_bio;
       followerCount = account.follower_count;
     }
   }
@@ -63,6 +73,21 @@ export const POST = handleRoute(async ({ req, userId }) => {
   const uniqueNames = [...new Set(allDisplayNames)];
   const nicheSummary = uniqueNames.length > 0 ? uniqueNames.join(', ') : null;
 
+  // Build recent content summary from post history (niche context for AI)
+  const targetPlatform = body.platform;
+  const relevantPosts = recentPosts.filter(
+    (p) => p.platform === targetPlatform || !body.platformAccountId,
+  );
+  const postClues: string[] = [];
+  for (const post of relevantPosts.slice(0, 8)) {
+    const text = post.hook || post.caption || '';
+    if (text) postClues.push(text.slice(0, 120));
+    if (post.hashtags?.length > 0)
+      postClues.push(`Hashtags: ${post.hashtags.slice(0, 5).join(', ')}`);
+  }
+  const recentContentSummary =
+    postClues.length > 0 ? postClues.join('\n') : null;
+
   const result = await generateContentAI({
     platform: body.platform,
     contentType: body.contentType,
@@ -72,10 +97,11 @@ export const POST = handleRoute(async ({ req, userId }) => {
     primaryGoal: user?.mission ?? null,
     platformHandle,
     followerCount,
-    userBio: user?.bio ?? null,
+    userBio: platformBio || user?.bio || null,
     displayName: bestDisplayName,
     userHandle: platformHandle ?? user?.handle ?? null,
     nicheSummary,
+    recentContentSummary,
   });
 
   // Save to DB (fire-and-forget)

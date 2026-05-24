@@ -49,8 +49,8 @@ function GlassAction(props: Props) {
           <Text style={{ fontFamily: t.fontDisplayItalic, fontSize: 16, color: glyphColor }}>{isUrgent ? '!' : isWarm ? '→' : '✦'}</Text>
         </View>
         <View>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: kickerColor }}>{kicker}</Text>
-          {eyebrow && <Text style={{ fontFamily: t.fontMono, fontSize: 9, color: t.subtle, marginTop: 2 }}>{eyebrow}</Text>}
+          <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: kickerColor }}>{kicker}</Text>
+          {eyebrow && <Text style={{ fontFamily: t.fontBody, fontSize: 9, color: t.subtle, marginTop: 2 }}>{eyebrow}</Text>}
         </View>
       </View>
       <View style={{ marginBottom: 6 }}>{renderTitle()}</View>
@@ -102,9 +102,9 @@ function EditorialAction(props: Props) {
     <View style={{ backgroundColor: cardBg, borderWidth: 1.5, borderColor: t.ink, padding: 14, paddingHorizontal: 16, ...t.shadowCardSmall }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <View style={{ backgroundColor: tagBg, paddingVertical: 2, paddingHorizontal: 6 }}>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: tagColor }}>{kicker}</Text>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: tagColor }}>{kicker}</Text>
         </View>
-        {eyebrow && <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 0.8, color: isUrgent ? 'rgba(244,236,222,0.8)' : t.muted }}>{eyebrow}</Text>}
+        {eyebrow && <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 0.8, color: isUrgent ? 'rgba(244,236,222,0.8)' : t.muted }}>{eyebrow}</Text>}
       </View>
       <View style={{ marginBottom: 6 }}>{renderTitle()}</View>
       {meta && <Text style={{ fontFamily: t.fontBody, fontSize: 12, color: metaColor, lineHeight: 17, marginBottom: 12 }}>{meta}</Text>}
@@ -112,12 +112,12 @@ function EditorialAction(props: Props) {
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {primaryCta && (
             <Pressable onPress={primaryCta.onPress} style={{ paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: t.ink, backgroundColor: isUrgent ? t.bg : t.lime, ...t.shadowButton }}>
-              <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: t.ink }}>{primaryCta.label}</Text>
+              <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: t.ink }}>{primaryCta.label}</Text>
             </Pressable>
           )}
           {skipCta && (
             <Pressable onPress={skipCta.onPress} style={{ paddingVertical: 8, paddingHorizontal: 4 }}>
-              <Text style={{ fontFamily: t.fontMono, fontSize: 10, color: isUrgent ? 'rgba(244,236,222,0.7)' : t.muted }}>{skipCta.label}</Text>
+              <Text style={{ fontFamily: t.fontBody, fontSize: 10, color: isUrgent ? 'rgba(244,236,222,0.7)' : t.muted }}>{skipCta.label}</Text>
             </Pressable>
           )}
         </View>

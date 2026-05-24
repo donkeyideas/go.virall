@@ -35,7 +35,7 @@ function GlassPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
           minWidth: 130,
         }}>
           <Text style={{
-            color: t.muted, fontSize: 9, fontFamily: t.fontMono,
+            color: t.muted, fontSize: 9, fontFamily: t.fontBody,
             textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4,
           }}>
             {s.label}
@@ -49,7 +49,7 @@ function GlassPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
           {s.delta && (
             <Text style={{
               color: s.deltaVariant === 'good' ? t.good : s.deltaVariant === 'bad' ? t.bad : t.muted,
-              fontSize: 10, fontFamily: t.fontMono, marginTop: 2,
+              fontSize: 10, fontFamily: t.fontBody, marginTop: 2,
             }}>
               {s.delta}
             </Text>
@@ -85,7 +85,7 @@ function EditorialPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
               borderColor: 'rgba(244,236,222,0.15)',
             }}>
               <Text style={{
-                color: t.lime, fontSize: 9, fontFamily: t.fontMono,
+                color: t.lime, fontSize: 9, fontFamily: t.fontBody,
                 textTransform: 'uppercase', letterSpacing: 2, marginBottom: 4,
               }}>
                 {s.label}
@@ -101,7 +101,7 @@ function EditorialPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
                   color: s.deltaVariant === 'good' ? t.lime
                     : s.deltaVariant === 'bad' ? t.pink
                     : 'rgba(244,236,222,0.5)',
-                  fontSize: 10, fontFamily: t.fontMono, marginTop: 2,
+                  fontSize: 10, fontFamily: t.fontBody, marginTop: 2,
                 }}>
                   {s.delta}
                 </Text>

@@ -73,7 +73,7 @@ export function StrategistChat({ displayName }: Props) {
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 }}>
             <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' }} />
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, color: '#22C55E', letterSpacing: 0.5 }}>online</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, color: '#22C55E', letterSpacing: 0.5 }}>online</Text>
           </View>
         </View>
       </View>
@@ -81,9 +81,9 @@ export function StrategistChat({ displayName }: Props) {
       {/* Chat messages */}
       <ScrollView
         ref={scrollRef}
-        style={{ maxHeight: 200, marginBottom: 12 }}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        style={{ maxHeight: 300, marginBottom: 12 }}
+        showsVerticalScrollIndicator
+        nestedScrollEnabled
       >
         {messages.map((m, i) => (
           <View
@@ -131,7 +131,7 @@ export function StrategistChat({ displayName }: Props) {
                 borderColor,
               }}
             >
-              <Text style={{ fontFamily: t.fontMono, fontSize: 10, color: muted, letterSpacing: 0.5 }}>
+              <Text style={{ fontFamily: t.fontBody, fontSize: 10, color: muted, letterSpacing: 0.5 }}>
                 {action}
               </Text>
             </TouchableOpacity>

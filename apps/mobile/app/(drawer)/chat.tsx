@@ -200,7 +200,7 @@ export default function ChatScreen() {
               style={{
                 color: muted,
                 fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-                fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+                fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
                 letterSpacing: 1.5,
                 textTransform: 'uppercase',
                 marginTop: 8,
@@ -257,7 +257,7 @@ export default function ChatScreen() {
                   style={{
                     color: isGlass(t) ? t.faint : isEditorial(t) ? t.faint : t.faint,
                     fontSize: 10,
-                    fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBody,
+                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
                     marginTop: 4,
                     textAlign: isUser ? 'right' : 'left',
                     paddingHorizontal: 4,

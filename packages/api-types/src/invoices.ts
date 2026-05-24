@@ -34,6 +34,17 @@ export const CreateInvoiceInput = z.object({
 
 export type CreateInvoiceInput = z.infer<typeof CreateInvoiceInput>;
 
+export const UpdateInvoiceInput = z.object({
+  brand_name: z.string().min(1).max(200).optional(),
+  brand_email: z.string().email().optional(),
+  notes: z.string().max(2000).optional(),
+  amount_cents: z.number().int().min(1).optional(),
+  due_date: z.string().datetime().optional(),
+  status: InvoiceStatusEnum.optional(),
+});
+
+export type UpdateInvoiceInput = z.infer<typeof UpdateInvoiceInput>;
+
 export const ListInvoicesQuery = PaginationInput.extend({
   status: InvoiceStatusEnum.optional(),
 });

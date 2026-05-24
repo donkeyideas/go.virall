@@ -12,7 +12,7 @@ export interface LinkedInProfile extends ScrapedProfile {
   jobTitle?: string;
 }
 
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 8_000;
 
 function parseCount(str: string): number {
   const clean = str.replace(/,/g, '').trim();

@@ -69,7 +69,7 @@ export function Button({ label, variant = 'primary', size = 'md', style, ...prop
         {...props}
       >
         <Text style={{
-          fontFamily: t.fontMono,
+          fontFamily: t.fontBody,
           fontSize: s.fontSize > 12 ? 11 : 10,
           fontWeight: '700',
           color: variant === 'skip' ? t.muted : t.fg,

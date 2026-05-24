@@ -19,7 +19,7 @@ const BOT_USER_AGENTS = [
   'Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)',
 ];
 
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 8_000;
 
 function randomUA(): string {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];

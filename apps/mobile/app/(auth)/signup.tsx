@@ -26,7 +26,7 @@ export default function SignupScreen() {
       setError(result.error);
       setLoading(false);
     } else {
-      router.replace('/(drawer)');
+      router.replace('/(onboarding)/welcome' as any);
     }
   };
 

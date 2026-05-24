@@ -24,7 +24,7 @@ export default function LoginScreen() {
       setError(result.error);
       setLoading(false);
     } else {
-      router.replace('/(drawer)');
+      router.replace('/');
     }
   };
 

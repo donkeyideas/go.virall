@@ -97,7 +97,7 @@ export function ContentCard({ topPosts, scheduledPosts }: Props) {
                 backgroundColor: badgeBg,
               }}>
                 <Text style={{
-                  fontFamily: (t as any).fontMono ?? fontBody,
+                  fontFamily: (t as any).fontBody ?? fontBody,
                   fontSize: 8, fontWeight: '600', letterSpacing: 0.6,
                   textTransform: 'uppercase', color: badgeFg,
                 }}>

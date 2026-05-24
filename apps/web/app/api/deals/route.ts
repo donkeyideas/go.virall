@@ -40,7 +40,7 @@ export const POST = handleRoute(async ({ req, userId, supabase }) => {
       currency: body.currency,
       stage: body.stage,
       description: body.description,
-      close_date: body.close_date ?? null,
+      due_date: body.due_date ?? null,
     })
     .select()
     .single();

@@ -85,6 +85,7 @@ function RootNav() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(drawer)" />
         <Stack.Screen name="theme-select" options={{ presentation: 'modal' }} />
       </Stack>

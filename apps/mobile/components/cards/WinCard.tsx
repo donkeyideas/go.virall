@@ -55,7 +55,7 @@ function GlassWin({ kicker, text, emphasisText, number, iconName }: Props) {
 
       {/* Text */}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.good }}>{kicker}</Text>
+        <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.good }}>{kicker}</Text>
         {renderText()}
       </View>
 
@@ -102,7 +102,7 @@ function EditorialWin({ kicker, text, emphasisText, number, iconName }: Props) {
 
       {/* Text */}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>{kicker}</Text>
+        <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>{kicker}</Text>
         {renderText()}
       </View>
 

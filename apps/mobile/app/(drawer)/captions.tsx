@@ -15,6 +15,7 @@ import { ThemedCard } from '@/components/ui/ThemedCard';
 import { IconStar, IconChevronDown } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
+import { NoBioNotice } from '@/components/ui/NoBioNotice';
 import { useAccount } from '@/lib/account-context';
 
 const TONES = ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational', 'Storytelling'];
@@ -118,7 +119,7 @@ export default function CaptionsScreen() {
             <Text style={{ fontFamily: t.fontDisplay, fontWeight: '900', fontStyle: 'normal' }}>Writer</Text>
           </Text>
           {isEditorial(t) && (
-            <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginTop: 6 }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginTop: 6 }}>
               Studio / Writer
             </Text>
           )}
@@ -138,6 +139,8 @@ export default function CaptionsScreen() {
           loading={accountsLoading}
           label="Generating for"
         />
+
+        <NoBioNotice />
 
         {/* Platform pills */}
         <SectionHeader number="01" title="Target platform" emphasisWord="platform" meta={`${charLimit.toLocaleString()} chars`} />
@@ -198,7 +201,7 @@ export default function CaptionsScreen() {
         {/* Input card */}
         <SectionHeader number="02" title="Caption details" emphasisWord="details" />
         <ThemedCard padding={16} style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 8 }}>
             Topic
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
@@ -242,7 +245,7 @@ export default function CaptionsScreen() {
           {/* Tone + Count */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Tone</Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Tone</Text>
               <Pressable
                 onPress={() => setToneOpen(!toneOpen)}
                 style={{
@@ -274,7 +277,7 @@ export default function CaptionsScreen() {
               )}
             </View>
             <View style={{ width: 70 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Count</Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Count</Text>
               <TextInput
                 value={String(count)}
                 onChangeText={(v) => setCount(Math.max(1, Math.min(10, parseInt(v) || 1)))}
@@ -378,7 +381,7 @@ export default function CaptionsScreen() {
                   backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.04)' : isEditorial(t) ? t.surfaceAlt : t.surface,
                   ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, marginBottom: 4, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody }}>Call to Action</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, marginBottom: 4, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody }}>Call to Action</Text>
                   <Text style={{ fontSize: 14, fontWeight: '600', color: accent, fontFamily: t.fontBody }}>{String(cap.callToAction)}</Text>
                 </View>
               )}

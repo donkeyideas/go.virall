@@ -86,7 +86,7 @@ function ScoreDisplay({ score, tokens: t }: { score: number | null; tokens: Retu
         </Text>
       </View>
       <Text style={{
-        fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodySemibold,
+        fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodySemibold,
         fontSize: 10,
         letterSpacing: 1,
         textTransform: 'uppercase',
@@ -160,12 +160,15 @@ export default function ComposeScreen() {
     setScoring(true);
     setMessage(null);
     try {
+      const hashtagArray = hashtags.trim()
+        ? hashtags.trim().split(/[\s,]+/).map((h) => h.startsWith('#') ? h : `#${h}`).filter(Boolean)
+        : [];
       const result = await api.post<{ score: number }>('/score', {
         platform: selectedPlatform,
         format: selectedFormat.toLowerCase(),
         hook: hook.trim(),
         caption: caption.trim(),
-        hashtags: hashtags.trim(),
+        hashtags: hashtagArray,
       });
       setViralScore(result.score ?? (typeof result === 'number' ? result : null));
     } catch {
@@ -181,14 +184,16 @@ export default function ComposeScreen() {
     setSaving(true);
     setMessage(null);
     try {
+      const hashtagArr = hashtags.trim()
+        ? hashtags.trim().split(/[\s,]+/).map((h) => h.startsWith('#') ? h : `#${h}`).filter(Boolean)
+        : [];
       await api.post('/posts', {
         platform: selectedPlatform,
         format: selectedFormat.toLowerCase(),
         hook: hook.trim(),
         caption: caption.trim(),
-        hashtags: hashtags.trim(),
+        hashtags: hashtagArr,
         status,
-        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       setMessage({
         text: status === 'draft' ? 'Draft saved!' : 'Post scheduled!',
@@ -300,7 +305,7 @@ export default function ComposeScreen() {
 
     if (isEditorial(t)) {
       return {
-        fontFamily: t.fontMono,
+        fontFamily: t.fontBody,
         fontSize: 10,
         fontWeight: '700' as const,
         color: selected ? t.ink : t.muted,
@@ -320,7 +325,7 @@ export default function ComposeScreen() {
 
   // ── Label style ─────────────────────────────────────────────────
   const labelStyle = {
-    fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodySemibold,
+    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodySemibold,
     fontSize: 11,
     letterSpacing: 1,
     textTransform: 'uppercase' as const,
@@ -382,7 +387,7 @@ export default function ComposeScreen() {
             style={{
               color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,

@@ -15,6 +15,7 @@ import { ThemedCard } from '@/components/ui/ThemedCard';
 import { IconStar, IconChevronDown } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
+import { NoBioNotice } from '@/components/ui/NoBioNotice';
 import { useAccount } from '@/lib/account-context';
 
 const TONES = ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational', 'Storytelling'];
@@ -101,7 +102,7 @@ export default function ScriptsScreen() {
   }, [platform]);
 
   function copyScript(script: Script, index: number) {
-    const text = `${script.title ?? ''}\n\nHOOK (first 3 sec):\n${script.hook ?? ''}\n\nBODY:\n${script.body ?? ''}\n\nCTA:\n${script.callToAction ?? ''}\n\nDuration: ${script.duration ?? ''}\nVisual notes: ${script.visualNotes ?? ''}`;
+    const text = `${script.title ?? ''}\n\n${script.hook ?? ''}\n\n${script.body ?? ''}\n\n${script.callToAction ?? ''}`;
     Clipboard.setStringAsync(text).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
@@ -124,7 +125,7 @@ export default function ScriptsScreen() {
             <Text style={{ fontFamily: t.fontDisplay, fontWeight: '900', fontStyle: 'normal' }}>Writer</Text>
           </Text>
           {isEditorial(t) && (
-            <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginTop: 6 }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginTop: 6 }}>
               Studio / Production
             </Text>
           )}
@@ -144,6 +145,8 @@ export default function ScriptsScreen() {
           loading={accountsLoading}
           label="Generating for"
         />
+
+        <NoBioNotice />
 
         {/* Platform pills */}
         <SectionHeader number="01" title="Target platform" emphasisWord="platform" />
@@ -184,7 +187,7 @@ export default function ScriptsScreen() {
         {/* Input card */}
         <SectionHeader number="02" title="Script details" emphasisWord="details" />
         <ThemedCard padding={16} style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 8 }}>
             Video topic
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
@@ -228,7 +231,7 @@ export default function ScriptsScreen() {
           {/* Tone + Count */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Tone</Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Tone</Text>
               <Pressable
                 onPress={() => setToneOpen(!toneOpen)}
                 style={{
@@ -260,7 +263,7 @@ export default function ScriptsScreen() {
               )}
             </View>
             <View style={{ width: 70 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Scripts</Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Scripts</Text>
               <TextInput
                 value={String(count)}
                 onChangeText={(v) => setCount(Math.max(1, Math.min(5, parseInt(v) || 1)))}
@@ -386,7 +389,7 @@ export default function ScriptsScreen() {
                     borderLeftColor: accent,
                     ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                   }}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: isGlass(t) ? t.violet : accent, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 4 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: isGlass(t) ? t.violet : accent, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 4 }}>
                       Hook -- First 3 Seconds
                     </Text>
                     <Text style={{ fontSize: 15, fontWeight: '500', color: fg, fontFamily: t.fontBody, lineHeight: 22 }}>{String(script.hook ?? '')}</Text>
@@ -394,7 +397,7 @@ export default function ScriptsScreen() {
 
                   {/* Body */}
                   <View>
-                    <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Body</Text>
+                    <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Body</Text>
                     <Text style={{ fontSize: 14, color: fg, fontFamily: t.fontBody, lineHeight: 22 }}>{String(script.body ?? '')}</Text>
                   </View>
 
@@ -406,7 +409,7 @@ export default function ScriptsScreen() {
                       backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.04)' : isEditorial(t) ? t.surfaceAlt : t.surface,
                       ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                     }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 4 }}>Call to Action</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 4 }}>Call to Action</Text>
                       <Text style={{ fontSize: 14, fontWeight: '600', color: accent, fontFamily: t.fontBody }}>{String(script.callToAction)}</Text>
                     </View>
                   )}
@@ -420,7 +423,7 @@ export default function ScriptsScreen() {
                       borderStyle: 'dashed',
                       borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.border.color : t.surfaceDarker,
                     }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 4 }}>Visual Notes</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 4 }}>Visual Notes</Text>
                       <Text style={{ fontSize: 13, color: muted, fontFamily: t.fontBody, fontStyle: 'italic', lineHeight: 20 }}>{String(script.visualNotes)}</Text>
                     </View>
                   )}

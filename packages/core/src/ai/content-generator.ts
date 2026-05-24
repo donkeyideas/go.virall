@@ -36,6 +36,8 @@ export interface ContentGeneratorInput {
   userHandle?: string | null;
   /** Comma-separated platform display names (fallback when no bio) */
   nicheSummary?: string | null;
+  /** Recent post content (hooks, captions, hashtags) for niche context */
+  recentContentSummary?: string | null;
 }
 
 export interface ContentResult {
@@ -82,9 +84,13 @@ function profileContext(input: ContentGeneratorInput): string {
   if (input.platformHandle || input.userHandle) parts.push(`HANDLE: @${input.platformHandle ?? input.userHandle}`);
   if (input.followerCount) parts.push(`FOLLOWERS: ${input.followerCount.toLocaleString()}`);
 
+  if (input.recentContentSummary) {
+    parts.push(`\nRECENT POSTS BY THIS ACCOUNT (use these to understand the account's actual niche, voice, and topics):\n${input.recentContentSummary}`);
+  }
+
   // Context reinforcement — the AI MUST generate content relevant to this account
-  if (hasIdentity(input)) {
-    parts.push(`\nCRITICAL: You are writing content for "${input.displayName ?? 'this account'}". All content MUST be directly relevant to this account's niche and audience. Do NOT generate generic content. Tailor every idea, hook, and caption to what this account actually covers.`);
+  if (hasIdentity(input) || input.recentContentSummary) {
+    parts.push(`\nCRITICAL: You are writing content for "${input.displayName ?? 'this account'}". Study the account bio AND recent posts above to understand what this account is ACTUALLY about. All content MUST be directly relevant to this account's niche, topics, and audience. Do NOT generate generic or off-topic content. Match the voice, themes, and subject matter of their existing content.`);
   }
   return parts.join('\n');
 }

@@ -13,7 +13,7 @@ export function Kicker({ children, color, style }: Props) {
 
   return (
     <Text style={[{
-      fontFamily: t.fontMono,
+      fontFamily: t.fontBody,
       fontSize: 10,
       fontWeight: isEditorial(t) ? '700' : '500',
       color: color ?? t.muted,

@@ -76,7 +76,7 @@ export function AccountPicker({
   if (loading) {
     return (
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>
+        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>
           {label}
         </Text>
         <View style={{
@@ -94,7 +94,7 @@ export function AccountPicker({
   if (accounts.length === 0) {
     return (
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>
+        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>
           {label}
         </Text>
         <View style={{
@@ -111,7 +111,7 @@ export function AccountPicker({
 
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 12, zIndex: 10 }}>
-      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>
+      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>
         {label}
       </Text>
 

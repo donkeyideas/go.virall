@@ -30,14 +30,12 @@ export function ThemedText({ variant = 'body', color = 'default', style, ...prop
   // Resolve font
   const fontBody = isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody;
   const fontDisplay = isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplay : t.fontDisplay;
-  const fontMono = isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontMono;
-
   const variantStyles = {
     display: { fontFamily: fontDisplay, fontSize: 28, lineHeight: 34 },
     heading: { fontFamily: fontDisplay, fontSize: 20, lineHeight: 26 },
     body: { fontFamily: fontBody, fontSize: 15, lineHeight: 22 },
     caption: { fontFamily: fontBody, fontSize: 12, lineHeight: 16 },
-    mono: { fontFamily: fontMono, fontSize: 13, lineHeight: 18 },
+    mono: { fontFamily: fontBody, fontSize: 13, lineHeight: 18 },
     label: { fontFamily: fontBody, fontSize: 11, lineHeight: 14, letterSpacing: 0.5, textTransform: 'uppercase' as const },
   };
 

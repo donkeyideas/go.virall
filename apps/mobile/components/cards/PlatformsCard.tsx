@@ -92,7 +92,7 @@ export function PlatformsCard({ platforms }: Props) {
                 <Text style={{ fontFamily: (t as any).fontDisplayItalic, fontSize: 16, color: fg, letterSpacing: -0.3 }}>
                   {fmtK(p.follower_count)}
                 </Text>
-                <Text style={{ fontFamily: (t as any).fontMono, fontSize: 9, color: muted, letterSpacing: 0.5 }}>
+                <Text style={{ fontFamily: (t as any).fontBody, fontSize: 9, color: muted, letterSpacing: 0.5 }}>
                   {p.share}%
                 </Text>
               </View>
@@ -108,7 +108,7 @@ export function PlatformsCard({ platforms }: Props) {
               >
                 <Text style={{ fontFamily: fontBold, fontSize: 12, color: accent }}>Prev</Text>
               </Pressable>
-              <Text style={{ fontFamily: (t as any).fontMono, fontSize: 10, color: muted }}>
+              <Text style={{ fontFamily: (t as any).fontBody, fontSize: 10, color: muted }}>
                 {page + 1} / {totalPages}
               </Text>
               <Pressable

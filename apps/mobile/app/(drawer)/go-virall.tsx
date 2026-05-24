@@ -112,7 +112,7 @@ export default function GoVirallScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -156,7 +156,7 @@ export default function GoVirallScreen() {
                     {data.overall}
                   </Text>
                   <Text style={{
-                    fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
                     fontSize: 10, letterSpacing: 1, color: muted, marginTop: 2,
                   }}>
                     / 100
@@ -211,7 +211,7 @@ export default function GoVirallScreen() {
               ].map((s) => (
                 <ThemedCard key={s.label} padding={14} style={{ minWidth: 100, alignItems: 'center' }}>
                   <Text style={{
-                    fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
                     fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginBottom: 4,
                   }}>
                     {s.label}
@@ -241,7 +241,7 @@ export default function GoVirallScreen() {
                         {signal.name}
                       </Text>
                       <Text style={{
-                        fontFamily: isGlass(t) ? t.fontMono : t.fontBodyBold,
+                        fontFamily: isGlass(t) ? t.fontBody : t.fontBodyBold,
                         fontSize: 9, letterSpacing: 1, color: muted, textTransform: 'uppercase',
                       }}>
                         {signal.weight} weight

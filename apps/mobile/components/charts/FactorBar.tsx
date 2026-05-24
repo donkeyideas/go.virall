@@ -37,7 +37,7 @@ export function FactorBar({ label, value, variant = 'default' }: Props) {
           }} />
         </View>
         <Text style={{
-          color: t.subtle, fontSize: 8, fontFamily: t.fontMono,
+          color: t.subtle, fontSize: 8, fontFamily: t.fontBody,
           textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 4,
         }}>
           {abbrev}
@@ -76,7 +76,7 @@ export function FactorBar({ label, value, variant = 'default' }: Props) {
           {value}
         </Text>
         <Text style={{
-          color: t.ink, fontSize: 8, fontFamily: t.fontMono,
+          color: t.ink, fontSize: 8, fontFamily: t.fontBody,
           textTransform: 'uppercase', letterSpacing: 0.8,
         }}>
           {abbrev}

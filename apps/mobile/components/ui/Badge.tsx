@@ -30,7 +30,7 @@ export function Badge({ label, variant = 'default' }: Props) {
         paddingVertical: 4,
         borderRadius: 999,
       }}>
-        <Text style={{ fontFamily: t.fontMono, fontSize: 10, color: c.text }}>{label}</Text>
+        <Text style={{ fontFamily: t.fontBody, fontSize: 10, color: c.text }}>{label}</Text>
       </View>
     );
   }
@@ -44,7 +44,7 @@ export function Badge({ label, variant = 'default' }: Props) {
         borderWidth: 1.5,
         borderColor: t.ink,
       }}>
-        <Text style={{ fontFamily: t.fontMono, fontSize: 9, fontWeight: '700', color: t.surface, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+        <Text style={{ fontFamily: t.fontBody, fontSize: 9, fontWeight: '700', color: t.surface, textTransform: 'uppercase', letterSpacing: 0.8 }}>
           {label}
         </Text>
       </View>

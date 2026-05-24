@@ -6,15 +6,16 @@ import {
   Pressable,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { IconStar, IconChevronDown } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AccountPicker } from '@/components/ui/AccountPicker';
+import { NoBioNotice } from '@/components/ui/NoBioNotice';
 import { useAccount } from '@/lib/account-context';
 
 const TONES = ['Professional', 'Creative', 'Minimalist', 'Authoritative', 'Approachable', 'Humorous'];
@@ -95,10 +96,11 @@ export default function BioScreen() {
     setSuggesting(false);
   }, [platform]);
 
-  function copyBio(_text: string, index: number) {
-    setCopiedIndex(index);
-    Alert.alert('Copied', 'Long-press the bio text to select and copy it.');
-    setTimeout(() => setCopiedIndex(null), 2000);
+  function copyBio(text: string, index: number) {
+    Clipboard.setStringAsync(text).then(() => {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    });
   }
 
   return (
@@ -117,7 +119,7 @@ export default function BioScreen() {
             <Text style={{ fontFamily: t.fontDisplay, fontWeight: '900', fontStyle: 'normal' }}>Optimizer</Text>
           </Text>
           {isEditorial(t) && (
-            <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginTop: 6 }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginTop: 6 }}>
               Studio / Branding
             </Text>
           )}
@@ -137,6 +139,8 @@ export default function BioScreen() {
           loading={accountsLoading}
           label="Generating for"
         />
+
+        <NoBioNotice />
 
         {/* Platform pills with bio limits */}
         <SectionHeader number="01" title="Target platform" emphasisWord="platform" meta={`${bioLimit} chars`} />
@@ -206,7 +210,7 @@ export default function BioScreen() {
         {/* Input card */}
         <SectionHeader number="02" title="Bio details" emphasisWord="details" />
         <ThemedCard padding={16} style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 8 }}>
             Describe yourself / your niche
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
@@ -250,7 +254,7 @@ export default function BioScreen() {
           {/* Style + Variants */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Style</Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Style</Text>
               <Pressable
                 onPress={() => setToneOpen(!toneOpen)}
                 style={{
@@ -282,7 +286,7 @@ export default function BioScreen() {
               )}
             </View>
             <View style={{ width: 70 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontMono : t.fontBody, marginBottom: 6 }}>Variants</Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: muted, fontFamily: isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Variants</Text>
               <TextInput
                 value={String(count)}
                 onChangeText={(v) => setCount(Math.max(1, Math.min(10, parseInt(v) || 1)))}

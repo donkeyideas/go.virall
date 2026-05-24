@@ -1,4 +1,23 @@
-import { handleRoute, ApiError } from '../../_lib/handler';
+import { handleRoute, parseBody, ApiError } from '../../_lib/handler';
+import { UpdateInvoiceInput } from '@govirall/api-types';
+
+// PATCH /api/invoices/[id]
+export const PATCH = handleRoute(async ({ req, userId, params, supabase }) => {
+  const body = await parseBody(req, UpdateInvoiceInput);
+
+  const { data, error } = await supabase
+    .from('invoices')
+    .update(body)
+    .eq('id', params!.id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) throw ApiError.badRequest(error.message);
+  if (!data) throw ApiError.notFound('Invoice not found');
+
+  return data;
+});
 
 // POST /api/invoices/[id]?action=send|mark-paid|cancel
 export const POST = handleRoute(async ({ req, userId, params, supabase }) => {

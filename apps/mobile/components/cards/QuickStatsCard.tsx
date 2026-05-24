@@ -19,7 +19,7 @@ function StatRow({ label, value, t, isLast }: { label: string; value: string; t:
     return (
       <NeumorphicView inset borderRadius={16} padding={12}>
         <Text style={{
-          fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5,
+          fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.5,
           textTransform: 'uppercase', color: t.muted, marginBottom: 6,
         }}>
           {label}
@@ -41,7 +41,7 @@ function StatRow({ label, value, t, isLast }: { label: string; value: string; t:
       borderBottomColor: isGlass(t) ? 'rgba(255,255,255,0.06)' : isEditorial(t) ? 'rgba(0,0,0,0.08)' : 'transparent',
     }}>
       <Text style={{
-        fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5,
+        fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.5,
         textTransform: 'uppercase', color: t.muted, marginBottom: 6,
       }}>
         {label}

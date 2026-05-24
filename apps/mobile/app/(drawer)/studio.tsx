@@ -71,7 +71,7 @@ export default function StudioScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,

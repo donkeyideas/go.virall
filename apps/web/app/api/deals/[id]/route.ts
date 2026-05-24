@@ -22,8 +22,10 @@ export const GET = handleRoute(async ({ userId, params, supabase }) => {
 export const PATCH = handleRoute(async ({ req, userId, params, supabase }) => {
   const body = await parseBody(req, UpdateDealInput);
 
-  // If stage is changing, validate the transition
-  if (body.stage) {
+  // Validate transitions only for stage-only updates (pipeline actions).
+  // Manual edits (multiple fields) can set any stage.
+  const keys = Object.keys(body).filter((k) => body[k as keyof typeof body] !== undefined);
+  if (body.stage && keys.length === 1) {
     const { data: current } = await supabase
       .from('deals')
       .select('stage')
@@ -44,7 +46,8 @@ export const PATCH = handleRoute(async ({ req, userId, params, supabase }) => {
     .select()
     .single();
 
-  if (error || !data) throw ApiError.notFound('Deal not found');
+  if (error) throw ApiError.badRequest(error.message);
+  if (!data) throw ApiError.notFound('Deal not found');
 
   return data;
 });

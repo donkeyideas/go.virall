@@ -12,7 +12,7 @@
 
 import type { ScrapedProfile, ScrapedPost } from '../scrape';
 
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 8_000;
 
 const USER_AGENTS = [
   'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',

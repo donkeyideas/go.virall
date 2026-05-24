@@ -108,7 +108,7 @@ export default function TodayScreen() {
               <Text style={{ fontFamily: t.fontDisplayItalic, color: t.rose }}>{`${firstName}`}</Text>
               <Text style={{ fontFamily: t.fontDisplayItalic, color: t.mint }}>{'.'}</Text>
             </Text>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: t.subtle, marginTop: 8 }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: t.subtle, marginTop: 8 }}>
               {getDateMeta()}
             </Text>
           </View>
@@ -118,7 +118,7 @@ export default function TodayScreen() {
           <View style={{ paddingLeft: 76, paddingRight: 20, paddingTop: 20, paddingBottom: 14, borderBottomWidth: 1.5, borderBottomColor: t.ink }}>
             {/* Kicker row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, marginRight: 50 }}>
-              <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.8, textTransform: 'uppercase', color: t.ink }}>Today's briefing</Text>
+              <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.8, textTransform: 'uppercase', color: t.ink }}>Today's briefing</Text>
               <View style={{ flex: 1, height: 1.5, backgroundColor: t.ink, marginLeft: 10 }} />
             </View>
             {/* Avatar top-right */}
@@ -142,7 +142,7 @@ export default function TodayScreen() {
               {'.'}
             </Text>
             {/* Date/time below headline */}
-            <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: t.muted, marginTop: 8 }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: t.muted, marginTop: 8 }}>
               {getDateMeta()}
             </Text>
           </View>
@@ -308,7 +308,7 @@ export default function TodayScreen() {
         {error && (
           <View style={{ paddingHorizontal: 20, paddingVertical: 20 }}>
             <Text style={{
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontMono,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
               fontSize: 11,
               color: isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad,
               textAlign: 'center',

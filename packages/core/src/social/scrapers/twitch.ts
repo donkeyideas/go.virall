@@ -12,7 +12,7 @@ export interface TwitchProfile extends ScrapedProfile {
   totalViews?: number;
 }
 
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 8_000;
 const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 
 function parseCount(raw: string): number {

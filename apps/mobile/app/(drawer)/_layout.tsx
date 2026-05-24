@@ -206,10 +206,10 @@ export default function AppLayout() {
               {isEditorial(t) ? (
                 <View style={{ flexDirection: 'row', gap: 6 }}>
                   <View style={{ backgroundColor: t.ink, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ color: t.bg, fontSize: 8, fontFamily: t.fontMono, textTransform: 'uppercase', letterSpacing: 1 }}>Menu</Text>
+                    <Text style={{ color: t.bg, fontSize: 8, fontFamily: t.fontBody, textTransform: 'uppercase', letterSpacing: 1 }}>Menu</Text>
                   </View>
                   <View style={{ backgroundColor: t.ink, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ color: t.bg, fontSize: 8, fontFamily: t.fontMono, textTransform: 'uppercase', letterSpacing: 1 }}>Creator OS</Text>
+                    <Text style={{ color: t.bg, fontSize: 8, fontFamily: t.fontBody, textTransform: 'uppercase', letterSpacing: 1 }}>Creator OS</Text>
                   </View>
                 </View>
               ) : (
@@ -393,7 +393,7 @@ export default function AppLayout() {
                   {displayName}
                 </Text>
                 <Text style={{
-                  fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontMono,
+                  fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
                   fontSize: 10,
                   color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
                 }}>

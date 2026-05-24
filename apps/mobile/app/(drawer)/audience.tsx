@@ -120,10 +120,10 @@ export default function AudienceScreen() {
 
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
   const filteredPlatforms = selectedAccountId
-    ? platforms.filter((p) => p.platform === selectedAccount?.platform)
+    ? platforms.filter((p) => p.id === selectedAccountId)
     : platforms;
-  const filteredCompetitors = selectedAccountId
-    ? competitors.filter((c) => c.platform === selectedAccount?.platform)
+  const filteredCompetitors = selectedAccountId && selectedAccount
+    ? competitors.filter((c) => c.platform === selectedAccount.platform)
     : competitors;
   const totalFollowers = filteredPlatforms.reduce((sum, p) => sum + (p.follower_count ?? 0), 0);
   const accentColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
@@ -181,7 +181,7 @@ export default function AudienceScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodyBold,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -204,7 +204,7 @@ export default function AudienceScreen() {
         {isEditorial(t) && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingLeft: 56 }}>
             <View style={{ backgroundColor: t.ink, paddingVertical: 1, paddingHorizontal: 6 }}>
-              <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, color: t.bg }}>
+              <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, color: t.bg }}>
                 {platforms.length} CONNECTED
               </Text>
             </View>
@@ -230,7 +230,7 @@ export default function AudienceScreen() {
         {error && (
           <View style={{ paddingHorizontal: 4, paddingVertical: 12 }}>
             <Text style={{
-              fontFamily: t.fontMono,
+              fontFamily: t.fontBody,
               fontSize: 11,
               color: isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad,
               textAlign: 'center',
@@ -268,7 +268,7 @@ export default function AudienceScreen() {
         {platforms.length > 0 && (
           <ThemedCard padding={20} elevation="md">
             <Text style={{
-              fontFamily: isGlass(t) ? t.fontMono : isEditorial(t) ? t.fontMono : t.fontBodySemibold,
+              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodySemibold,
               fontSize: 10,
               letterSpacing: 1.2,
               textTransform: 'uppercase',
@@ -391,7 +391,7 @@ function PlatformRow({ platform }: { platform: PlatformAccount }) {
             {formatCount(platform.follower_count)}
           </Text>
           <Text style={{
-            fontFamily: t.fontMono,
+            fontFamily: t.fontBody,
             fontSize: 9,
             letterSpacing: 1,
             textTransform: 'uppercase',
@@ -412,7 +412,7 @@ function PlatformRow({ platform }: { platform: PlatformAccount }) {
         gap: 16,
       }}>
         <View>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
             Following
           </Text>
           <Text style={{ fontFamily: t.fontBodySemibold, fontSize: 13, color: fg, marginTop: 2 }}>
@@ -420,7 +420,7 @@ function PlatformRow({ platform }: { platform: PlatformAccount }) {
           </Text>
         </View>
         <View>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
             Posts
           </Text>
           <Text style={{ fontFamily: t.fontBodySemibold, fontSize: 13, color: fg, marginTop: 2 }}>
@@ -428,7 +428,7 @@ function PlatformRow({ platform }: { platform: PlatformAccount }) {
           </Text>
         </View>
         <View style={{ marginLeft: 'auto', alignItems: 'flex-end' }}>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
             Status
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
@@ -501,7 +501,7 @@ function CompetitorRow({ competitor }: { competitor: Competitor }) {
         {/* Metrics */}
         <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-end' }}>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
               Followers
             </Text>
             <Text style={{
@@ -515,7 +515,7 @@ function CompetitorRow({ competitor }: { competitor: Competitor }) {
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.faint }}>
               Engage
             </Text>
             <Text style={{

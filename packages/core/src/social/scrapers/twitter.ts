@@ -8,7 +8,7 @@
 
 import type { ScrapedProfile, ScrapedPost } from '../scrape';
 
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 8_000;
 
 function parseNum(str: string): number {
   const clean = str.replace(/,/g, '').trim();

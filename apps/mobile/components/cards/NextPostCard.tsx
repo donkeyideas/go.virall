@@ -54,9 +54,9 @@ function GlassNextPost({ status, time, hook, emphasisWord, score, hookStrength, 
             borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 6,
           }}>
             <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: t.good }} />
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.good }}>{status}</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: t.good }}>{status}</Text>
           </View>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 11, color: t.muted, letterSpacing: 0.5 }}>{time}</Text>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 11, color: t.muted, letterSpacing: 0.5 }}>{time}</Text>
         </View>
 
         {/* Hook text */}
@@ -65,15 +65,15 @@ function GlassNextPost({ status, time, hook, emphasisWord, score, hookStrength, 
         {/* Meta row */}
         <View style={{ flexDirection: 'row', gap: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>Score</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>Score</Text>
             <Text style={{ fontFamily: t.fontDisplay, fontSize: 15, color: t.fg, marginTop: 2 }}>{score ?? '—'}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>Hook</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>Hook</Text>
             <Text style={{ fontFamily: t.fontDisplay, fontSize: 15, color: t.violetSoft, marginTop: 2, fontStyle: 'italic' }}>{hookStrength ?? '—'}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>Predicted</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: t.faint }}>Predicted</Text>
             <Text style={{ fontFamily: t.fontDisplay, fontSize: 15, color: t.fg, marginTop: 2 }}>{predicted ?? '—'}</Text>
           </View>
         </View>
@@ -108,9 +108,9 @@ function EditorialNextPost({ status, time, hook, emphasisWord, score, hookStreng
         backgroundColor: t.ink, paddingVertical: 6, paddingHorizontal: 14,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <Text style={{ fontFamily: t.fontMono, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', color: t.bg }}>{status}</Text>
+        <Text style={{ fontFamily: t.fontBody, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', color: t.bg }}>{status}</Text>
         <View style={{ backgroundColor: t.lime, paddingVertical: 2, paddingHorizontal: 6 }}>
-          <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.ink }}>{time}</Text>
+          <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.ink }}>{time}</Text>
         </View>
       </View>
 
@@ -121,15 +121,15 @@ function EditorialNextPost({ status, time, hook, emphasisWord, score, hookStreng
         {/* Meta row with dashed border */}
         <View style={{ flexDirection: 'row', gap: 12, paddingTop: 12, borderTopWidth: 1.5, borderTopColor: t.ink }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>Score</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>Score</Text>
             <Text style={{ fontFamily: t.fontDisplayItalic, fontSize: 16, color: t.ink, marginTop: 2, letterSpacing: -0.2 }}>{score ?? '—'}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>Hook</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>Hook</Text>
             <Text style={{ fontFamily: t.fontDisplayItalic, fontSize: 16, color: t.ink, marginTop: 2, letterSpacing: -0.2 }}>{hookStrength ?? '—'}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: t.fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>Predicted</Text>
+            <Text style={{ fontFamily: t.fontBody, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: t.muted }}>Predicted</Text>
             <Text style={{ fontFamily: t.fontDisplayItalic, fontSize: 16, color: t.ink, marginTop: 2, letterSpacing: -0.2 }}>{predicted ?? '—'}</Text>
           </View>
         </View>

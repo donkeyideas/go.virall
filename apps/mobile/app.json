@@ -2,7 +2,7 @@
   "expo": {
     "name": "Go Virall",
     "slug": "go-virall",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "govirall",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.govirall.app",
-      "buildNumber": "9",
+      "buildNumber": "11",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -28,7 +28,7 @@
       },
       "package": "com.govirall.app",
       "softwareKeyboardLayoutMode": "pan",
-      "versionCode": 8
+      "versionCode": 9
     },
     "plugins": [
       "expo-router",

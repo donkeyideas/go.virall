@@ -61,7 +61,7 @@ export function ScoreRing({ value, size: sizeProp, label = '/ 100' }: Props) {
             {value}
           </Text>
           <Text style={{
-            fontFamily: t.fontMono,
+            fontFamily: t.fontBody,
             fontSize: 9,
             color: t.muted,
             textTransform: 'uppercase',
@@ -129,7 +129,7 @@ export function ScoreRing({ value, size: sizeProp, label = '/ 100' }: Props) {
             {value}
           </Text>
           <Text style={{
-            fontFamily: t.fontMono,
+            fontFamily: t.fontBody,
             fontSize: 9,
             color: t.muted,
             textTransform: 'uppercase',
