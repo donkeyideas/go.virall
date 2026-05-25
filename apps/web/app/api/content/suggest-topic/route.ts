@@ -6,6 +6,7 @@ import { createAdminClient } from '@govirall/db/admin';
 const SuggestTopicInput = z.object({
   platform: z.string(),
   contentType: z.enum(['scripts', 'captions', 'ideas', 'bio']),
+  platformAccountId: z.string().uuid().optional(),
 });
 
 const PLATFORM_CONTEXT: Record<string, string> = {
@@ -33,10 +34,18 @@ export const POST = handleRoute(async ({ req, userId }) => {
   // Fetch user profile, connected platforms, and recent posts
   const admin = createAdminClient();
 
+  let platformsQuery = admin.from('platform_accounts_safe').select('platform, platform_username, platform_display_name, follower_count, post_count').eq('user_id', userId);
+  let postsQuery = admin.from('posts').select('caption, hook, hashtags, platform').eq('user_id', userId).order('published_at', { ascending: false }).limit(10);
+
+  if (body.platformAccountId) {
+    platformsQuery = platformsQuery.eq('id', body.platformAccountId);
+    postsQuery = postsQuery.eq('platform_account_id', body.platformAccountId);
+  }
+
   const [userRes, platformsRes, postsRes] = await Promise.all([
     admin.from('users').select('display_name, bio, mission, handle').eq('id', userId).single(),
-    admin.from('platform_accounts_safe').select('platform, platform_username, platform_display_name, follower_count, post_count').eq('user_id', userId),
-    admin.from('posts').select('caption, hook, hashtags, platform').eq('user_id', userId).order('published_at', { ascending: false }).limit(10),
+    platformsQuery,
+    postsQuery,
   ]);
 
   const user = userRes.data;

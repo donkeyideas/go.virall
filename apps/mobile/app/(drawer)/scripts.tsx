@@ -94,12 +94,13 @@ export default function ScriptsScreen() {
       const raw = await api.post<Record<string, unknown>>('/content/suggest-topic', {
         platform,
         contentType: 'scripts',
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       const suggested = (raw as Record<string, unknown>).topic ?? '';
       if (suggested) setTopic(String(suggested));
     } catch { /* ignore */ }
     setSuggesting(false);
-  }, [platform]);
+  }, [platform, selectedAccountId]);
 
   function copyScript(script: Script, index: number) {
     const text = `${script.title ?? ''}\n\n${script.hook ?? ''}\n\n${script.body ?? ''}\n\n${script.callToAction ?? ''}`;

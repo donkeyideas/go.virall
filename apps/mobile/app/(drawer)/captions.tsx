@@ -88,12 +88,13 @@ export default function CaptionsScreen() {
       const raw = await api.post<Record<string, unknown>>('/content/suggest-topic', {
         platform,
         contentType: 'captions',
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       const suggested = (raw as Record<string, unknown>).topic ?? '';
       if (suggested) setTopic(String(suggested));
     } catch { /* ignore */ }
     setSuggesting(false);
-  }, [platform]);
+  }, [platform, selectedAccountId]);
 
   function copyCaption(cap: Caption, index: number) {
     const text = `${cap.text ?? ''}\n\n${cap.callToAction ?? ''}\n\n${(cap.hashtags ?? []).join(' ')}`.trim();

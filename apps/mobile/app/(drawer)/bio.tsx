@@ -89,12 +89,13 @@ export default function BioScreen() {
       const raw = await api.post<Record<string, unknown>>('/content/suggest-topic', {
         platform,
         contentType: 'bio',
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       const suggested = (raw as Record<string, unknown>).topic ?? '';
       if (suggested) setTopic(String(suggested));
     } catch { /* ignore */ }
     setSuggesting(false);
-  }, [platform]);
+  }, [platform, selectedAccountId]);
 
   function copyBio(text: string, index: number) {
     Clipboard.setStringAsync(text).then(() => {

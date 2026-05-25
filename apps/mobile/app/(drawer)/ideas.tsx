@@ -102,12 +102,13 @@ export default function IdeasScreen() {
       const raw = await api.post<Record<string, unknown>>('/content/suggest-topic', {
         platform: platform === 'general' ? 'instagram' : platform,
         contentType: 'ideas',
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       const suggested = (raw as Record<string, unknown>).topic ?? '';
       if (suggested) setTopic(String(suggested));
     } catch { /* ignore */ }
     setSuggesting(false);
-  }, [platform]);
+  }, [platform, selectedAccountId]);
 
   function copyIdea(idea: Idea, index: number) {
     const text = `${idea.title}\n\n${idea.hook}\n${idea.angle}\n\n${(idea.hashtags ?? []).join(' ')}`;
