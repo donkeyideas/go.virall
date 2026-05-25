@@ -8,7 +8,18 @@ export const POST = handleRoute(async ({ req, userId }) => {
 
   const admin = createAdminClient();
 
-  // Fetch user profile, connected platforms, AND recent posts for niche context
+  // Build queries — filter posts to selected account when provided
+  let postsQuery = admin
+    .from('posts')
+    .select('caption, hook, hashtags, platform')
+    .eq('user_id', userId)
+    .order('published_at', { ascending: false })
+    .limit(15);
+
+  if (body.platformAccountId) {
+    postsQuery = postsQuery.eq('platform_account_id', body.platformAccountId);
+  }
+
   const [userRes, platformsRes, postsRes] = await Promise.all([
     admin
       .from('users')
@@ -20,12 +31,7 @@ export const POST = handleRoute(async ({ req, userId }) => {
       .select('id, platform, platform_username, platform_display_name, platform_bio, follower_count')
       .eq('user_id', userId)
       .is('disconnected_at', null),
-    admin
-      .from('posts')
-      .select('caption, hook, hashtags, platform')
-      .eq('user_id', userId)
-      .order('published_at', { ascending: false })
-      .limit(15),
+    postsQuery,
   ]);
 
   const user = userRes.data;
@@ -47,7 +53,6 @@ export const POST = handleRoute(async ({ req, userId }) => {
       followerCount = account.follower_count;
     }
   } else {
-    // Fallback: find account by platform name
     const account = allPlatforms.find((p) => p.platform === body.platform);
     if (account) {
       platformHandle = account.platform_username;
@@ -57,29 +62,19 @@ export const POST = handleRoute(async ({ req, userId }) => {
     }
   }
 
-  // Collect all platform display names for niche context
-  const allDisplayNames = allPlatforms
-    .map((p) => p.platform_display_name)
-    .filter(Boolean) as string[];
+  // Niche context: only from the selected account, not all accounts
+  const selectedAccount = body.platformAccountId
+    ? allPlatforms.find((p) => p.id === body.platformAccountId)
+    : allPlatforms.find((p) => p.platform === body.platform);
 
-  // Best display name: selected platform → longest connected name → user profile
   const bestDisplayName =
-    platformDisplayName
-    ?? allDisplayNames.sort((a, b) => b.length - a.length)[0]
-    ?? user?.display_name
-    ?? null;
+    platformDisplayName ?? selectedAccount?.platform_display_name ?? user?.display_name ?? null;
 
-  // Build niche summary from all connected platforms (always, so AI has full context)
-  const uniqueNames = [...new Set(allDisplayNames)];
-  const nicheSummary = uniqueNames.length > 0 ? uniqueNames.join(', ') : null;
+  const nicheSummary = selectedAccount?.platform_display_name ?? null;
 
-  // Build recent content summary from post history (niche context for AI)
-  const targetPlatform = body.platform;
-  const relevantPosts = recentPosts.filter(
-    (p) => p.platform === targetPlatform || !body.platformAccountId,
-  );
+  // Posts are already filtered at DB level — use them directly
   const postClues: string[] = [];
-  for (const post of relevantPosts.slice(0, 8)) {
+  for (const post of recentPosts.slice(0, 8)) {
     const text = post.hook || post.caption || '';
     if (text) postClues.push(text.slice(0, 120));
     if (post.hashtags?.length > 0)

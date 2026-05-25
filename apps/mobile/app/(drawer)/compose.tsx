@@ -169,6 +169,7 @@ export default function ComposeScreen() {
         hook: hook.trim(),
         caption: caption.trim(),
         hashtags: hashtagArray,
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       setViralScore(result.score ?? (typeof result === 'number' ? result : null));
     } catch {
@@ -176,7 +177,7 @@ export default function ComposeScreen() {
     } finally {
       setScoring(false);
     }
-  }, [selectedPlatform, selectedFormat, hook, caption, hashtags]);
+  }, [selectedPlatform, selectedFormat, hook, caption, hashtags, selectedAccountId]);
 
   // ── Save post ───────────────────────────────────────────────────
   const handleSave = useCallback(async (status: 'draft' | 'scheduled') => {
@@ -194,6 +195,7 @@ export default function ComposeScreen() {
         caption: caption.trim(),
         hashtags: hashtagArr,
         status,
+        ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
       });
       setMessage({
         text: status === 'draft' ? 'Draft saved!' : 'Post scheduled!',
@@ -209,7 +211,7 @@ export default function ComposeScreen() {
     } finally {
       setSaving(false);
     }
-  }, [selectedPlatform, selectedFormat, hook, caption, hashtags]);
+  }, [selectedPlatform, selectedFormat, hook, caption, hashtags, selectedAccountId]);
 
   // ── Theme-aware input styles ────────────────────────────────────
   const inputStyle = (multiline = false) => {
