@@ -1,15 +1,35 @@
-const appJson = require('./app.json');
-
 module.exports = ({ config }) => {
-  const expo = appJson.expo;
   return {
     ...config,
-    ...expo,
+    name: 'Go Virall',
+    slug: 'go-virall',
+    version: '1.5.0',
+    orientation: 'portrait',
+    icon: './assets/images/icon.png',
+    scheme: 'govirall',
+    userInterfaceStyle: 'automatic',
+    newArchEnabled: true,
+    splash: {
+      image: './assets/images/splash-icon.png',
+      resizeMode: 'contain',
+      backgroundColor: '#0a0618',
+    },
     ios: {
-      ...expo.ios,
+      supportsTablet: false,
+      bundleIdentifier: 'com.govirall.app',
+      buildNumber: '13',
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
-      ...expo.android,
+      adaptiveIcon: {
+        foregroundImage: './assets/images/adaptive-icon.png',
+        backgroundColor: '#0a0618',
+      },
+      package: 'com.govirall.app',
+      softwareKeyboardLayoutMode: 'pan',
+      versionCode: 9,
     },
     plugins: [
       'expo-router',
