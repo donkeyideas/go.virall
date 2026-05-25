@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { api } from './api';
+import { useAuth } from './auth';
 
 export interface ConnectedAccount {
   id: string;
@@ -23,6 +24,7 @@ interface AccountContextValue {
 const AccountContext = createContext<AccountContextValue | null>(null);
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -52,7 +54,17 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => { fetchAccounts(); }, [fetchAccounts]);
+  useEffect(() => {
+    if (authLoading) return;
+    if (user) {
+      fetchAccounts();
+    } else {
+      setAccounts([]);
+      setSelectedAccountId(null);
+      setSelectedPlatform(null);
+      setAccountsLoading(false);
+    }
+  }, [user, authLoading, fetchAccounts]);
 
   const setSelectedAccount = useCallback((id: string | null, platform: string | null) => {
     setSelectedAccountId(id);

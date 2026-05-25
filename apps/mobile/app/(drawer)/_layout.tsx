@@ -404,7 +404,9 @@ export default function AppLayout() {
               <Pressable
                 onPress={async () => {
                   setDrawerOpen(false);
-                  await signOut();
+                  try {
+                    await signOut();
+                  } catch {}
                   router.replace('/');
                 }}
                 hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}

@@ -95,8 +95,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    await SecureStore.deleteItemAsync('access_token');
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Always clear local state even if API revocation fails
+    }
+    try {
+      await SecureStore.deleteItemAsync('access_token');
+    } catch {
+      // SecureStore might fail on some devices — proceed anyway
+    }
+    setSession(null);
+    setUser(null);
   };
 
   return (
