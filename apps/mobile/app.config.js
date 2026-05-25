@@ -29,7 +29,7 @@ module.exports = ({ config }) => {
       },
       package: 'com.govirall.app',
       softwareKeyboardLayoutMode: 'pan',
-      versionCode: 9,
+      versionCode: 10,
     },
     plugins: [
       'expo-router',
