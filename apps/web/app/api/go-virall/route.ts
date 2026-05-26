@@ -126,6 +126,115 @@ function computeConsistency(posts: Post[]) {
   return { score, explanation, postsPerWeek };
 }
 
+/* ── Profile-based fallback signals (for scraped accounts with no usage data) ── */
+
+function profileContentHeat(platforms: Platform[]) {
+  const totalPosts = platforms.reduce((s, p) => s + (p.post_count ?? 0), 0);
+  let score = 0;
+  if (totalPosts >= 100_000) score = 78;
+  else if (totalPosts >= 50_000) score = 68;
+  else if (totalPosts >= 10_000) score = 55;
+  else if (totalPosts >= 5_000) score = 45;
+  else if (totalPosts >= 1_000) score = 35;
+  else if (totalPosts >= 100) score = 20;
+  else if (totalPosts > 0) score = 10;
+  const explanation = totalPosts > 0
+    ? `Estimated from ${totalPosts.toLocaleString()} total posts. Publish via Go Virall for precise scoring.`
+    : 'No posts found. Start creating content.';
+  return { score, explanation };
+}
+
+function profileEngagementSpike(platforms: Platform[]) {
+  const connected = platforms.filter((p) => p.sync_status === 'healthy');
+  const totalFollowers = connected.reduce((s, p) => s + (p.follower_count ?? 0), 0);
+  const totalFollowing = connected.reduce((s, p) => s + (p.following_count ?? 0), 0);
+  const ratio = totalFollowing > 0 ? totalFollowers / totalFollowing : (totalFollowers > 0 ? 100 : 0);
+
+  let score = 0;
+  if (totalFollowers >= 50_000_000) score += 65;
+  else if (totalFollowers >= 10_000_000) score += 55;
+  else if (totalFollowers >= 1_000_000) score += 45;
+  else if (totalFollowers >= 100_000) score += 35;
+  else if (totalFollowers >= 10_000) score += 22;
+  else if (totalFollowers >= 1_000) score += 12;
+  else if (totalFollowers > 0) score += 5;
+
+  if (ratio >= 100) score += 20;
+  else if (ratio >= 10) score += 15;
+  else if (ratio >= 5) score += 10;
+  else if (ratio >= 2) score += 5;
+
+  score = Math.min(100, score);
+  const fmtFollowers = totalFollowers >= 1_000_000 ? `${(totalFollowers / 1_000_000).toFixed(1)}M` : `${(totalFollowers / 1_000).toFixed(0)}K`;
+  const explanation = totalFollowers > 0
+    ? `${fmtFollowers} followers. Publish posts to track engagement spikes.`
+    : 'Connect an account to track engagement.';
+  return { score, explanation, spikeRatio: 0 };
+}
+
+function profileGrowthVelocity(platforms: Platform[]) {
+  const connected = platforms.filter((p) => p.sync_status === 'healthy');
+  const totalFollowers = connected.reduce((s, p) => s + (p.follower_count ?? 0), 0);
+
+  let score = 0;
+  if (totalFollowers >= 50_000_000) score = 70;
+  else if (totalFollowers >= 10_000_000) score = 60;
+  else if (totalFollowers >= 1_000_000) score = 50;
+  else if (totalFollowers >= 100_000) score = 38;
+  else if (totalFollowers >= 10_000) score = 25;
+  else if (totalFollowers >= 1_000) score = 15;
+  else if (totalFollowers > 0) score = 5;
+
+  score += Math.min(15, connected.length * 6);
+  score = Math.min(100, score);
+
+  const explanation = totalFollowers > 0
+    ? `Estimated from current audience size. Add audience snapshots for velocity tracking.`
+    : 'Connect accounts to track growth.';
+  return { score, explanation, growthRate: 0 };
+}
+
+function profileShareability(platforms: Platform[]) {
+  const connected = platforms.filter((p) => p.sync_status === 'healthy');
+  const totalFollowers = connected.reduce((s, p) => s + (p.follower_count ?? 0), 0);
+  const totalFollowing = connected.reduce((s, p) => s + (p.following_count ?? 0), 0);
+  const ratio = totalFollowing > 0 ? totalFollowers / totalFollowing : (totalFollowers > 0 ? 100 : 0);
+
+  let score = 0;
+  if (ratio >= 100) score += 25;
+  else if (ratio >= 10) score += 18;
+  else if (ratio >= 5) score += 12;
+  else if (ratio >= 2) score += 6;
+
+  if (totalFollowers >= 10_000_000) score += 30;
+  else if (totalFollowers >= 1_000_000) score += 22;
+  else if (totalFollowers >= 100_000) score += 15;
+  else if (totalFollowers >= 10_000) score += 8;
+
+  score = Math.min(100, score);
+  const explanation = totalFollowers > 0
+    ? 'Estimated from audience size. Publish posts to get precise shareability data.'
+    : 'No audience data yet.';
+  return { score, explanation, shareRatio: 0 };
+}
+
+function profileConsistency(platforms: Platform[]) {
+  const totalPosts = platforms.reduce((s, p) => s + (p.post_count ?? 0), 0);
+  let score = 0;
+  if (totalPosts >= 100_000) score = 75;
+  else if (totalPosts >= 50_000) score = 65;
+  else if (totalPosts >= 10_000) score = 55;
+  else if (totalPosts >= 5_000) score = 45;
+  else if (totalPosts >= 1_000) score = 35;
+  else if (totalPosts >= 100) score = 20;
+  else if (totalPosts > 0) score = 10;
+
+  const explanation = totalPosts > 0
+    ? `Estimated from ${totalPosts.toLocaleString()} total posts.`
+    : 'No posts found.';
+  return { score, explanation, postsPerWeek: 0 };
+}
+
 /* ── GET /api/go-virall ── */
 export const GET = handleRoute(async ({ userId, req }) => {
   const admin = createAdminClient();
@@ -164,11 +273,13 @@ export const GET = handleRoute(async ({ userId, req }) => {
   const snapshots = (audienceRes.data ?? []) as AudienceSnap[];
   const smoHistory = (smoHistoryRes.data ?? []) as SmoHistory[];
 
-  const contentHeat = computeContentHeat(viralScores);
-  const engagementSpike = computeEngagementSpike(posts);
-  const growthVelocity = computeGrowthVelocity(snapshots, platforms);
-  const shareability = computeShareability(posts);
-  const consistency = computeConsistency(posts);
+  const connected = platforms.filter((p) => p.sync_status === 'healthy');
+
+  const contentHeat = viralScores.length > 0 ? computeContentHeat(viralScores) : profileContentHeat(connected);
+  const engagementSpike = posts.length >= 3 ? computeEngagementSpike(posts) : profileEngagementSpike(platforms);
+  const growthVelocity = snapshots.length >= 2 ? computeGrowthVelocity(snapshots, platforms) : profileGrowthVelocity(platforms);
+  const shareability = posts.length > 0 ? computeShareability(posts) : profileShareability(platforms);
+  const consistency = posts.length > 0 ? computeConsistency(posts) : profileConsistency(connected);
 
   const overall = Math.round(
     contentHeat.score * 0.3 + engagementSpike.score * 0.25 + growthVelocity.score * 0.2 + shareability.score * 0.15 + consistency.score * 0.1,
@@ -190,7 +301,6 @@ export const GET = handleRoute(async ({ userId, req }) => {
 
   const trendData = [...smoHistory].reverse().map((s) => ({ date: s.computed_at, score: s.score }));
 
-  const connected = platforms.filter((p) => p.sync_status === 'healthy');
   const totalFollowers = connected.reduce((s, p) => s + (p.follower_count ?? 0), 0);
 
   return {

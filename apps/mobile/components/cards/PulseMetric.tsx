@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import { NeumorphicView } from '@/components/ui/NeumorphicView';
 
 export interface PulseStat {
@@ -26,9 +26,9 @@ function GlassPulse({ stats, t }: { stats: PulseStat[]; t: any }) {
     >
       {stats.map((s) => (
         <View key={s.label} style={{
-          backgroundColor: 'rgba(255,255,255,0.05)',
+          backgroundColor: isDark(t) ? 'rgba(255,255,255,0.05)' : t.surface,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.12)',
+          borderColor: isDark(t) ? 'rgba(255,255,255,0.12)' : t.line,
           borderRadius: 20,
           paddingVertical: 12,
           paddingHorizontal: 14,

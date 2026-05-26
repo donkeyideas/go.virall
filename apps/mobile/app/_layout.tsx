@@ -81,7 +81,7 @@ function RootNav() {
 
   return (
     <>
-      <StatusBar style={theme === 'glassmorphic' ? 'light' : 'dark'} />
+      <StatusBar style={theme === 'glassmorphic' || theme === 'neon-editorial-dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />

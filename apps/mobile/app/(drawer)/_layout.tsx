@@ -3,7 +3,7 @@ import { View, Pressable, Modal, Text, ScrollView } from 'react-native';
 import { Stack, router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTokens, useTheme, isGlass, isEditorial, isNeumorphic, type ThemeName } from '@/lib/theme';
+import { useTokens, useTheme, isGlass, isEditorial, isNeumorphic, isDark, type ThemeName } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { Kicker } from '@/components/ui/Kicker';
@@ -240,7 +240,8 @@ export default function AppLayout() {
               </View>
 
               {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.route || (item.route === '/(drawer)' && pathname === '/');
+                const routeSlug = item.route.replace('/(drawer)', '') || '/';
+                const isActive = pathname === item.route || pathname === routeSlug || (item.route === '/(drawer)' && pathname === '/');
                 return (
                   <Pressable
                     key={item.label}
@@ -257,9 +258,9 @@ export default function AppLayout() {
                       // Active state per theme
                       ...(isActive ? (
                         isGlass(t) ? {
-                          backgroundColor: 'rgba(139,92,246,0.15)',
+                          backgroundColor: isDark(t) ? 'rgba(139,92,246,0.15)' : 'rgba(109,40,217,0.18)',
                           borderWidth: 1,
-                          borderColor: 'rgba(139,92,246,0.3)',
+                          borderColor: isDark(t) ? 'rgba(139,92,246,0.3)' : 'rgba(109,40,217,0.35)',
                           borderLeftWidth: 3,
                           borderLeftColor: t.violet,
                         } : isEditorial(t) ? {
@@ -346,9 +347,9 @@ export default function AppLayout() {
                         justifyContent: 'center', alignItems: 'center',
                         backgroundColor: active
                           ? (isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent)
-                          : (isGlass(t) ? 'rgba(255,255,255,0.06)' : isEditorial(t) ? t.surfaceAlt : t.surfaceLighter),
+                          : (isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : 'rgba(100,70,160,0.12)') : isEditorial(t) ? t.surfaceAlt : t.surfaceLighter),
                         borderWidth: active ? 0 : 1,
-                        borderColor: isGlass(t) ? 'rgba(255,255,255,0.1)' : isEditorial(t) ? t.border.color : 'rgba(0,0,0,0.06)',
+                        borderColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.1)' : 'rgba(100,70,160,0.2)') : isEditorial(t) ? t.border.color : 'rgba(0,0,0,0.06)',
                       }}
                     >
                       <opt.Icon

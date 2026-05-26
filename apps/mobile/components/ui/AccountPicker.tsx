@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import {
   IconInstagram, IconTikTok, IconYouTube, IconLinkedIn,
   IconTwitter, IconFacebook, IconTwitch, IconGlobe,
@@ -55,7 +55,7 @@ export function AccountPicker({
   const PlatformIcon = selected ? (PLATFORM_ICONS[selected.platform] ?? IconGlobe) : IconGlobe;
 
   const triggerBg = isGlass(t)
-    ? 'rgba(255,255,255,0.06)'
+    ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surface)
     : isEditorial(t) ? t.surface : t.surfaceDarker;
   const triggerBorder = isGlass(t)
     ? { borderWidth: 1, borderColor: t.line }

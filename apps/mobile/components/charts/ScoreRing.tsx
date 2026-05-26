@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 
@@ -35,7 +35,7 @@ export function ScoreRing({ value, size: sizeProp, label = '/ 100' }: Props) {
           {/* Track */}
           <Circle
             cx={center} cy={center} r={radius}
-            stroke="rgba(255,255,255,0.06)"
+            stroke={isDark(t) ? 'rgba(255,255,255,0.06)' : 'rgba(80,50,140,0.35)'}
             strokeWidth={strokeWidth}
             fill="transparent"
           />

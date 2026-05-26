@@ -403,7 +403,7 @@ export default function RevenueScreen() {
 function KpiCard({ label, value, variant }: { label: string; value: string; variant: 'good' | 'accent' | 'warn' }) {
   const t = useTokens();
   const valueColor =
-    variant === 'good' ? (isGlass(t) ? t.good : isEditorial(t) ? t.lime : t.good)
+    variant === 'good' ? (isGlass(t) ? t.good : isEditorial(t) ? t.ink : t.good)
     : variant === 'accent' ? (isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent)
     : (isGlass(t) ? t.amber : isEditorial(t) ? t.mustard : t.warn);
 

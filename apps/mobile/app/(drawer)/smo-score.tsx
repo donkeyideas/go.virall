@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
@@ -49,6 +49,7 @@ export default function SmoScoreScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [computing, setComputing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
@@ -84,6 +85,20 @@ export default function SmoScoreScreen() {
       setComputing(false);
     }
   }, [fetchData]);
+
+  const handleRefresh = useCallback(async () => {
+    if (!selectedAccountId) return;
+    setSyncing(true);
+    setError(null);
+    try {
+      await api.post('/platforms/refresh', { platformAccountId: selectedAccountId });
+      await fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Refresh failed');
+    } finally {
+      setSyncing(false);
+    }
+  }, [selectedAccountId, fetchData]);
 
   const fg = isGlass(t) ? t.fg : t.ink;
   const muted = t.muted;
@@ -162,7 +177,7 @@ export default function SmoScoreScreen() {
           <ThemedCard padding={40} style={{ alignItems: 'center' }}>
             <View style={{
               width: 80, height: 80, borderRadius: 40,
-              backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.05)' : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+              backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.05)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
               justifyContent: 'center', alignItems: 'center', marginBottom: 20,
             }}>
               <Text style={{ fontSize: 36 }}>*</Text>
@@ -241,36 +256,63 @@ export default function SmoScoreScreen() {
                 </Text>
               )}
 
-              {/* Compute button */}
-              <Pressable
-                onPress={handleCompute}
-                disabled={computing}
-                style={({ pressed }) => ({
-                  marginTop: 20,
-                  paddingHorizontal: 24,
-                  paddingVertical: 12,
-                  borderRadius: isEditorial(t) ? 2 : 14,
-                  opacity: computing ? 0.6 : pressed ? 0.8 : 1,
-                  ...(isGlass(t) ? {
-                    backgroundColor: t.violet,
-                  } : isEditorial(t) ? {
-                    backgroundColor: t.ink,
-                    borderWidth: 1.5,
-                    borderColor: t.ink,
-                  } : {
-                    ...neumorphicRaisedStyle(t as NeumorphicTheme, 'sm'),
-                  }),
-                })}
-              >
-                <Text style={{
-                  fontFamily: t.fontBodySemibold,
-                  fontSize: 14,
-                  color: isGlass(t) ? '#fff' : isEditorial(t) ? t.bg : t.accent,
-                  textAlign: 'center',
-                }}>
-                  {computing ? 'Computing...' : data.score != null ? 'Recompute' : 'Compute Score'}
-                </Text>
-              </Pressable>
+              {/* Action buttons */}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+                {selectedAccountId && (
+                  <Pressable
+                    onPress={handleRefresh}
+                    disabled={syncing || computing}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      borderRadius: isEditorial(t) ? 2 : 14,
+                      opacity: syncing ? 0.6 : pressed ? 0.8 : 1,
+                      borderWidth: 1.5,
+                      borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.ink : t.border,
+                      backgroundColor: 'transparent',
+                    })}
+                  >
+                    <Text style={{
+                      fontFamily: t.fontBodySemibold,
+                      fontSize: 14,
+                      color: fg,
+                      textAlign: 'center',
+                    }}>
+                      {syncing ? 'Syncing...' : 'Refresh Data'}
+                    </Text>
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={handleCompute}
+                  disabled={computing || syncing}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: isEditorial(t) ? 2 : 14,
+                    opacity: computing ? 0.6 : pressed ? 0.8 : 1,
+                    ...(isGlass(t) ? {
+                      backgroundColor: t.violet,
+                    } : isEditorial(t) ? {
+                      backgroundColor: t.ink,
+                      borderWidth: 1.5,
+                      borderColor: t.ink,
+                    } : {
+                      ...neumorphicRaisedStyle(t as NeumorphicTheme, 'sm'),
+                    }),
+                  })}
+                >
+                  <Text style={{
+                    fontFamily: t.fontBodySemibold,
+                    fontSize: 14,
+                    color: isGlass(t) ? '#fff' : isEditorial(t) ? t.bg : t.accent,
+                    textAlign: 'center',
+                  }}>
+                    {computing ? 'Computing...' : data.score != null ? 'Recompute' : 'Compute Score'}
+                  </Text>
+                </Pressable>
+              </View>
             </ThemedCard>
 
             {/* ── Factor breakdown ──────────────────── */}
@@ -293,7 +335,7 @@ export default function SmoScoreScreen() {
                       </View>
                       <View style={{
                         height: 5, borderRadius: 3, overflow: 'hidden',
-                        backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.06)' : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+                        backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
                         ...(isNeumorphic(t) ? (Platform.OS === 'ios'
                           ? (t as NeumorphicTheme).shadowOutSm.inner
                           : { borderWidth: 1, borderTopColor: 'rgba(167,173,184,0.3)', borderLeftColor: 'rgba(167,173,184,0.3)', borderBottomColor: 'rgba(255,255,255,0.5)', borderRightColor: 'rgba(255,255,255,0.5)' }

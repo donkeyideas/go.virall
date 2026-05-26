@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { useTokens, isGlass, isEditorial } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isDark } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { useAccount } from '@/lib/account-context';
 import { IconStar } from '@/components/icons/Icons';
@@ -32,9 +32,10 @@ export function NoBioNotice() {
 
   if (hasBio !== false || dismissed) return null;
 
-  const bg = isGlass(t) ? 'rgba(255,182,72,0.1)' : isEditorial(t) ? '#fef6e6' : '#fef6e6';
-  const border = isGlass(t) ? 'rgba(255,182,72,0.3)' : isEditorial(t) ? '#e8c96b' : '#e0c570';
-  const textColor = isGlass(t) ? '#ffb648' : isEditorial(t) ? '#8a6d20' : '#8a6d20';
+  const dark = isDark(t);
+  const bg = isGlass(t) ? (dark ? 'rgba(255,182,72,0.1)' : 'rgba(200,140,20,0.15)') : isEditorial(t) ? '#fef6e6' : '#fef6e6';
+  const border = isGlass(t) ? (dark ? 'rgba(255,182,72,0.3)' : 'rgba(180,120,10,0.4)') : isEditorial(t) ? '#e8c96b' : '#e0c570';
+  const textColor = isGlass(t) ? (dark ? '#ffb648' : '#9a7010') : isEditorial(t) ? '#8a6d20' : '#8a6d20';
 
   return (
     <View style={{

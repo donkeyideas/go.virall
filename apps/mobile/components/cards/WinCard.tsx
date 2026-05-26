@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTokens, isGlass, isEditorial } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isDark } from '@/lib/theme';
 import { IconTrendingUp, IconDollarSign, IconTrophy } from '@/components/icons/Icons';
 import { NeumorphicView, neumorphicInsetCircleStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
@@ -36,21 +36,22 @@ function GlassWin({ kicker, text, emphasisText, number, iconName }: Props) {
     );
   };
 
+  const dark = isDark(t);
   return (
     <View style={{
-      backgroundColor: 'rgba(138,255,193,0.08)',
-      borderWidth: 1, borderColor: 'rgba(138,255,193,0.25)',
+      backgroundColor: dark ? 'rgba(138,255,193,0.08)' : 'rgba(5,150,105,0.12)',
+      borderWidth: 1, borderColor: dark ? 'rgba(138,255,193,0.25)' : 'rgba(5,150,105,0.35)',
       borderRadius: 18, padding: 14, paddingHorizontal: 16,
       flexDirection: 'row', alignItems: 'center', gap: 12,
     }}>
       {/* Icon circle */}
       <View style={{
         width: 40, height: 40, borderRadius: 20,
-        backgroundColor: 'rgba(138,255,193,0.15)',
-        borderWidth: 1, borderColor: 'rgba(138,255,193,0.35)',
+        backgroundColor: dark ? 'rgba(138,255,193,0.15)' : 'rgba(5,150,105,0.18)',
+        borderWidth: 1, borderColor: dark ? 'rgba(138,255,193,0.35)' : 'rgba(5,150,105,0.4)',
         justifyContent: 'center', alignItems: 'center',
       }}>
-        <Icon size={18} color="#8affc1" />
+        <Icon size={18} color={dark ? '#8affc1' : t.good} />
       </View>
 
       {/* Text */}

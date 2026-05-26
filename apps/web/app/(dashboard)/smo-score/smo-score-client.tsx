@@ -21,6 +21,7 @@ export function SmoScoreClient({ theme, score, factors, computedAt, connectedCou
   const isNeumorphic = theme === 'neumorphic';
   const router = useRouter();
   const [computing, setComputing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(selectedPlatformAccountId ?? null);
 
@@ -75,7 +76,11 @@ export function SmoScoreClient({ theme, score, factors, computedAt, connectedCou
     setComputing(true);
     setError('');
     try {
-      const res = await fetch('/api/smo/compute', { method: 'POST' });
+      const res = await fetch('/api/smo/compute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
+      });
       const json = await res.json();
       if (!res.ok || json.error) {
         setError(json.error?.message || `Error ${res.status}`);
@@ -86,6 +91,28 @@ export function SmoScoreClient({ theme, score, factors, computedAt, connectedCou
       setError(e instanceof Error ? e.message : 'Network error');
     }
     setComputing(false);
+  }
+
+  async function handleRefresh() {
+    if (!selectedAccountId) return;
+    setSyncing(true);
+    setError('');
+    try {
+      const res = await fetch('/api/platforms/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platformAccountId: selectedAccountId }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        setError(json.error?.message || `Error ${res.status}`);
+      } else {
+        router.refresh();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Network error');
+    }
+    setSyncing(false);
   }
 
   return (
@@ -123,9 +150,16 @@ export function SmoScoreClient({ theme, score, factors, computedAt, connectedCou
             )}
           </div>
           {connectedCount > 0 && (
-            <button onClick={handleCompute} disabled={computing} style={btnStyle}>
-              {computing ? 'Computing...' : score !== null ? 'Recompute' : 'Compute Score'}
-            </button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {selectedAccountId && (
+                <button onClick={handleRefresh} disabled={syncing || computing} style={{ ...btnStyle, background: isEditorial ? 'transparent' : 'rgba(255,255,255,.08)', color: 'var(--fg)', border: '1px solid var(--line)', ...(isEditorial ? { border: '1.5px solid var(--ink)' } : {}), ...(isNeumorphic ? { background: 'var(--bg)', boxShadow: 'var(--out-sm)' } : {}) }}>
+                  {syncing ? 'Syncing...' : 'Refresh Data'}
+                </button>
+              )}
+              <button onClick={handleCompute} disabled={computing || syncing} style={btnStyle}>
+                {computing ? 'Computing...' : score !== null ? 'Recompute' : 'Compute Score'}
+              </button>
+            </div>
           )}
         </div>
       </div>

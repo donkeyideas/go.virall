@@ -18,7 +18,12 @@ import {
   isGlass,
   isEditorial,
   isNeumorphic,
+  isDark,
+  getStyle,
+  getMode,
+  buildThemeName,
   type ThemeName,
+  type ColorMode,
 } from '@/lib/theme';
 import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
@@ -26,7 +31,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Button } from '@/components/ui/Button';
-import { IconChevronRight } from '@/components/icons/Icons';
+import { IconChevronRight, IconMoon, IconSun } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { useAccount } from '@/lib/account-context';
 import { PlatformConnectForm } from '@/components/forms/PlatformConnectForm';
@@ -62,6 +67,7 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: 'platforms', label: 'Platforms' },
   { key: 'theme', label: 'Theme' },
 ];
+
 
 const THEME_OPTIONS: { key: ThemeName; label: string; desc: string; colors: string[] }[] = [
   {
@@ -649,14 +655,18 @@ export default function SettingsScreen() {
   }
 
   function renderThemeTab() {
+    const currentMode = getMode(theme);
+    const currentStyle = getStyle(theme);
+    const activeAccent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
+
     return (
       <View style={{ gap: 12 }}>
         {THEME_OPTIONS.map((opt) => {
-          const isActive = theme === opt.key;
+          const isActive = theme === opt.key || getStyle(theme) === getStyle(opt.key);
           return (
             <Pressable
               key={opt.key}
-              onPress={() => setTheme(opt.key)}
+              onPress={() => setTheme(buildThemeName(getStyle(opt.key), currentMode))}
               style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
             >
               <ThemedCard padding={16}>
@@ -675,7 +685,7 @@ export default function SettingsScreen() {
                           width: 18,
                           height: 18,
                           borderRadius: 9,
-                          backgroundColor: isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent,
+                          backgroundColor: activeAccent,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}>
@@ -684,7 +694,7 @@ export default function SettingsScreen() {
                             fontSize: 11,
                             fontWeight: '700',
                           }}>
-                            ✓
+                            {'✓'}
                           </Text>
                         </View>
                       )}
@@ -724,6 +734,60 @@ export default function SettingsScreen() {
             </Pressable>
           );
         })}
+
+        {/* Dark / Light mode toggle */}
+        <View style={{ marginTop: 8 }}>
+          <Text style={{
+            color: muted,
+            fontFamily: fontSemibold,
+            fontSize: 12,
+            letterSpacing: 0.3,
+            marginBottom: 10,
+            ...(isEditorial(t) ? { textTransform: 'uppercase' as const, letterSpacing: 0.8 } : {}),
+          }}>
+            Mode
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {([
+              { key: 'dark' as ColorMode, Icon: IconMoon, label: 'Dark' },
+              { key: 'light' as ColorMode, Icon: IconSun, label: 'Light' },
+            ]).map((opt) => {
+              const active = currentMode === opt.key;
+              return (
+                <Pressable
+                  key={opt.key}
+                  onPress={() => setTheme(buildThemeName(currentStyle, opt.key))}
+                  style={({ pressed }) => ({
+                    flex: 1, flexDirection: 'row', paddingVertical: 12,
+                    borderRadius: isEditorial(t) ? 2 : 12,
+                    justifyContent: 'center', alignItems: 'center', gap: 8,
+                    backgroundColor: active
+                      ? activeAccent
+                      : (isDark(t) ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
+                    borderWidth: active ? 0 : 1,
+                    borderColor: isDark(t) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    opacity: pressed ? 0.85 : 1,
+                  })}
+                >
+                  <opt.Icon
+                    size={16}
+                    color={active
+                      ? (isEditorial(t) ? t.bg : isDark(t) ? '#fff' : '#fff')
+                      : (isDark(t) ? t.muted : isEditorial(t) ? t.ink : t.muted)}
+                  />
+                  <Text style={{
+                    fontFamily: fontSemibold, fontSize: 13,
+                    color: active
+                      ? (isEditorial(t) ? t.bg : isDark(t) ? '#fff' : '#fff')
+                      : (isDark(t) ? t.muted : isEditorial(t) ? t.ink : t.muted),
+                  }}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       </View>
     );
   }

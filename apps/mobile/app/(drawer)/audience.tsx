@@ -126,7 +126,7 @@ export default function AudienceScreen() {
     ? competitors.filter((c) => c.platform === selectedAccount.platform)
     : competitors;
   const totalFollowers = filteredPlatforms.reduce((sum, p) => sum + (p.follower_count ?? 0), 0);
-  const accentColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
+  const accentColor = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
 
@@ -521,7 +521,7 @@ function CompetitorRow({ competitor }: { competitor: Competitor }) {
             <Text style={{
               fontFamily: t.fontBodyBold,
               fontSize: 15,
-              color: isGlass(t) ? t.mint : isEditorial(t) ? t.lime : t.good,
+              color: isGlass(t) ? t.mint : isEditorial(t) ? t.ink : t.good,
               marginTop: 2,
             }}>
               {engagePct}

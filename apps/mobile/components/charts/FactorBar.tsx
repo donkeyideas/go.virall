@@ -1,5 +1,5 @@
 import { View, Text, Platform } from 'react-native';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 
 interface Props {
   label: string;       // "Profile"
@@ -23,7 +23,7 @@ export function FactorBar({ label, value, variant = 'default' }: Props) {
       <View style={{ alignItems: 'center', flex: 1 }}>
         <View style={{
           width: '100%', height: maxHeight,
-          backgroundColor: 'rgba(255,255,255,0.06)',
+          backgroundColor: isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker,
           borderRadius: 3, overflow: 'hidden', justifyContent: 'flex-end',
         }}>
           <View style={{

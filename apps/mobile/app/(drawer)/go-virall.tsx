@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { useAccount } from '@/lib/account-context';
 import { ThemedCard } from '@/components/ui/ThemedCard';
@@ -168,7 +168,7 @@ export default function GoVirallScreen() {
                   <View style={{
                     height: 24,
                     borderRadius: isEditorial(t) ? 4 : 12,
-                    backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.06)' : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+                    backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
                     overflow: 'hidden',
                     ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                   }}>
@@ -206,7 +206,7 @@ export default function GoVirallScreen() {
               {[
                 { label: 'Followers', value: fmtK(data.stats.totalFollowers) },
                 { label: 'Platforms', value: `${data.stats.connectedPlatforms}` },
-                { label: 'Analyzed', value: `${data.stats.postsAnalyzed}` },
+                { label: 'Analyzed', value: fmtK(data.stats.postsAnalyzed) },
                 { label: 'Posts/wk', value: data.stats.postsPerWeek > 0 ? `${data.stats.postsPerWeek}` : '\u2014' },
               ].map((s) => (
                 <ThemedCard key={s.label} padding={14} style={{ minWidth: 100, alignItems: 'center' }}>
@@ -260,7 +260,7 @@ export default function GoVirallScreen() {
                   {/* Progress bar */}
                   <View style={{
                     height: 5, borderRadius: 3, marginBottom: 8,
-                    backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.06)' : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+                    backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
                     overflow: 'hidden',
                     ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                   }}>

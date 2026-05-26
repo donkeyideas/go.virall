@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import { neumorphicRaisedStyle } from '@/components/ui/NeumorphicView';
 import type { NeumorphicTheme } from '@/lib/tokens/neumorphic';
 import { api } from '@/lib/api';
@@ -227,7 +227,7 @@ export default function ComposeScreen() {
     if (isGlass(t)) {
       return {
         ...base,
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        backgroundColor: isDark(t) ? 'rgba(255,255,255,0.06)' : t.surface,
         borderWidth: 1,
         borderColor: t.line,
         borderRadius: t.radiusMd,
@@ -407,7 +407,7 @@ export default function ComposeScreen() {
             marginBottom: 16,
             borderRadius: isGlass(t) ? t.radiusMd : isEditorial(t) ? 0 : t.radiusMd,
             backgroundColor: isGlass(t)
-              ? 'rgba(255,255,255,0.06)'
+              ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surface)
               : isEditorial(t) ? t.surface : t.surface,
             borderWidth: isEditorial(t) ? t.border.width : isGlass(t) ? 1 : 0,
             borderColor: isEditorial(t) ? t.border.color : isGlass(t) ? t.line : 'transparent',

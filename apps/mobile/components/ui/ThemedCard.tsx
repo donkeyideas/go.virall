@@ -1,6 +1,6 @@
 import { View, type ViewProps, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
+import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
 import { NeumorphicView } from './NeumorphicView';
 
 interface Props extends ViewProps {
@@ -33,8 +33,8 @@ export function ThemedCard({ padding = 16, variant = 'default', elevation = 'md'
 
     if (Platform.OS === 'ios') {
       return (
-        <BlurView intensity={t.blurSurface} tint="dark" style={[cardStyle, style]} {...props}>
-          <View style={{ padding }}>{children}</View>
+        <BlurView intensity={t.blurSurface} tint={isDark(t) ? 'dark' : 'light'} style={[cardStyle, style]} {...props}>
+          <View style={{ padding, backgroundColor: isDark(t) ? undefined : variantBg }}>{children}</View>
         </BlurView>
       );
     }
