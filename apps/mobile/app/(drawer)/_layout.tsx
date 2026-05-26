@@ -407,7 +407,7 @@ export default function AppLayout() {
                   try {
                     await signOut();
                   } catch {}
-                  router.replace('/');
+                  router.replace('/(auth)/login');
                 }}
                 hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
                 style={{ padding: 8 }}
