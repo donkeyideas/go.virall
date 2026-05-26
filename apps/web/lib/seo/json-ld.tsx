@@ -52,7 +52,7 @@ export function softwareAppSchema() {
         price: '0',
         priceCurrency: 'USD',
         name: 'Free',
-        description: '1 platform, 10 analyses/month, 5 content generations',
+        description: '3 platforms, 10 analyses/month, 5 content generations',
       },
       {
         '@type': 'Offer',

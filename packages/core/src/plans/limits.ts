@@ -13,7 +13,7 @@ export type PlanLimits = {
 };
 
 export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
-  free: { maxPlatforms: 1, maxAnalyses: 10, maxContentGens: 5, maxAiMessages: 5 },
+  free: { maxPlatforms: 3, maxAnalyses: 10, maxContentGens: 5, maxAiMessages: 5 },
   creator: { maxPlatforms: 7, maxAnalyses: -1, maxContentGens: -1, maxAiMessages: -1 },
   pro: { maxPlatforms: 7, maxAnalyses: -1, maxContentGens: -1, maxAiMessages: -1 },
   agency: { maxPlatforms: -1, maxAnalyses: -1, maxContentGens: -1, maxAiMessages: -1 },

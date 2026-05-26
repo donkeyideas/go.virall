@@ -199,7 +199,7 @@ export default function SettingsScreen() {
   };
 
   const connectPlatform = () => {
-    if (platforms.length >= 1) {
+    if (platforms.length >= 3) {
       setShowPaywall(true);
     } else {
       setShowConnectForm(true);

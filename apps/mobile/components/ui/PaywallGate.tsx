@@ -66,7 +66,7 @@ export function PaywallGate({ visible, onClose }: PaywallGateProps) {
             marginBottom: 24,
             marginTop: 8,
           }}>
-            You can connect 1 platform at this time. Disconnect an existing platform to connect a different one.
+            You can connect up to 3 platforms on the free plan. Disconnect an existing platform to connect a different one.
           </Text>
 
           <View style={{ width: '100%', gap: 10 }}>
