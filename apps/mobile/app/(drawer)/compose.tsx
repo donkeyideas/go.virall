@@ -22,6 +22,7 @@ import { useAccount } from '@/lib/account-context';
 
 // ── Types ───────────────────────────────────────────────────────────
 interface ConnectedPlatform {
+  id: string;
   platform: string;
   username: string;
   follower_count: number;
@@ -471,7 +472,7 @@ export default function ComposeScreen() {
             >
               {platforms.map((p) => (
                 <Pressable
-                  key={p.platform}
+                  key={p.id}
                   onPress={() => handlePlatformSelect(p.platform)}
                   style={pillStyle(selectedPlatform === p.platform)}
                 >
