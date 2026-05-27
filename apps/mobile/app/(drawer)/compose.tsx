@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens, isGlass, isEditorial, isNeumorphic, isDark } from '@/lib/theme';
@@ -21,28 +20,45 @@ import { AccountPicker } from '@/components/ui/AccountPicker';
 import { useAccount } from '@/lib/account-context';
 
 // ── Types ───────────────────────────────────────────────────────────
-interface ConnectedPlatform {
-  id: string;
-  platform: string;
-  username: string;
-  follower_count: number;
-}
-
 type PlatformKey = 'instagram' | 'tiktok' | 'youtube' | 'linkedin' | 'x' | 'facebook' | 'twitch';
 
 // ── Platform format mapping ─────────────────────────────────────────
-const PLATFORM_FORMATS: Record<string, string[]> = {
-  instagram: ['Reel', 'Carousel', 'Story', 'Post'],
-  tiktok: ['Video', 'Slideshow'],
-  youtube: ['Short', 'Video'],
-  linkedin: ['Post'],
-  x: ['Post'],
-  facebook: ['Post'],
-  twitch: ['Post'],
+const PLATFORM_FORMATS: Record<string, { label: string; value: string }[]> = {
+  instagram: [
+    { label: 'Reel', value: 'reel' },
+    { label: 'Carousel', value: 'carousel' },
+    { label: 'Story', value: 'story' },
+    { label: 'Post', value: 'static' },
+  ],
+  tiktok: [
+    { label: 'Video', value: 'short' },
+    { label: 'Slideshow', value: 'carousel' },
+  ],
+  youtube: [
+    { label: 'Short', value: 'short' },
+    { label: 'Video', value: 'long-video' },
+  ],
+  linkedin: [
+    { label: 'Post', value: 'static' },
+    { label: 'Article', value: 'article' },
+    { label: 'Carousel', value: 'carousel' },
+  ],
+  x: [
+    { label: 'Post', value: 'static' },
+    { label: 'Thread', value: 'thread' },
+  ],
+  facebook: [
+    { label: 'Post', value: 'static' },
+    { label: 'Reel', value: 'reel' },
+    { label: 'Story', value: 'story' },
+  ],
+  twitch: [
+    { label: 'Stream Clip', value: 'short' },
+  ],
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
-  instagram: 'IG',
+  instagram: 'Instagram',
   tiktok: 'TikTok',
   youtube: 'YouTube',
   linkedin: 'LinkedIn',
@@ -50,6 +66,8 @@ const PLATFORM_LABELS: Record<string, string> = {
   facebook: 'Facebook',
   twitch: 'Twitch',
 };
+
+const ALL_PLATFORMS: PlatformKey[] = ['instagram', 'tiktok', 'youtube', 'linkedin', 'x', 'facebook', 'twitch'];
 
 // ── Score Ring ───────────────────────────────────────────────────────
 function ScoreDisplay({ score, tokens: t }: { score: number | null; tokens: ReturnType<typeof useTokens> }) {
@@ -87,7 +105,7 @@ function ScoreDisplay({ score, tokens: t }: { score: number | null; tokens: Retu
         </Text>
       </View>
       <Text style={{
-        fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodySemibold,
+        fontFamily: t.fontBodySemibold,
         fontSize: 10,
         letterSpacing: 1,
         textTransform: 'uppercase',
@@ -105,10 +123,8 @@ export default function ComposeScreen() {
   const insets = useSafeAreaInsets();
 
   // ── State ───────────────────────────────────────────────────────
-  const [platforms, setPlatforms] = useState<ConnectedPlatform[]>([]);
-  const [loadingPlatforms, setLoadingPlatforms] = useState(true);
-  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
-  const [selectedFormat, setSelectedFormat] = useState<string>('');
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('instagram');
+  const [selectedFormat, setSelectedFormat] = useState<string>('reel');
   const [hook, setHook] = useState('');
   const [caption, setCaption] = useState('');
   const [hashtags, setHashtags] = useState('');
@@ -119,40 +135,18 @@ export default function ComposeScreen() {
   const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   // ── Derived values ──────────────────────────────────────────────
-  const formats = selectedPlatform ? (PLATFORM_FORMATS[selectedPlatform] ?? ['Post']) : [];
+  const formats = selectedPlatform ? (PLATFORM_FORMATS[selectedPlatform] ?? [{ label: 'Post', value: 'static' }]) : [];
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const mutedColor = t.muted;
   const accentColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
   const accentFg = isGlass(t) ? '#fff' : isEditorial(t) ? t.ink : t.fg;
 
-  // ── Fetch platforms ─────────────────────────────────────────────
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await api.get<ConnectedPlatform[]>('/platforms');
-        if (!mounted) return;
-        setPlatforms(data);
-        if (data.length > 0) {
-          setSelectedPlatform(data[0].platform);
-          const firstFormats = PLATFORM_FORMATS[data[0].platform] ?? ['Post'];
-          setSelectedFormat(firstFormats[0]);
-        }
-      } catch {
-        if (mounted) setMessage({ text: 'Failed to load platforms', type: 'error' });
-      } finally {
-        if (mounted) setLoadingPlatforms(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
   // ── Reset format when platform changes ──────────────────────────
   const handlePlatformSelect = useCallback((platform: string) => {
     setSelectedPlatform(platform);
-    const availableFormats = PLATFORM_FORMATS[platform] ?? ['Post'];
-    setSelectedFormat(availableFormats[0]);
-    setViralScore(null); // Clear score on platform change
+    const availableFormats = PLATFORM_FORMATS[platform] ?? [{ label: 'Post', value: 'static' }];
+    setSelectedFormat(availableFormats[0].value);
+    setViralScore(null);
   }, []);
 
   // ── Score post ──────────────────────────────────────────────────
@@ -166,7 +160,7 @@ export default function ComposeScreen() {
         : [];
       const result = await api.post<{ score: number }>('/score', {
         platform: selectedPlatform,
-        format: selectedFormat.toLowerCase(),
+        format: selectedFormat,
         hook: hook.trim(),
         caption: caption.trim(),
         hashtags: hashtagArray,
@@ -191,7 +185,7 @@ export default function ComposeScreen() {
         : [];
       await api.post('/posts', {
         platform: selectedPlatform,
-        format: selectedFormat.toLowerCase(),
+        format: selectedFormat,
         hook: hook.trim(),
         caption: caption.trim(),
         hashtags: hashtagArr,
@@ -328,7 +322,7 @@ export default function ComposeScreen() {
 
   // ── Label style ─────────────────────────────────────────────────
   const labelStyle = {
-    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodySemibold,
+    fontFamily: t.fontBodySemibold,
     fontSize: 11,
     letterSpacing: 1,
     textTransform: 'uppercase' as const,
@@ -341,16 +335,6 @@ export default function ComposeScreen() {
     if (type === 'success') return isGlass(t) ? t.good : isEditorial(t) ? t.lime : t.good;
     return isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad;
   };
-
-  // ── Loading state ───────────────────────────────────────────────
-  if (loadingPlatforms) {
-    const loaderColor = isGlass(t) ? t.violet : isEditorial(t) ? t.lime : t.accent;
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
-        <ActivityIndicator size="large" color={loaderColor} />
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView
@@ -388,9 +372,9 @@ export default function ComposeScreen() {
           </Text>
           <Text
             style={{
-              color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
+              color: t.muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+              fontFamily: t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -415,7 +399,7 @@ export default function ComposeScreen() {
             ...(isNeumorphic(t) ? neumorphicRaisedStyle(t as NeumorphicTheme, 'sm') : {}),
           }}>
             <Text style={{
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+              fontFamily: t.fontBody,
               fontSize: 13,
               color: messageColor(message.type),
               textAlign: 'center',
@@ -423,29 +407,6 @@ export default function ComposeScreen() {
               {message.text}
             </Text>
           </View>
-        )}
-
-        {/* ── No platforms state ──────────────────────── */}
-        {platforms.length === 0 && (
-          <ThemedCard padding={24}>
-            <Text style={{
-              fontFamily: isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplayItalic : t.fontDisplay,
-              fontSize: 18,
-              color: fg,
-              textAlign: 'center',
-              marginBottom: 8,
-            }}>
-              No platforms connected
-            </Text>
-            <Text style={{
-              fontFamily: t.fontBody,
-              fontSize: 13,
-              color: mutedColor,
-              textAlign: 'center',
-            }}>
-              Add a social account in Settings to start composing posts.
-            </Text>
-          </ThemedCard>
         )}
 
         {/* Account picker */}
@@ -460,24 +421,22 @@ export default function ComposeScreen() {
           label="Posting as"
         />
 
-        {platforms.length > 0 && (
-          <>
             {/* ── Platform & format ──────────────────────── */}
-            <SectionHeader number="01" title="Platform & format" emphasisWord="format" meta={`${platforms.length} connected`} />
+            <SectionHeader number="01" title="Platform & format" emphasisWord="format" />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               style={{ marginBottom: 20 }}
               contentContainerStyle={{ gap: 8 }}
             >
-              {platforms.map((p) => (
+              {ALL_PLATFORMS.map((pid) => (
                 <Pressable
-                  key={p.id}
-                  onPress={() => handlePlatformSelect(p.platform)}
-                  style={pillStyle(selectedPlatform === p.platform)}
+                  key={pid}
+                  onPress={() => handlePlatformSelect(pid)}
+                  style={pillStyle(selectedPlatform === pid)}
                 >
-                  <Text style={pillTextStyle(selectedPlatform === p.platform)}>
-                    {PLATFORM_LABELS[p.platform] ?? p.platform}
+                  <Text style={pillTextStyle(selectedPlatform === pid)}>
+                    {PLATFORM_LABELS[pid] ?? pid}
                   </Text>
                 </Pressable>
               ))}
@@ -494,15 +453,15 @@ export default function ComposeScreen() {
                 >
                   {formats.map((f) => (
                     <Pressable
-                      key={f}
+                      key={f.value}
                       onPress={() => {
-                        setSelectedFormat(f);
+                        setSelectedFormat(f.value);
                         setViralScore(null);
                       }}
-                      style={pillStyle(selectedFormat === f)}
+                      style={pillStyle(selectedFormat === f.value)}
                     >
-                      <Text style={pillTextStyle(selectedFormat === f)}>
-                        {f}
+                      <Text style={pillTextStyle(selectedFormat === f.value)}>
+                        {f.label}
                       </Text>
                     </Pressable>
                   ))}
@@ -613,8 +572,7 @@ export default function ComposeScreen() {
                 />
               </View>
             </View>
-          </>
-        )}
+
       </ScrollView>
     </KeyboardAvoidingView>
   );

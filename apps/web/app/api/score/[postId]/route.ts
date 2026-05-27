@@ -31,9 +31,11 @@ export const POST = handleRoute(async ({ userId, params, supabase }) => {
     .upsert(
       {
         post_id: postId,
+        user_id: userId,
         model_version: 'v1-rules',
         score: result.score,
-        factors: result.signals,
+        signals: result.signals,
+        confidence: result.confidence,
         suggestions: result.improvements,
       },
       { onConflict: 'post_id, model_version' },

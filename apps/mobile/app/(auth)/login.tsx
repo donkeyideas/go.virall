@@ -34,14 +34,14 @@ export default function LoginScreen() {
   const inputBorderWidth = isNeumorphic(t) ? 0 : isEditorial(t) ? t.border.width : 1;
   const inputBorderColor = isNeumorphic(t) ? 'transparent' : isEditorial(t) ? t.border.color : (isGlass(t) ? t.line : 'transparent');
   const primaryColor = isGlass(t) ? t.violet : isEditorial(t) ? t.accent : t.accent;
-  const errorColor = isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad;
+  const errorColor = t.bad;
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
-  const muted = isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted;
+  const muted = t.muted;
   const subtle = isGlass(t) ? t.subtle : isEditorial(t) ? t.faint : t.faint;
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: isGlass(t) ? t.bg : isEditorial(t) ? t.bg : t.bg }}
+      style={{ flex: 1, backgroundColor: t.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
@@ -55,17 +55,17 @@ export default function LoginScreen() {
         <Text style={{
           color: fg,
           fontSize: 32,
-          fontFamily: isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplay : t.fontDisplay,
+          fontFamily: t.fontDisplay,
           marginBottom: 4,
         }}>
           Go Virall
         </Text>
-        <Text style={{ color: muted, fontSize: 15, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 32 }}>
+        <Text style={{ color: muted, fontSize: 15, fontFamily: t.fontBody, marginBottom: 32 }}>
           Sign in to your account
         </Text>
 
         {/* Email */}
-        <Text style={{ color: muted, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Email</Text>
+        <Text style={{ color: muted, fontSize: 12, fontFamily: t.fontBody, marginBottom: 6 }}>Email</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
@@ -81,17 +81,17 @@ export default function LoginScreen() {
             backgroundColor: inputBg,
             borderWidth: inputBorderWidth,
             borderColor: inputBorderColor,
-            borderRadius: isGlass(t) ? t.radiusMd : isEditorial(t) ? t.radiusMd : t.radiusMd,
+            borderRadius: t.radiusMd,
             color: fg,
             fontSize: 15,
-            fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+            fontFamily: t.fontBody,
             padding: 14,
             marginBottom: 16,
           }}
         />
 
         {/* Password */}
-        <Text style={{ color: muted, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Password</Text>
+        <Text style={{ color: muted, fontSize: 12, fontFamily: t.fontBody, marginBottom: 6 }}>Password</Text>
         <TextInput
           ref={passwordRef}
           value={password}
@@ -106,17 +106,17 @@ export default function LoginScreen() {
             backgroundColor: inputBg,
             borderWidth: inputBorderWidth,
             borderColor: inputBorderColor,
-            borderRadius: isGlass(t) ? t.radiusMd : isEditorial(t) ? t.radiusMd : t.radiusMd,
+            borderRadius: t.radiusMd,
             color: fg,
             fontSize: 15,
-            fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+            fontFamily: t.fontBody,
             padding: 14,
             marginBottom: 8,
           }}
         />
 
         {error ? (
-          <Text style={{ color: errorColor, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 8 }}>
+          <Text style={{ color: errorColor, fontSize: 12, fontFamily: t.fontBody, marginBottom: 8 }}>
             {error}
           </Text>
         ) : null}
@@ -128,11 +128,11 @@ export default function LoginScreen() {
 
         {/* Link to signup */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
-          <Text style={{ color: muted, fontSize: 13, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody }}>
+          <Text style={{ color: muted, fontSize: 13, fontFamily: t.fontBody }}>
             Don't have an account?{' '}
           </Text>
           <Link href="/(auth)/signup">
-            <Text style={{ color: primaryColor, fontSize: 13, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, fontWeight: '600' }}>
+            <Text style={{ color: primaryColor, fontSize: 13, fontFamily: t.fontBody, fontWeight: '600' }}>
               Sign Up
             </Text>
           </Link>

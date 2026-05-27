@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -50,9 +50,16 @@ export default function CaptionsScreen() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   useEffect(() => { setResults([]); setError(null); }, [selectedAccountId]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -100,7 +107,8 @@ export default function CaptionsScreen() {
     const text = `${cap.text ?? ''}\n\n${cap.callToAction ?? ''}\n\n${(cap.hashtags ?? []).join(' ')}`.trim();
     Clipboard.setStringAsync(text).then(() => {
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 2000);
     });
   }
 
@@ -307,7 +315,7 @@ export default function CaptionsScreen() {
                 ? { backgroundColor: t.ink, borderWidth: 1.5, borderColor: t.ink }
                 : isNeumorphic(t)
                 ? { backgroundColor: t.surface, ...t.shadowOutSm.outer }
-                : { backgroundColor: '#f43f5e' }),
+                : { backgroundColor: t.violet }),
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: '600', fontFamily: t.fontBody, color: isEditorial(t) ? t.bg : isNeumorphic(t) ? t.accent : '#fff' }}>
@@ -353,7 +361,7 @@ export default function CaptionsScreen() {
           const barColor = pct > 90 ? (isGlass(t) ? t.bad : '#c87878') : pct > 70 ? (isGlass(t) ? '#ffb648' : '#c39560') : (isGlass(t) ? '#8affc1' : '#6aa684');
 
           return (
-            <ThemedCard key={i} padding={16} style={{ marginBottom: 12 }}>
+            <ThemedCard key={cap.text?.slice(0, 30) ?? String(i)} padding={16} style={{ marginBottom: 12 }}>
               {/* Header */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <Text style={{ fontSize: 11, fontWeight: '600', color: muted, fontFamily: t.fontBody }}>Caption {i + 1}</Text>

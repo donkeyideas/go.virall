@@ -24,7 +24,7 @@ import type { ComponentType } from 'react';
 interface PlatformAccount {
   id: string;
   platform: string;
-  username: string;
+  platform_username: string;
   follower_count: number | null;
   following_count: number | null;
   post_count: number | null;
@@ -35,7 +35,7 @@ interface PlatformAccount {
 interface Competitor {
   id: string;
   platform: string;
-  username: string;
+  handle: string;
   follower_count: number | null;
   engagement_rate: number | null;
 }
@@ -181,7 +181,7 @@ export default function AudienceScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+              fontFamily: t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -268,7 +268,7 @@ export default function AudienceScreen() {
         {platforms.length > 0 && (
           <ThemedCard padding={20} elevation="md">
             <Text style={{
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodySemibold,
+              fontFamily: t.fontBodySemibold,
               fontSize: 10,
               letterSpacing: 1.2,
               textTransform: 'uppercase',
@@ -376,7 +376,7 @@ function PlatformRow({ platform }: { platform: PlatformAccount }) {
             color: t.muted,
             marginTop: 2,
           }}>
-            @{platform.username}
+            @{platform.platform_username}
           </Text>
         </View>
 
@@ -486,7 +486,7 @@ function CompetitorRow({ competitor }: { competitor: Competitor }) {
             fontSize: 14,
             color: fg,
           }}>
-            @{competitor.username}
+            @{competitor.handle}
           </Text>
           <Text style={{
             fontFamily: t.fontBody,

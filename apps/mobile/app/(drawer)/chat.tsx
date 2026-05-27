@@ -50,7 +50,7 @@ export default function ChatScreen() {
 
   // ── Theme-derived colors ────────────────────────────────────
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
-  const muted = isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted;
+  const muted = t.muted;
   const accentColor = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
 
   // User bubble
@@ -200,7 +200,7 @@ export default function ChatScreen() {
               style={{
                 color: muted,
                 fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-                fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+                fontFamily: t.fontBodyBold,
                 letterSpacing: 1.5,
                 textTransform: 'uppercase',
                 marginTop: 8,
@@ -246,7 +246,7 @@ export default function ChatScreen() {
                     style={{
                       color: isUser ? userBubbleText : assistantBubbleText,
                       fontSize: 14,
-                      fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+                      fontFamily: t.fontBody,
                       lineHeight: 20,
                     }}
                   >
@@ -257,7 +257,7 @@ export default function ChatScreen() {
                   style={{
                     color: isGlass(t) ? t.faint : isEditorial(t) ? t.faint : t.faint,
                     fontSize: 10,
-                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+                    fontFamily: t.fontBody,
                     marginTop: 4,
                     textAlign: isUser ? 'right' : 'left',
                     paddingHorizontal: 4,
@@ -304,7 +304,7 @@ export default function ChatScreen() {
                   style={{
                     color: muted,
                     fontSize: 13,
-                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+                    fontFamily: t.fontBody,
                   }}
                 >
                   Thinking...
@@ -368,7 +368,7 @@ export default function ChatScreen() {
                 style={{
                   color: inputText,
                   fontSize: 15,
-                  fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+                  fontFamily: t.fontBody,
                   maxHeight: 100,
                   lineHeight: 20,
                 }}

@@ -112,7 +112,7 @@ export default function GoVirallScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+              fontFamily: t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -156,7 +156,7 @@ export default function GoVirallScreen() {
                     {data.overall}
                   </Text>
                   <Text style={{
-                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+                    fontFamily: t.fontBodyBold,
                     fontSize: 10, letterSpacing: 1, color: muted, marginTop: 2,
                   }}>
                     / 100
@@ -168,7 +168,7 @@ export default function GoVirallScreen() {
                   <View style={{
                     height: 24,
                     borderRadius: isEditorial(t) ? 4 : 12,
-                    backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+                    backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : (t as any).surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
                     overflow: 'hidden',
                     ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                   }}>
@@ -211,7 +211,7 @@ export default function GoVirallScreen() {
               ].map((s) => (
                 <ThemedCard key={s.label} padding={14} style={{ minWidth: 100, alignItems: 'center' }}>
                   <Text style={{
-                    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+                    fontFamily: t.fontBodyBold,
                     fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', color: muted, marginBottom: 4,
                   }}>
                     {s.label}
@@ -260,7 +260,7 @@ export default function GoVirallScreen() {
                   {/* Progress bar */}
                   <View style={{
                     height: 5, borderRadius: 3, marginBottom: 8,
-                    backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+                    backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : (t as any).surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
                     overflow: 'hidden',
                     ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
                   }}>

@@ -36,26 +36,26 @@ export default function SignupScreen() {
   const inputBorderWidth = isNeumorphic(t) ? 0 : isEditorial(t) ? t.border.width : 1;
   const inputBorderColor = isNeumorphic(t) ? 'transparent' : isEditorial(t) ? t.border.color : (isGlass(t) ? t.line : 'transparent');
   const primaryColor = isGlass(t) ? t.violet : isEditorial(t) ? t.accent : t.accent;
-  const errorColor = isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad;
+  const errorColor = t.bad;
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
-  const muted = isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted;
+  const muted = t.muted;
   const subtle = isGlass(t) ? t.subtle : isEditorial(t) ? t.faint : t.faint;
 
   const inputStyle = {
     backgroundColor: inputBg,
     borderWidth: inputBorderWidth,
     borderColor: inputBorderColor,
-    borderRadius: isGlass(t) ? t.radiusMd : isEditorial(t) ? t.radiusMd : t.radiusMd,
+    borderRadius: t.radiusMd,
     color: fg,
     fontSize: 15,
-    fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+    fontFamily: t.fontBody,
     padding: 14,
     marginBottom: 16,
   };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: isGlass(t) ? t.bg : isEditorial(t) ? t.bg : t.bg }}
+      style={{ flex: 1, backgroundColor: t.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
@@ -68,16 +68,16 @@ export default function SignupScreen() {
         <Text style={{
           color: fg,
           fontSize: 32,
-          fontFamily: isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplay : t.fontDisplay,
+          fontFamily: t.fontDisplay,
           marginBottom: 4,
         }}>
           Go Virall
         </Text>
-        <Text style={{ color: muted, fontSize: 15, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 32 }}>
+        <Text style={{ color: muted, fontSize: 15, fontFamily: t.fontBody, marginBottom: 32 }}>
           Create your account
         </Text>
 
-        <Text style={{ color: muted, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Name</Text>
+        <Text style={{ color: muted, fontSize: 12, fontFamily: t.fontBody, marginBottom: 6 }}>Name</Text>
         <TextInput
           value={name}
           onChangeText={setName}
@@ -89,7 +89,7 @@ export default function SignupScreen() {
           style={inputStyle}
         />
 
-        <Text style={{ color: muted, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Email</Text>
+        <Text style={{ color: muted, fontSize: 12, fontFamily: t.fontBody, marginBottom: 6 }}>Email</Text>
         <TextInput
           ref={emailRef}
           value={email}
@@ -105,7 +105,7 @@ export default function SignupScreen() {
           style={inputStyle}
         />
 
-        <Text style={{ color: muted, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 6 }}>Password</Text>
+        <Text style={{ color: muted, fontSize: 12, fontFamily: t.fontBody, marginBottom: 6 }}>Password</Text>
         <TextInput
           ref={passwordRef}
           value={password}
@@ -120,7 +120,7 @@ export default function SignupScreen() {
         />
 
         {error ? (
-          <Text style={{ color: errorColor, fontSize: 12, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, marginBottom: 8 }}>{error}</Text>
+          <Text style={{ color: errorColor, fontSize: 12, fontFamily: t.fontBody, marginBottom: 8 }}>{error}</Text>
         ) : null}
 
         <View style={{ marginTop: 8 }}>
@@ -128,9 +128,9 @@ export default function SignupScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
-          <Text style={{ color: muted, fontSize: 13, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody }}>Already have an account? </Text>
+          <Text style={{ color: muted, fontSize: 13, fontFamily: t.fontBody }}>Already have an account? </Text>
           <Link href="/(auth)/login">
-            <Text style={{ color: primaryColor, fontSize: 13, fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody, fontWeight: '600' }}>Sign In</Text>
+            <Text style={{ color: primaryColor, fontSize: 13, fontFamily: t.fontBody, fontWeight: '600' }}>Sign In</Text>
           </Link>
         </View>
       </ScrollView>

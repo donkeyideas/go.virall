@@ -5,9 +5,16 @@ import { DismissCollabInput } from '@govirall/api-types';
 export const PATCH = handleRoute(async ({ req, userId, params, supabase }) => {
   const body = await parseBody(req, DismissCollabInput);
 
+  const updatePayload: Record<string, string> = {};
+  if (body.status === 'dismissed') {
+    updatePayload.dismissed_at = new Date().toISOString();
+  } else if (body.status === 'contacted') {
+    updatePayload.acted_on_at = new Date().toISOString();
+  }
+
   const { data, error } = await supabase
     .from('collab_matches')
-    .update({ status: body.status })
+    .update(updatePayload)
     .eq('id', params!.id)
     .eq('user_id', userId)
     .select()

@@ -32,12 +32,12 @@ export const POST = handleRoute(async ({ req, userId }) => {
   const priceId = PRICE_MAP[body.tier]?.[interval];
   if (!priceId) throw ApiError.badRequest(`No price configured for ${body.tier}/${body.interval}`);
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3600';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3700';
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/settings#billing?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${appUrl}/settings?session_id={CHECKOUT_SESSION_ID}#billing`,
     cancel_url: `${appUrl}/settings#billing`,
     client_reference_id: userId,
     metadata: { user_id: userId, tier: body.tier },

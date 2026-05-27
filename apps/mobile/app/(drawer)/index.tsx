@@ -294,9 +294,9 @@ export default function TodayScreen() {
               Connect a platform to get started.
             </Text>
             <Text style={{
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+              fontFamily: t.fontBody,
               fontSize: 13,
-              color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
+              color: t.muted,
               textAlign: 'center',
             }}>
               Add your social accounts in Settings to see your real data here.
@@ -308,7 +308,7 @@ export default function TodayScreen() {
         {error && (
           <View style={{ paddingHorizontal: 20, paddingVertical: 20 }}>
             <Text style={{
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+              fontFamily: t.fontBody,
               fontSize: 11,
               color: isGlass(t) ? t.bad : isEditorial(t) ? t.pink : t.bad,
               textAlign: 'center',

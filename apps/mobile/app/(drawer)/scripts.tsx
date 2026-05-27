@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -54,9 +54,16 @@ export default function ScriptsScreen() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   useEffect(() => { setResults([]); setError(null); setExpandedIndex(null); }, [selectedAccountId]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -106,7 +113,8 @@ export default function ScriptsScreen() {
     const text = `${script.title ?? ''}\n\n${script.hook ?? ''}\n\n${script.body ?? ''}\n\n${script.callToAction ?? ''}`;
     Clipboard.setStringAsync(text).then(() => {
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 2000);
     });
   }
 
@@ -293,7 +301,7 @@ export default function ScriptsScreen() {
                 ? { backgroundColor: t.ink, borderWidth: 1.5, borderColor: t.ink }
                 : isNeumorphic(t)
                 ? { backgroundColor: t.surface, ...t.shadowOutSm.outer }
-                : { backgroundColor: '#f59e0b' }),
+                : { backgroundColor: t.violet }),
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: '600', fontFamily: t.fontBody, color: isEditorial(t) ? t.bg : isNeumorphic(t) ? t.accent : '#fff' }}>
@@ -336,7 +344,7 @@ export default function ScriptsScreen() {
         {!loading && results.map((script, i) => {
           const isExpanded = expandedIndex === i;
           return (
-            <ThemedCard key={i} padding={16} style={{ marginBottom: 12 }}>
+            <ThemedCard key={script.hook?.slice(0, 30) ?? String(i)} padding={16} style={{ marginBottom: 12 }}>
               {/* Header — always visible, tappable */}
               <Pressable onPress={() => setExpandedIndex(isExpanded ? null : i)}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>

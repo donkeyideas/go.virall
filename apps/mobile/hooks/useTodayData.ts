@@ -174,9 +174,7 @@ export function useTodayData(selectedAccountId?: string | null): TodayData {
       const results = await Promise.allSettled([
         withTimeout(api.get<any>('/user'), T),                          // 0
         withTimeout(api.get<any[]>('/platforms'), T),                   // 1
-        withTimeout(api.post<any>('/smo/compute', {
-          ...(selectedAccountId ? { platformAccountId: selectedAccountId } : {}),
-        }), T),                                                        // 2
+        withTimeout(api.get<any>(q('/smo')), T),                        // 2
         withTimeout(api.get<{ items: any[] }>(q('/posts?limit=50')), T),  // 3
         withTimeout(api.get<{ items: any[] }>('/deals?limit=50'), T),  // 4
         withTimeout(api.get<{ items: any[] }>('/invoices?limit=50'), T), // 5

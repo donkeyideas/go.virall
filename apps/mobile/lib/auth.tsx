@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { createClient, type Session, type User } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(s);
         setUser(s?.user ?? null);
         if (s?.access_token) {
-          SecureStore.setItemAsync('access_token', s.access_token);
+          SecureStore.setItemAsync('access_token', s.access_token).catch(() => {});
         }
       }
       setLoading(false);
@@ -71,9 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.access_token) {
-        SecureStore.setItemAsync('access_token', s.access_token);
+        SecureStore.setItemAsync('access_token', s.access_token).catch(() => {});
       } else {
-        SecureStore.deleteItemAsync('access_token');
+        SecureStore.deleteItemAsync('access_token').catch(() => {});
       }
     });
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
     } catch {
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setSession(null);
     setUser(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>

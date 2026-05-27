@@ -19,8 +19,9 @@ export const POST = handleRoute(async ({ req, userId, params, supabase }) => {
     .from('deal_events')
     .insert({
       deal_id: params!.id,
-      kind: 'note',
-      payload: { body: body.body },
+      event_type: 'note',
+      note: body.body,
+      created_by: userId,
     })
     .select()
     .single();

@@ -12,7 +12,7 @@ export function ThemedView({ variant = 'screen', style, ...props }: Props) {
     variant === 'screen'
       ? { backgroundColor: t.bg, flex: 1 }
       : variant === 'surface'
-        ? { backgroundColor: isGlass(t) ? t.surface : isEditorial(t) ? t.surface : t.surface }
+        ? { backgroundColor: t.surface }
         : { backgroundColor: t.bg };
 
   return <View style={[base, style]} {...props} />;

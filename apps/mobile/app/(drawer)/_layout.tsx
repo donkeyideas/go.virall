@@ -194,7 +194,7 @@ export default function AppLayout() {
                   }}>G</Text>
                 </View>
                 <Text style={{
-                  fontFamily: isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplay : t.fontDisplay,
+                  fontFamily: t.fontDisplay,
                   fontSize: 16,
                   color: isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg,
                 }}>
@@ -286,7 +286,7 @@ export default function AppLayout() {
                       />
                     </View>
                     <Text style={{
-                      fontFamily: isGlass(t) ? t.fontBodyMedium : isEditorial(t) ? t.fontBodyMedium : t.fontBodyMedium,
+                      fontFamily: t.fontBodyMedium,
                       fontSize: 14,
                       color: isActive
                         ? (isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.accent)
@@ -323,7 +323,7 @@ export default function AppLayout() {
                   <IconSettings size={18} color={isGlass(t) ? t.muted : isEditorial(t) ? t.ink : t.muted} />
                 </View>
                 <Text style={{
-                  fontFamily: isGlass(t) ? t.fontBodyMedium : isEditorial(t) ? t.fontBodyMedium : t.fontBodyMedium,
+                  fontFamily: t.fontBodyMedium,
                   fontSize: 14,
                   color: isGlass(t) ? t.muted : isEditorial(t) ? t.ink : t.muted,
                 }}>
@@ -387,16 +387,16 @@ export default function AppLayout() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{
-                  fontFamily: isGlass(t) ? t.fontBodySemibold : isEditorial(t) ? t.fontBodySemibold : t.fontBodySemibold,
+                  fontFamily: t.fontBodySemibold,
                   fontSize: 13,
                   color: isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg,
                 }}>
                   {displayName}
                 </Text>
                 <Text style={{
-                  fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody,
+                  fontFamily: t.fontBody,
                   fontSize: 10,
-                  color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
+                  color: t.muted,
                 }}>
                   @{displayName.toLowerCase().replace(/\s+/g, '')}
                 </Text>
@@ -413,7 +413,7 @@ export default function AppLayout() {
                 hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
                 style={{ padding: 8 }}
               >
-                <IconLogOut size={20} color={isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad} />
+                <IconLogOut size={20} color={t.bad} />
               </Pressable>
             </View>
           </View>

@@ -31,7 +31,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { ThemedCard } from '@/components/ui/ThemedCard';
 import { Button } from '@/components/ui/Button';
-import { IconChevronRight, IconMoon, IconSun } from '@/components/icons/Icons';
+import { IconMoon, IconSun } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { useAccount } from '@/lib/account-context';
 import { PlatformConnectForm } from '@/components/forms/PlatformConnectForm';
@@ -58,7 +58,7 @@ interface PlatformAccount {
   id: string;
   platform: string;
   platform_username: string | null;
-  followers: number | null;
+  follower_count: number | null;
   sync_status: string | null;
 }
 
@@ -468,14 +468,46 @@ export default function SettingsScreen() {
         {/* Mission */}
         <View>
           <Text style={labelStyle}>Mission</Text>
-          <TextInput
-            style={inputStyle(true)}
-            value={mission}
-            onChangeText={setMission}
-            placeholder="Your creator mission statement..."
-            placeholderTextColor={t.faint}
-            multiline
-          />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {([
+              { value: 'grow-audience', label: 'Grow My Audience' },
+              { value: 'monetize', label: 'Monetize Content' },
+              { value: 'launch-product', label: 'Launch a Product' },
+              { value: 'community', label: 'Build Community' },
+              { value: 'land-deals', label: 'Land Brand Deals' },
+            ] as const).map((opt) => {
+              const selected = mission === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => setMission(opt.value)}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    borderRadius: isGlass(t) ? t.radiusFull : isEditorial(t) ? 0 : t.radiusMd,
+                    backgroundColor: selected
+                      ? (isGlass(t) ? 'rgba(139,92,246,0.2)' : isEditorial(t) ? t.ink : t.accent)
+                      : (isGlass(t) ? 'rgba(255,255,255,0.05)' : isEditorial(t) ? t.surface : t.surfaceLighter),
+                    borderWidth: isGlass(t) ? 1 : isEditorial(t) ? t.border.width : 0,
+                    borderColor: selected
+                      ? (isGlass(t) ? t.violet : isEditorial(t) ? t.ink : 'transparent')
+                      : (isGlass(t) ? t.line : isEditorial(t) ? t.border.color : 'transparent'),
+                  }}
+                >
+                  <Text style={{
+                    fontFamily: isEditorial(t) ? t.fontBody : t.fontBodySemibold,
+                    fontSize: 13,
+                    color: selected
+                      ? (isGlass(t) ? t.violetSoft : isEditorial(t) ? t.bg : '#fff')
+                      : (isGlass(t) ? t.muted : isEditorial(t) ? t.ink : fg),
+                    ...(isEditorial(t) ? { textTransform: 'uppercase' as const, letterSpacing: 0.5, fontSize: 11 } : {}),
+                  }}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         {/* Save Button */}
@@ -580,7 +612,7 @@ export default function SettingsScreen() {
                       fontSize: 12,
                       marginTop: 2,
                     }}>
-                      {formatFollowers(platform.followers)} followers
+                      {formatFollowers(platform.follower_count)} followers
                     </Text>
                   </View>
 
@@ -631,7 +663,7 @@ export default function SettingsScreen() {
                     id: data.account.id,
                     platform: data.account.platform,
                     platform_username: data.account.platform_username,
-                    followers: data.profile.followersCount ?? data.account.follower_count ?? null,
+                    follower_count: data.profile.followersCount ?? data.account.follower_count ?? null,
                     sync_status: 'healthy',
                   },
                 ]);
@@ -827,9 +859,9 @@ export default function SettingsScreen() {
           </Text>
           <Text
             style={{
-              color: isGlass(t) ? t.muted : isEditorial(t) ? t.muted : t.muted,
+              color: t.muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+              fontFamily: t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,

@@ -46,7 +46,7 @@ export default function StudioScreen() {
   const iconColor = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 10, paddingBottom: 40 }}>
         {/* Page title */}
         <View style={{ paddingLeft: 56, paddingTop: 14, paddingBottom: 16 }}>
@@ -71,7 +71,7 @@ export default function StudioScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+              fontFamily: t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,

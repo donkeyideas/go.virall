@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -64,9 +64,16 @@ export default function IdeasScreen() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   useEffect(() => { setResults([]); setError(null); }, [selectedAccountId]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -114,7 +121,8 @@ export default function IdeasScreen() {
     const text = `${idea.title}\n\n${idea.hook}\n${idea.angle}\n\n${(idea.hashtags ?? []).join(' ')}`;
     Clipboard.setStringAsync(text).then(() => {
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 2000);
     });
   }
 
@@ -399,7 +407,7 @@ export default function IdeasScreen() {
 
         {/* Results */}
         {!loading && results.map((idea, i) => (
-          <ThemedCard key={i} padding={16} style={{ marginBottom: 12 }}>
+          <ThemedCard key={idea.title?.slice(0, 30) ?? String(i)} padding={16} style={{ marginBottom: 12 }}>
             {/* Title + Copy */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
               <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: fg, fontFamily: t.fontDisplay, lineHeight: 20 }}>

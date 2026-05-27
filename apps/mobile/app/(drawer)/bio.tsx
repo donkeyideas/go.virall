@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -51,9 +51,16 @@ export default function BioScreen() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { accounts, accountsLoading, selectedAccountId, setSelectedAccount } = useAccount();
 
   useEffect(() => { setResults([]); setError(null); }, [selectedAccountId]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
@@ -100,7 +107,8 @@ export default function BioScreen() {
   function copyBio(text: string, index: number) {
     Clipboard.setStringAsync(text).then(() => {
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 2000);
     });
   }
 
@@ -316,7 +324,7 @@ export default function BioScreen() {
                 ? { backgroundColor: t.ink, borderWidth: 1.5, borderColor: t.ink }
                 : isNeumorphic(t)
                 ? { backgroundColor: t.surface, ...t.shadowOutSm.outer }
-                : { backgroundColor: '#10b981' }),
+                : { backgroundColor: t.violet }),
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: '600', fontFamily: t.fontBody, color: isEditorial(t) ? t.bg : isNeumorphic(t) ? t.accent : '#fff' }}>
@@ -362,7 +370,7 @@ export default function BioScreen() {
           const barColor = pct > 95 ? (isGlass(t) ? t.bad : '#c87878') : pct > 80 ? (isGlass(t) ? '#ffb648' : '#c39560') : (isGlass(t) ? '#8affc1' : '#6aa684');
 
           return (
-            <ThemedCard key={i} padding={16} style={{ marginBottom: 12 }}>
+            <ThemedCard key={bio.text?.slice(0, 30) ?? String(i)} padding={16} style={{ marginBottom: 12 }}>
               {/* Style badge + Copy */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <View style={{

@@ -22,13 +22,13 @@ export function ThemedText({ variant = 'body', color = 'default', style, ...prop
   } else if (color === 'good') {
     textColor = isGlass(t) ? t.good : isEditorial(t) ? t.good : t.good;
   } else if (color === 'bad') {
-    textColor = isGlass(t) ? t.bad : isEditorial(t) ? t.bad : t.bad;
+    textColor = t.bad;
   } else {
     textColor = isGlass(t) ? t.warn : isEditorial(t) ? t.warn : t.warn;
   }
 
   // Resolve font
-  const fontBody = isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBody;
+  const fontBody = t.fontBody;
   const fontDisplay = isGlass(t) ? t.fontDisplay : isEditorial(t) ? t.fontDisplay : t.fontDisplay;
   const variantStyles = {
     display: { fontFamily: fontDisplay, fontSize: 28, lineHeight: 34 },

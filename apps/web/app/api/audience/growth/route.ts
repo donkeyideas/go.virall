@@ -2,7 +2,7 @@ import { handleRoute, ApiError } from '../../_lib/handler';
 
 // GET /api/audience/growth -- 90-day audience growth data
 export const GET = handleRoute(async ({ req, userId, supabase }) => {
-  const platform = req.nextUrl.searchParams.get('platform');
+  const platformAccountId = req.nextUrl.searchParams.get('platformAccountId');
 
   let q = supabase
     .from('audience_snapshots')
@@ -11,7 +11,7 @@ export const GET = handleRoute(async ({ req, userId, supabase }) => {
     .gte('captured_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
     .order('captured_at', { ascending: true });
 
-  if (platform) q = q.eq('platform', platform);
+  if (platformAccountId) q = q.eq('platform_account_id', platformAccountId);
 
   const { data, error } = await q;
 

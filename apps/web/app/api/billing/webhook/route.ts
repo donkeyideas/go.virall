@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   const { data: existing } = await supabase
     .from('stripe_events')
     .select('id')
-    .eq('stripe_event_id', event.id)
+    .eq('id', event.id)
     .single();
 
   if (existing) {
@@ -46,9 +46,10 @@ export async function POST(req: NextRequest) {
 
   // Record event
   await supabase.from('stripe_events').insert({
-    stripe_event_id: event.id,
-    event_type: event.type,
+    id: event.id,
+    type: event.type,
     payload: JSON.parse(JSON.stringify(event.data.object)),
+    processed: true,
   });
 
   // Handle events

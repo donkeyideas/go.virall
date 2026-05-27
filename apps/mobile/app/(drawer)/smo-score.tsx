@@ -34,6 +34,14 @@ function getGrade(s: number): string {
   return 'F';
 }
 
+function getTierLabel(s: number): string {
+  if (s >= 80) return 'Elite presence';
+  if (s >= 60) return 'Strong presence';
+  if (s >= 40) return 'Growing presence';
+  if (s >= 20) return 'Developing presence';
+  return 'Just getting started';
+}
+
 function getColor(v: number, t: ReturnType<typeof useTokens>): string {
   if (v >= 70) return isGlass(t) ? t.good : isEditorial(t) ? '#22c55e' : t.good;
   if (v >= 40) return isGlass(t) ? t.amber : isEditorial(t) ? t.mustard : t.warn;
@@ -84,7 +92,7 @@ export default function SmoScoreScreen() {
     } finally {
       setComputing(false);
     }
-  }, [fetchData]);
+  }, [fetchData, selectedAccountId]);
 
   const handleRefresh = useCallback(async () => {
     if (!selectedAccountId) return;
@@ -146,7 +154,7 @@ export default function SmoScoreScreen() {
             style={{
               color: muted,
               fontSize: isGlass(t) ? 10 : isEditorial(t) ? 10 : 11,
-              fontFamily: isGlass(t) ? t.fontBody : isEditorial(t) ? t.fontBody : t.fontBodyBold,
+              fontFamily: t.fontBodyBold,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
               marginTop: 8,
@@ -177,7 +185,7 @@ export default function SmoScoreScreen() {
           <ThemedCard padding={40} style={{ alignItems: 'center' }}>
             <View style={{
               width: 80, height: 80, borderRadius: 40,
-              backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.05)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+              backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.05)' : (t as any).surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
               justifyContent: 'center', alignItems: 'center', marginBottom: 20,
             }}>
               <Text style={{ fontSize: 36 }}>*</Text>
@@ -247,7 +255,7 @@ export default function SmoScoreScreen() {
               </View>
 
               <Text style={{ fontSize: 13, color: muted, textAlign: 'center' }}>
-                {data.score != null ? `Top ${100 - data.score}% of creators` : 'Tap Compute to analyze your presence'}
+                {data.score != null ? getTierLabel(data.score) : 'Tap Compute to analyze your presence'}
               </Text>
 
               {data.computedAt && (
@@ -269,7 +277,7 @@ export default function SmoScoreScreen() {
                       borderRadius: isEditorial(t) ? 2 : 14,
                       opacity: syncing ? 0.6 : pressed ? 0.8 : 1,
                       borderWidth: 1.5,
-                      borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.ink : t.border,
+                      borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.ink : (t as any).border,
                       backgroundColor: 'transparent',
                     })}
                   >
@@ -335,7 +343,7 @@ export default function SmoScoreScreen() {
                       </View>
                       <View style={{
                         height: 5, borderRadius: 3, overflow: 'hidden',
-                        backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : t.surfaceDarker) : isEditorial(t) ? t.surfaceAlt : t.surfaceDarker,
+                        backgroundColor: isGlass(t) ? (isDark(t) ? 'rgba(255,255,255,0.06)' : (t as any).surfaceDarker) : isEditorial(t) ? t.surfaceAlt : (t as any).surfaceDarker,
                         ...(isNeumorphic(t) ? (Platform.OS === 'ios'
                           ? (t as NeumorphicTheme).shadowOutSm.inner
                           : { borderWidth: 1, borderTopColor: 'rgba(167,173,184,0.3)', borderLeftColor: 'rgba(167,173,184,0.3)', borderBottomColor: 'rgba(255,255,255,0.5)', borderRightColor: 'rgba(255,255,255,0.5)' }
