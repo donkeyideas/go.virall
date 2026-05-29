@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ThemedSelect, AccountPicker } from '@govirall/ui-web';
 
 type PlatformAccount = {
@@ -49,6 +49,8 @@ export function ScriptsClient({ theme, platforms }: Props) {
     ? platforms.find((p) => p.id === selectedAccountId)
     : platforms.find((p) => p.platform === selectedPlatform);
 
+  useEffect(() => { setResults([]); setError(null); setExpandedIndex(null); }, [selectedAccountId]);
+
   const cardStyle: React.CSSProperties = isEditorial
     ? { border: '1.5px solid var(--ink)', borderRadius: 20, background: 'var(--paper)', padding: 24 }
     : isNeumorphic
@@ -80,16 +82,6 @@ export function ScriptsClient({ theme, platforms }: Props) {
     fontSize: 14,
     color: 'var(--fg)',
     outline: 'none',
-  };
-
-  const selectStyle: React.CSSProperties = {
-    ...inputStyle,
-    cursor: 'pointer',
-    appearance: 'none' as const,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 16px center',
-    paddingRight: 40,
   };
 
   const btnPrimary: React.CSSProperties = {
@@ -157,14 +149,14 @@ export function ScriptsClient({ theme, platforms }: Props) {
       const res = await fetch('/api/content/suggest-topic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform: selectedPlatform, contentType: 'scripts' }),
+        body: JSON.stringify({ platform: selectedPlatform, contentType: 'scripts', ...(connectedAccount?.id ? { platformAccountId: connectedAccount.id } : {}) }),
       });
       const json = await res.json();
       const suggested = json.data?.topic ?? json.topic ?? '';
       if (suggested) setTopic(suggested);
     } catch { /* ignore */ }
     setSuggesting(false);
-  }, [selectedPlatform]);
+  }, [selectedPlatform, connectedAccount]);
 
   const sectionLabel: React.CSSProperties = {
     fontSize: 10,
