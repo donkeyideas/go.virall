@@ -16,8 +16,6 @@ type Props = {
   theme: string;
   mission: string | null;
   platforms: PlatformAccount[];
-  previousResults?: unknown[] | null;
-  previousMeta?: { platform: string; topic: string; tone: string } | null;
 };
 
 const TONES = ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational', 'Storytelling'];
@@ -32,15 +30,15 @@ const ALL_PLATFORMS = [
   { id: 'twitch', label: 'Twitch' },
 ];
 
-export function CaptionsClient({ theme, platforms, previousResults, previousMeta }: Props) {
+export function CaptionsClient({ theme, platforms }: Props) {
   const isEditorial = theme === 'neon-editorial';
   const isNeumorphic = theme === 'neumorphic';
 
-  const [selectedPlatform, setSelectedPlatform] = useState(previousMeta?.platform ?? 'instagram');
-  const [topic, setTopic] = useState(previousMeta?.topic ?? '');
-  const [tone, setTone] = useState(previousMeta?.tone || 'Professional');
+  const [selectedPlatform, setSelectedPlatform] = useState('instagram');
+  const [topic, setTopic] = useState('');
+  const [tone, setTone] = useState('Professional');
   const [count, setCount] = useState(5);
-  const [results, setResults] = useState<Array<Record<string, unknown>>>((previousResults ?? []) as Array<Record<string, unknown>>);
+  const [results, setResults] = useState<Array<Record<string, unknown>>>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);

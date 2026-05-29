@@ -15,8 +15,6 @@ type Props = {
   theme: string;
   mission: string | null;
   platforms: PlatformAccount[];
-  previousResults?: unknown[] | null;
-  previousMeta?: { platform: string; topic: string; tone: string } | null;
 };
 
 const TONES = ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational', 'Storytelling'];
@@ -31,15 +29,15 @@ const ALL_PLATFORMS = [
   { id: 'x', label: 'X' },
 ];
 
-export function ScriptsClient({ theme, platforms, previousResults, previousMeta }: Props) {
+export function ScriptsClient({ theme, platforms }: Props) {
   const isEditorial = theme === 'neon-editorial';
   const isNeumorphic = theme === 'neumorphic';
 
-  const [selectedPlatform, setSelectedPlatform] = useState(previousMeta?.platform ?? 'tiktok');
-  const [topic, setTopic] = useState(previousMeta?.topic ?? '');
-  const [tone, setTone] = useState(previousMeta?.tone || 'Casual');
+  const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
+  const [topic, setTopic] = useState('');
+  const [tone, setTone] = useState('Casual');
   const [count, setCount] = useState(3);
-  const [results, setResults] = useState<Array<Record<string, unknown>>>((previousResults ?? []) as Array<Record<string, unknown>>);
+  const [results, setResults] = useState<Array<Record<string, unknown>>>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
