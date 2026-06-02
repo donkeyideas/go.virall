@@ -85,6 +85,8 @@ export async function POST(req: NextRequest) {
           },
           { onConflict: 'user_id' },
         );
+
+        await supabase.rpc('sync_user_subscription_tier', { p_user_id: userId });
       }
       break;
     }
@@ -119,6 +121,8 @@ export async function POST(req: NextRequest) {
               : null,
           })
           .eq('stripe_subscription_id', subscription.id);
+
+        await supabase.rpc('sync_user_subscription_tier', { p_user_id: existingSub.user_id });
       }
       break;
     }

@@ -387,3 +387,38 @@ export function IconCloud({ size = 24, color = '#fff', strokeWidth = 2 }: IconPr
     </Svg>
   );
 }
+
+export function IconCrown({ size = 24, color = '#fff', strokeWidth = 2 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" />
+      <Path d="M3 20h18" />
+    </Svg>
+  );
+}
+
+export function IconCheck({ size = 24, color = '#fff', strokeWidth = 2 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M20 6L9 17l-5-5" />
+    </Svg>
+  );
+}
+
+export function IconShield({ size = 24, color = '#fff', strokeWidth = 2 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </Svg>
+  );
+}
+
+export function IconRefresh({ size = 24, color = '#fff', strokeWidth = 2 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M23 4v6h-6" />
+      <Path d="M1 20v-6h6" />
+      <Path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </Svg>
+  );
+}

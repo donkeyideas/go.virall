@@ -37,6 +37,13 @@ module.exports = ({ config }) => {
       'expo-secure-store',
       './plugins/withAndroidGradleMemory',
       './plugins/withSwiftConcurrency',
+      [
+        'expo-build-properties',
+        {
+          ios: { deploymentTarget: '15.0' },
+        },
+      ],
+      'react-native-purchases',
     ],
     experiments: {
       typedRoutes: true,

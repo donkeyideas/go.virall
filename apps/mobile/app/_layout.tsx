@@ -37,6 +37,7 @@ import {
 } from '@expo-google-fonts/geist-mono';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import { AuthProvider } from '@/lib/auth';
+import { RevenueCatProvider } from '@/lib/revenuecat';
 import { AccountProvider } from '@/lib/account-context';
 
 SplashScreen.preventAutoHideAsync();
@@ -88,6 +89,7 @@ function RootNav() {
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(drawer)" />
         <Stack.Screen name="theme-select" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );
@@ -97,9 +99,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AccountProvider>
-          <RootNav />
-        </AccountProvider>
+        <RevenueCatProvider>
+          <AccountProvider>
+            <RootNav />
+          </AccountProvider>
+        </RevenueCatProvider>
       </AuthProvider>
     </ThemeProvider>
   );

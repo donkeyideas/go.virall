@@ -21,13 +21,16 @@ export const POST = handleRoute(async ({ req, userId }) => {
   // Check account limit based on subscription tier
   const [{ count: currentCount }, { data: userRow }] = await Promise.all([
     admin.from('platform_accounts').select('*', { count: 'exact', head: true }).eq('user_id', userId).neq('sync_status', 'disconnected'),
-    admin.from('users').select('subscription_tier').eq('id', userId).single(),
+    admin.from('users').select('subscription_tier, free_platform_override').eq('id', userId).single(),
   ]);
   const tier = userRow?.subscription_tier ?? 'free';
   const { data: planRow } = await admin.from('subscription_plans').select('max_platforms').eq('tier', tier).single();
-  const maxAccounts = planRow?.max_platforms ?? 3;
+  let maxAccounts = planRow?.max_platforms ?? 1;
+  if (tier === 'free' && userRow?.free_platform_override != null) {
+    maxAccounts = Math.max(maxAccounts, userRow.free_platform_override);
+  }
   if (maxAccounts !== -1 && (currentCount ?? 0) >= maxAccounts) {
-    throw ApiError.badRequest(`Your ${tier} plan allows up to ${maxAccounts} accounts. Upgrade to add more.`);
+    throw ApiError.badRequest(`Your ${tier} plan allows up to ${maxAccounts} account${maxAccounts === 1 ? '' : 's'}. Upgrade to add more.`);
   }
 
   // Scrape public profile (20s hard cap)

@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -34,12 +35,14 @@ import { Button } from '@/components/ui/Button';
 import { IconMoon, IconSun } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { useAccount } from '@/lib/account-context';
+import { useSubscription } from '@/lib/revenuecat';
 import { PlatformConnectForm } from '@/components/forms/PlatformConnectForm';
 import { PaywallGate } from '@/components/ui/PaywallGate';
+import { IconCrown, IconRefresh } from '@/components/icons/Icons';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
-type TabKey = 'account' | 'platforms' | 'theme';
+type TabKey = 'account' | 'platforms' | 'billing' | 'theme';
 
 interface UserProfile {
   id: string;
@@ -52,6 +55,7 @@ interface UserProfile {
   mission: string | null;
   avatar_url: string | null;
   subscription_tier: string | null;
+  free_platform_override: number | null;
 }
 
 interface PlatformAccount {
@@ -65,8 +69,15 @@ interface PlatformAccount {
 const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: 'account', label: 'Account' },
   { key: 'platforms', label: 'Platforms' },
+  { key: 'billing', label: 'Billing' },
   { key: 'theme', label: 'Theme' },
 ];
+
+function getEffectiveLimit(tier?: string | null, override?: number | null): number {
+  const base = tier === 'creator' ? 10 : tier === 'pro' ? 20 : tier === 'agency' ? 999 : 1;
+  if ((tier === 'free' || !tier) && override != null) return Math.max(base, override);
+  return base;
+}
 
 
 const THEME_OPTIONS: { key: ThemeName; label: string; desc: string; colors: string[] }[] = [
@@ -93,6 +104,128 @@ const PLATFORM_LABELS: Record<string, string> = {
   facebook: 'Facebook',
   twitch: 'Twitch',
 };
+
+// ── Billing Tab ──────────────────────────────────────────────────────
+
+function BillingTab({ user }: { user: UserProfile | null }) {
+  const t = useTokens();
+  const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
+  const muted = t.muted;
+  const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
+  const { subscription, restore, loading: rcLoading } = useSubscription();
+  const [restoring, setRestoring] = useState(false);
+
+  const tier = subscription.isActive ? subscription.tier : (user?.subscription_tier ?? 'free');
+  const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
+  const isFree = tier === 'free';
+
+  const handleRestore = async () => {
+    setRestoring(true);
+    const result = await restore();
+    setRestoring(false);
+    if (result.success && result.tier && result.tier !== 'free') {
+      Alert.alert('Restored', `Your ${result.tier} plan has been restored.`);
+    } else if (result.success) {
+      Alert.alert('No Purchases Found', 'No active subscriptions were found.');
+    } else {
+      Alert.alert('Restore Failed', result.error ?? 'Could not restore purchases.');
+    }
+  };
+
+  return (
+    <View style={{ gap: 16 }}>
+      {/* Current plan */}
+      <ThemedCard padding={20}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <View style={{
+            width: 44, height: 44, borderRadius: 22,
+            justifyContent: 'center', alignItems: 'center',
+            backgroundColor: isGlass(t) ? (isFree ? 'rgba(255,255,255,0.06)' : 'rgba(139,92,246,0.15)') : isEditorial(t) ? (isFree ? t.surfaceAlt : t.ink) : t.surface,
+            ...(isNeumorphic(t) ? t.shadowOutSm.outer : {}),
+          }}>
+            <IconCrown size={20} color={isFree ? muted : (isEditorial(t) ? t.bg : accent)} />
+          </View>
+          <View>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: fg, fontFamily: t.fontDisplay }}>
+              {tierLabel} Plan
+            </Text>
+            {subscription.isActive && subscription.expiresAt && (
+              <Text style={{ fontSize: 12, color: muted, fontFamily: t.fontBody, marginTop: 2 }}>
+                {subscription.willRenew ? 'Renews' : 'Expires'} {new Date(subscription.expiresAt).toLocaleDateString()}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {isFree ? (
+          <Pressable
+            onPress={() => router.push('/paywall')}
+            style={{
+              height: 48,
+              borderRadius: isNeumorphic(t) ? 16 : isEditorial(t) ? 2 : 14,
+              justifyContent: 'center', alignItems: 'center',
+              ...(isEditorial(t)
+                ? { backgroundColor: t.ink }
+                : isNeumorphic(t)
+                ? { backgroundColor: t.surface, ...t.shadowOutSm.outer }
+                : { backgroundColor: t.violet }),
+            }}
+          >
+            <Text style={{
+              fontSize: 15, fontWeight: '700', fontFamily: t.fontBody,
+              color: isEditorial(t) ? t.bg : isNeumorphic(t) ? t.accent : '#fff',
+            }}>
+              Upgrade Plan
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => {
+              const url = Platform.OS === 'ios'
+                ? 'https://apps.apple.com/account/subscriptions'
+                : 'https://play.google.com/store/account/subscriptions';
+              Linking.openURL(url);
+            }}
+            style={{
+              height: 44,
+              borderRadius: isNeumorphic(t) ? 14 : isEditorial(t) ? 2 : 12,
+              justifyContent: 'center', alignItems: 'center',
+              borderWidth: isEditorial(t) ? 1.5 : 1,
+              borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.border.color : t.surfaceDarker,
+              backgroundColor: 'transparent',
+            }}
+          >
+            <Text style={{
+              fontSize: 14, fontWeight: '600', fontFamily: t.fontBody, color: accent,
+            }}>
+              Manage Subscription
+            </Text>
+          </Pressable>
+        )}
+      </ThemedCard>
+
+      {/* Restore purchases */}
+      <ThemedCard padding={16}>
+        <Pressable
+          onPress={handleRestore}
+          disabled={restoring || rcLoading}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 4 }}
+        >
+          {restoring ? (
+            <ActivityIndicator size="small" color={accent} />
+          ) : (
+            <>
+              <IconRefresh size={16} color={accent} />
+              <Text style={{ fontSize: 14, color: accent, fontWeight: '500', fontFamily: t.fontBody }}>
+                Restore Purchases
+              </Text>
+            </>
+          )}
+        </Pressable>
+      </ThemedCard>
+    </View>
+  );
+}
 
 // ── Component ──────────────────────────────────────────────────────────
 
@@ -205,7 +338,8 @@ export default function SettingsScreen() {
   };
 
   const connectPlatform = () => {
-    if (platforms.length >= 3) {
+    const limit = getEffectiveLimit(user?.subscription_tier, user?.free_platform_override);
+    if (platforms.length >= limit) {
       setShowPaywall(true);
     } else {
       setShowConnectForm(true);
@@ -896,14 +1030,15 @@ export default function SettingsScreen() {
         {/* Active tab content */}
         <SectionHeader
           number="02"
-          title={activeTab === 'account' ? 'Profile details' : activeTab === 'platforms' ? 'Connected platforms' : 'App theme'}
-          emphasisWord={activeTab === 'account' ? 'details' : activeTab === 'platforms' ? 'platforms' : 'theme'}
+          title={activeTab === 'account' ? 'Profile details' : activeTab === 'platforms' ? 'Connected platforms' : activeTab === 'billing' ? 'Subscription' : 'App theme'}
+          emphasisWord={activeTab === 'account' ? 'details' : activeTab === 'platforms' ? 'platforms' : activeTab === 'billing' ? 'Subscription' : 'theme'}
         />
         {activeTab === 'account' && renderAccountTab()}
         {activeTab === 'platforms' && renderPlatformsTab()}
+        {activeTab === 'billing' && <BillingTab user={user} />}
         {activeTab === 'theme' && renderThemeTab()}
       </ScrollView>
-      <PaywallGate visible={showPaywall} onClose={() => setShowPaywall(false)} />
+      <PaywallGate visible={showPaywall} onClose={() => setShowPaywall(false)} currentLimit={getEffectiveLimit(user?.subscription_tier, user?.free_platform_override)} />
     </View>
   );
 }
