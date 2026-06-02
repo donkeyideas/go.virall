@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=430, initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  body {
+    width: 430px;
+    height: 932px;
+    background: #0a0618;
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #f0edf6;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .container { width: 360px; display: flex; flex-direction: column; align-items: center; }
+  .crown { width: 44px; height: 44px; margin-bottom: 14px; }
+  h1 { font-size: 28px; font-weight: 800; text-align: center; letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.15; }
+  .subtitle { font-size: 13px; color: #8b8898; text-align: center; line-height: 1.5; margin-bottom: 22px; }
+  .toggle { display: flex; background: rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden; margin-bottom: 18px; }
+  .toggle-btn { padding: 9px 20px; font-size: 13px; font-weight: 600; color: #8b8898; }
+  .toggle-btn.active { background: #8b5cf6; color: #fff; border-radius: 12px; }
+  .plan-pills { display: flex; gap: 8px; margin-bottom: 22px; }
+  .pill { padding: 9px 22px; border-radius: 12px; font-size: 14px; font-weight: 500; color: #8b8898; background: rgba(255,255,255,0.04); }
+  .pill.active { background: #8b5cf6; color: #fff; font-weight: 700; }
+  .price { font-size: 48px; font-weight: 800; margin-bottom: 2px; }
+  .per { font-size: 14px; color: #8b8898; margin-bottom: 22px; }
+  .features-card { width: 100%; background: rgba(255,255,255,0.06); border-radius: 20px; padding: 22px; margin-bottom: 22px; }
+  .features-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #8b8898; margin-bottom: 14px; }
+  .feature { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; }
+  .feature:last-child { margin-bottom: 0; }
+  .check { width: 24px; height: 24px; border-radius: 12px; background: rgba(34,197,94,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .check svg { width: 13px; height: 13px; }
+  .subscribe-btn { width: 100%; height: 52px; border-radius: 16px; background: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+  .restore { font-size: 13px; color: #8b5cf6; font-weight: 500; margin-bottom: 10px; }
+  .secure { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b8898; margin-bottom: 6px; }
+  .legal { font-size: 9px; color: #8b8898; text-align: center; line-height: 1.4; opacity: 0.6; padding: 0 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <svg class="crown" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 20h18"/></svg>
+  <h1>Unlock Your Full Potential</h1>
+  <p class="subtitle">Connect more accounts, unlimited AI content, and advanced analytics.</p>
+  <div class="toggle"><div class="toggle-btn">Monthly</div><div class="toggle-btn active">Yearly (Save 20%)</div></div>
+  <div class="plan-pills"><div class="pill active">Creator</div><div class="pill">Pro</div><div class="pill">Agency</div></div>
+  <div class="price">$359.99</div>
+  <div class="per">per year</div>
+  <div class="features-card">
+    <div class="features-label">What you get</div>
+    <div class="feature"><div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>Up to 10 accounts</div>
+    <div class="feature"><div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>Unlimited analyses</div>
+    <div class="feature"><div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>Unlimited content generations</div>
+    <div class="feature"><div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>Full AI strategist access</div>
+    <div class="feature"><div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>Audience intelligence</div>
+    <div class="feature"><div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>Revenue tracking</div>
+  </div>
+  <div class="subscribe-btn">Subscribe to Creator</div>
+  <div class="restore">Restore Purchases</div>
+  <div class="secure"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8b8898" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure purchase via App Store</div>
+  <div class="legal">Payment charged to your Apple ID account. Subscriptions auto-renew unless cancelled 24 hours before the current period ends.</div>
+</div>
+</body>
+</html>
