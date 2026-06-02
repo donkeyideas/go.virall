@@ -34,7 +34,7 @@ export const POST = handleRoute(async ({ req, userId }) => {
   // Fetch user profile, connected platforms, and recent posts
   const admin = createAdminClient();
 
-  let platformsQuery = admin.from('platform_accounts_safe').select('platform, platform_username, platform_display_name, follower_count, post_count').eq('user_id', userId);
+  let platformsQuery = admin.from('platform_accounts_safe').select('platform, platform_username, platform_display_name, platform_bio, follower_count, post_count').eq('user_id', userId);
   let postsQuery = admin.from('posts').select('caption, hook, hashtags, platform').eq('user_id', userId).order('published_at', { ascending: false }).limit(10);
 
   if (body.platformAccountId) {
@@ -52,15 +52,22 @@ export const POST = handleRoute(async ({ req, userId }) => {
   const platforms = platformsRes.data ?? [];
   const recentPosts = postsRes.data ?? [];
 
+  // Determine if we have a specific platform account selected
+  const hasSelectedAccount = body.platformAccountId && platforms.length > 0;
+
   // Infer niche from all available signals
   const nicheSignals: string[] = [];
 
-  if (user?.bio) nicheSignals.push(`Bio: "${user.bio}"`);
-  if (user?.display_name) nicheSignals.push(`Display name: "${user.display_name}"`);
-  if (user?.handle) nicheSignals.push(`Handle: @${user.handle}`);
+  // Only use user-level fields when NO specific platform account is selected.
+  // When a platform account IS selected, its own data is the sole identity source.
+  if (!hasSelectedAccount) {
+    if (user?.bio) nicheSignals.push(`Bio: "${user.bio}"`);
+    if (user?.display_name) nicheSignals.push(`Display name: "${user.display_name}"`);
+    if (user?.handle) nicheSignals.push(`Handle: @${user.handle}`);
+  }
 
   for (const p of platforms) {
-    nicheSignals.push(`${p.platform} account: @${p.platform_username}${p.platform_display_name ? ` ("${p.platform_display_name}")` : ''}${p.follower_count ? `, ${p.follower_count.toLocaleString()} followers` : ''}`);
+    nicheSignals.push(`${p.platform} account: @${p.platform_username}${p.platform_display_name ? ` ("${p.platform_display_name}")` : ''}${p.follower_count ? `, ${p.follower_count.toLocaleString()} followers` : ''}${p.platform_bio ? `\nAccount bio: "${p.platform_bio}"` : ''}`);
   }
 
   // Recent post content for niche clues

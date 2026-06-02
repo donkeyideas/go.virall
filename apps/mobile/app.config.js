@@ -17,7 +17,7 @@ module.exports = ({ config }) => {
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.govirall.app',
-      buildNumber: '18',
+      buildNumber: '19',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -29,7 +29,7 @@ module.exports = ({ config }) => {
       },
       package: 'com.govirall.app',
       softwareKeyboardLayoutMode: 'pan',
-      versionCode: 13,
+      versionCode: 14,
     },
     plugins: [
       'expo-router',

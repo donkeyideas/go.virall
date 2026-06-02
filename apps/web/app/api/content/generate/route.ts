@@ -67,8 +67,14 @@ export const POST = handleRoute(async ({ req, userId }) => {
     ? allPlatforms.find((p) => p.id === body.platformAccountId)
     : allPlatforms.find((p) => p.platform === body.platform);
 
-  const bestDisplayName =
-    platformDisplayName ?? selectedAccount?.platform_display_name ?? user?.display_name ?? null;
+  const hasSelectedAccount = !!(platformHandle || selectedAccount);
+
+  // When a platform account is selected, use ONLY its data — never fall back
+  // to the user-level display_name/bio/handle (which is the Go Virall account,
+  // not the social media profile).
+  const bestDisplayName = hasSelectedAccount
+    ? (platformDisplayName ?? selectedAccount?.platform_display_name ?? null)
+    : (user?.display_name ?? null);
 
   const nicheSummary = selectedAccount?.platform_display_name ?? null;
 
@@ -92,9 +98,9 @@ export const POST = handleRoute(async ({ req, userId }) => {
     primaryGoal: user?.mission ?? null,
     platformHandle,
     followerCount,
-    userBio: platformBio || user?.bio || null,
+    userBio: hasSelectedAccount ? (platformBio || null) : (user?.bio || null),
     displayName: bestDisplayName,
-    userHandle: platformHandle ?? user?.handle ?? null,
+    userHandle: hasSelectedAccount ? (platformHandle ?? null) : (user?.handle ?? null),
     nicheSummary,
     recentContentSummary,
   });
