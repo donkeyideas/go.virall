@@ -271,8 +271,11 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Price display */}
+        {/* Price display with required subscription info */}
         <View style={{ alignItems: 'center', marginBottom: 24 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: accent, fontFamily: t.fontBody, marginBottom: 6, letterSpacing: 0.5 }}>
+            {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan
+          </Text>
           {rcLoading ? (
             <ActivityIndicator size="small" color={accent} />
           ) : selectedPackage ? (
@@ -286,7 +289,7 @@ export default function PaywallScreen() {
                 {selectedPackage.product.priceString}
               </Text>
               <Text style={{ fontSize: 14, color: muted, fontFamily: t.fontBody, marginTop: 4 }}>
-                per {interval === 'monthly' ? 'month' : 'year'}
+                per {interval === 'monthly' ? 'month' : 'year'} — auto-renewable
               </Text>
             </>
           ) : (
@@ -322,31 +325,6 @@ export default function PaywallScreen() {
                 <IconCheck size={12} color={isGlass(t) ? '#22c55e' : isEditorial(t) ? t.ink : '#22c55e'} strokeWidth={3} />
               </View>
               <Text style={{ fontSize: 14, color: fg, fontFamily: t.fontBody, flex: 1 }}>
-                {feature}
-              </Text>
-            </View>
-          ))}
-        </ThemedCard>
-
-        {/* Free plan comparison */}
-        <ThemedCard padding={16} style={{ marginBottom: 24, opacity: 0.7 }}>
-          <Text style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: muted,
-            fontFamily: t.fontBody,
-            marginBottom: 10,
-          }}>
-            Free plan includes
-          </Text>
-          {PLAN_FEATURES.free.map((feature, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <View style={{ width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                <IconCheck size={12} color={muted} strokeWidth={3} />
-              </View>
-              <Text style={{ fontSize: 13, color: muted, fontFamily: t.fontBody, flex: 1 }}>
                 {feature}
               </Text>
             </View>
@@ -404,8 +382,22 @@ export default function PaywallScreen() {
           </Text>
         </View>
         <Text style={{ fontSize: 10, color: muted, fontFamily: t.fontBody, textAlign: 'center', lineHeight: 16, opacity: 0.7 }}>
-          Payment charged to your {Platform.OS === 'ios' ? 'Apple ID' : 'Google'} account. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.
+          Payment charged to your {Platform.OS === 'ios' ? 'Apple ID' : 'Google'} account. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. {selectedPackage ? `${selectedPackage.product.priceString}/${interval === 'monthly' ? 'month' : 'year'}.` : ''}
         </Text>
+
+        {/* Terms and Privacy — required by Apple Guideline 3.1.2(c) */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 12, marginBottom: 8 }}>
+          <Pressable onPress={() => Linking.openURL('https://www.govirall.com/terms')}>
+            <Text style={{ fontSize: 11, color: accent, fontFamily: t.fontBody, textDecorationLine: 'underline' }}>
+              Terms of Use
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => Linking.openURL('https://www.govirall.com/privacy')}>
+            <Text style={{ fontSize: 11, color: accent, fontFamily: t.fontBody, textDecorationLine: 'underline' }}>
+              Privacy Policy
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );
