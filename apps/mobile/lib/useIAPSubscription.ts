@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { Alert } from 'react-native';
 import {
   useIAP,
@@ -6,13 +6,12 @@ import {
   type PurchaseError,
   type Subscription,
 } from 'react-native-iap';
-import { useAuth } from './auth';
 import { api } from './api';
 import { IAP_PRODUCT_IDS } from './iap';
 
 export function useIAPSubscription() {
-  const { user } = useAuth();
   const processingRef = useRef(false);
+  const iapRef = useRef<ReturnType<typeof useIAP>>(undefined);
 
   const handlePurchaseSuccess = useCallback(
     async (purchase: Purchase) => {
@@ -24,7 +23,9 @@ export function useIAPSubscription() {
           transactionId: purchase.purchaseToken ?? purchase.id,
         });
 
-        await iap.finishTransaction({ purchase, isConsumable: false });
+        if (iapRef.current) {
+          await iapRef.current.finishTransaction({ purchase, isConsumable: false });
+        }
 
         Alert.alert('Success', 'Your subscription is now active.');
       } catch (err: unknown) {
@@ -53,6 +54,10 @@ export function useIAPSubscription() {
   const iap = useIAP({
     onPurchaseSuccess: handlePurchaseSuccess,
     onPurchaseError: handlePurchaseError,
+  });
+
+  useEffect(() => {
+    iapRef.current = iap;
   });
 
   const fetchSubscriptions = useCallback(async () => {

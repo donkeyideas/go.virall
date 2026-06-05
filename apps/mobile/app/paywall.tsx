@@ -60,8 +60,10 @@ export default function PaywallScreen() {
   const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : '#7c3aed';
 
   useEffect(() => {
-    iap.fetchSubscriptions();
-  }, []);
+    if (iap.connected) {
+      iap.fetchSubscriptions();
+    }
+  }, [iap.connected]);
 
   const productId = `com.govirall.${selectedPlan}.${interval}`;
   const product = iap.getSubscription(productId);
