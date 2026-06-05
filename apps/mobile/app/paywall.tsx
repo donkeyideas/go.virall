@@ -66,9 +66,9 @@ export default function PaywallScreen() {
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
-  const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
-  const muted = t.muted;
-  const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
+  const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : '#1a1a2e';
+  const muted = isNeumorphic(t) ? '#6b7280' : t.muted;
+  const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : '#7c3aed';
 
   const getPackage = useCallback((plan: PlanKey, int: 'monthly' | 'yearly'): PurchasesPackage | undefined => {
     const productId = `com.govirall.${plan}.${int}`;
@@ -78,7 +78,10 @@ export default function PaywallScreen() {
   const selectedPackage = getPackage(selectedPlan, interval);
 
   const handlePurchase = useCallback(async () => {
-    if (!selectedPackage) return;
+    if (!selectedPackage) {
+      Alert.alert('Subscription Unavailable', 'Subscriptions are being set up. Please try again shortly.');
+      return;
+    }
     setPurchasing(true);
     const result = await purchase(selectedPackage);
     setPurchasing(false);
@@ -216,7 +219,7 @@ export default function PaywallScreen() {
                 paddingHorizontal: 24,
                 paddingVertical: 10,
                 backgroundColor: interval === int
-                  ? (isEditorial(t) ? t.ink : isGlass(t) ? t.violet : t.accent)
+                  ? (isEditorial(t) ? t.ink : '#7c3aed')
                   : 'transparent',
               }}
             >
@@ -247,9 +250,7 @@ export default function PaywallScreen() {
                 ...(selectedPlan === plan.key
                   ? isEditorial(t)
                     ? { backgroundColor: t.ink, borderWidth: 1.5, borderColor: t.ink }
-                    : isNeumorphic(t)
-                    ? { backgroundColor: t.surface, ...t.shadowOutSm.inner }
-                    : { backgroundColor: t.violet }
+                    : { backgroundColor: '#7c3aed' }
                   : isEditorial(t)
                   ? { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: t.ink }
                   : isNeumorphic(t)
@@ -334,29 +335,29 @@ export default function PaywallScreen() {
         {/* Subscribe button */}
         <Pressable
           onPress={handlePurchase}
-          disabled={purchasing || !selectedPackage}
+          disabled={purchasing}
           style={{
             height: 54,
             borderRadius: isNeumorphic(t) ? 18 : isEditorial(t) ? 2 : 16,
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 12,
-            opacity: purchasing || !selectedPackage ? 0.5 : 1,
+            opacity: purchasing ? 0.5 : 1,
             ...(isEditorial(t)
               ? { backgroundColor: t.ink }
               : isNeumorphic(t)
-              ? { backgroundColor: t.surface, ...t.shadowOutSm.outer }
+              ? { backgroundColor: '#7c3aed' }
               : { backgroundColor: t.violet }),
           }}
         >
           {purchasing ? (
-            <ActivityIndicator color={isEditorial(t) ? t.bg : '#fff'} />
+            <ActivityIndicator color="#fff" />
           ) : (
             <Text style={{
               fontSize: 16,
               fontWeight: '700',
               fontFamily: t.fontBody,
-              color: isEditorial(t) ? t.bg : isNeumorphic(t) ? t.accent : '#fff',
+              color: '#fff',
             }}>
               Subscribe to {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
             </Text>
