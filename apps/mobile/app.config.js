@@ -17,7 +17,7 @@ module.exports = ({ config }) => {
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.govirall.app',
-      buildNumber: '23',
+      buildNumber: '24',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -29,7 +29,7 @@ module.exports = ({ config }) => {
       },
       package: 'com.govirall.app',
       softwareKeyboardLayoutMode: 'pan',
-      versionCode: 18,
+      versionCode: 19,
     },
     plugins: [
       'expo-router',
@@ -37,12 +37,7 @@ module.exports = ({ config }) => {
       'expo-secure-store',
       './plugins/withAndroidGradleMemory',
       './plugins/withSwiftConcurrency',
-      [
-        'expo-build-properties',
-        {
-          ios: { deploymentTarget: '15.1' },
-        },
-      ],
+      'react-native-iap',
     ],
     experiments: {
       typedRoutes: true,

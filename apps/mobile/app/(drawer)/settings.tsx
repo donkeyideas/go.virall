@@ -35,7 +35,8 @@ import { Button } from '@/components/ui/Button';
 import { IconMoon, IconSun } from '@/components/icons/Icons';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { useAccount } from '@/lib/account-context';
-import { useSubscription } from '@/lib/revenuecat';
+import { useIAPSubscription } from '@/lib/useIAPSubscription';
+import { APPLE_SUBSCRIPTIONS_URL } from '@/lib/iap';
 import { PlatformConnectForm } from '@/components/forms/PlatformConnectForm';
 import { PaywallGate } from '@/components/ui/PaywallGate';
 import { IconCrown, IconRefresh } from '@/components/icons/Icons';
@@ -112,24 +113,17 @@ function BillingTab({ user }: { user: UserProfile | null }) {
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
   const muted = t.muted;
   const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : t.accent;
-  const { subscription, restore, loading: rcLoading } = useSubscription();
+  const iapHook = useIAPSubscription();
   const [restoring, setRestoring] = useState(false);
 
-  const tier = subscription.isActive ? subscription.tier : (user?.subscription_tier ?? 'free');
+  const tier = user?.subscription_tier ?? 'free';
   const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
   const isFree = tier === 'free';
 
   const handleRestore = async () => {
     setRestoring(true);
-    const result = await restore();
+    await iapHook.restorePurchases();
     setRestoring(false);
-    if (result.success && result.tier && result.tier !== 'free') {
-      Alert.alert('Restored', `Your ${result.tier} plan has been restored.`);
-    } else if (result.success) {
-      Alert.alert('No Purchases Found', 'No active subscriptions were found.');
-    } else {
-      Alert.alert('Restore Failed', result.error ?? 'Could not restore purchases.');
-    }
   };
 
   return (
@@ -181,10 +175,9 @@ function BillingTab({ user }: { user: UserProfile | null }) {
         ) : (
           <Pressable
             onPress={() => {
-              const url = Platform.OS === 'ios'
-                ? 'https://apps.apple.com/account/subscriptions'
-                : 'https://play.google.com/store/account/subscriptions';
-              Linking.openURL(url);
+              Linking.openURL(Platform.OS === 'ios'
+                ? APPLE_SUBSCRIPTIONS_URL
+                : 'https://play.google.com/store/account/subscriptions');
             }}
             style={{
               height: 44,

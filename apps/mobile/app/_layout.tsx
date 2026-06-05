@@ -37,7 +37,6 @@ import {
 } from '@expo-google-fonts/geist-mono';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import { AuthProvider } from '@/lib/auth';
-import { RevenueCatProvider } from '@/lib/revenuecat';
 import { AccountProvider } from '@/lib/account-context';
 
 SplashScreen.preventAutoHideAsync();
@@ -99,11 +98,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RevenueCatProvider>
-          <AccountProvider>
-            <RootNav />
-          </AccountProvider>
-        </RevenueCatProvider>
+        <AccountProvider>
+          <RootNav />
+        </AccountProvider>
       </AuthProvider>
     </ThemeProvider>
   );

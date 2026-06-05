@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,20 +12,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTokens, isGlass, isEditorial, isNeumorphic } from '@/lib/theme';
-import { useSubscription } from '@/lib/revenuecat';
-import { useAccount } from '@/lib/account-context';
+import { useIAPSubscription } from '@/lib/useIAPSubscription';
+import { TIER_TO_PRODUCTS, APPLE_SUBSCRIPTIONS_URL } from '@/lib/iap';
 import { ThemedCard } from '@/components/ui/ThemedCard';
-import { IconX, IconCheck, IconCrown, IconShield, IconStar } from '@/components/icons/Icons';
-import type { PurchasesPackage } from 'react-native-purchases';
+import { IconX, IconCheck, IconCrown, IconShield } from '@/components/icons/Icons';
 
 const PLAN_FEATURES: Record<string, string[]> = {
-  free: [
-    '1 connected account',
-    '10 analyses / month',
-    '5 content generations',
-    '5 AI strategist msgs / day',
-    'Viral score on every post',
-  ],
   creator: [
     'Up to 10 accounts',
     'Unlimited analyses',
@@ -58,94 +50,37 @@ export default function PaywallScreen() {
   const t = useTokens();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { offerings, purchase, restore, loading: rcLoading, subscription } = useSubscription();
-  const { refreshAccounts } = useAccount();
+  const iap = useIAPSubscription();
 
   const [selectedPlan, setSelectedPlan] = useState<PlanKey>('creator');
   const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
-  const [purchasing, setPurchasing] = useState(false);
-  const [restoring, setRestoring] = useState(false);
 
   const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : '#1a1a2e';
   const muted = isNeumorphic(t) ? '#6b7280' : t.muted;
   const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : '#7c3aed';
 
-  const getPackage = useCallback((plan: PlanKey, int: 'monthly' | 'yearly'): PurchasesPackage | undefined => {
-    const productId = `com.govirall.${plan}.${int}`;
-    return offerings.find((pkg) => pkg.product.identifier === productId);
-  }, [offerings]);
+  useEffect(() => {
+    iap.fetchSubscriptions();
+  }, []);
 
-  const selectedPackage = getPackage(selectedPlan, interval);
+  const productId = `com.govirall.${selectedPlan}.${interval}`;
+  const product = iap.getSubscription(productId);
+  const priceString = product?.localizedPrice ?? product?.price ?? null;
 
   const handlePurchase = useCallback(async () => {
-    if (!selectedPackage) {
-      Alert.alert('Subscription Unavailable', 'Subscriptions are being set up. Please try again shortly.');
+    if (!product) {
+      Alert.alert('Subscription Unavailable', 'Subscriptions are loading. Please try again.');
       return;
     }
-    setPurchasing(true);
-    const result = await purchase(selectedPackage);
-    setPurchasing(false);
-    if (result.success) {
-      await refreshAccounts();
-      router.back();
-    } else if (result.error && result.error !== 'Purchase cancelled') {
-      Alert.alert('Purchase Failed', result.error);
-    }
-  }, [selectedPackage, purchase, refreshAccounts, router]);
+    await iap.purchase(productId);
+  }, [product, productId, iap.purchase]);
 
   const handleRestore = useCallback(async () => {
-    setRestoring(true);
-    const result = await restore();
-    setRestoring(false);
-    if (result.success && result.tier && result.tier !== 'free') {
-      Alert.alert('Restored', `Your ${result.tier} plan has been restored.`);
-      await refreshAccounts();
-      router.back();
-    } else if (result.success) {
-      Alert.alert('No Purchases Found', 'No active subscriptions were found to restore.');
-    } else {
-      Alert.alert('Restore Failed', result.error ?? 'Could not restore purchases.');
-    }
-  }, [restore, refreshAccounts, router]);
+    await iap.restorePurchases();
+  }, [iap.restorePurchases]);
 
-  if (subscription.isActive && subscription.tier !== 'free') {
-    return (
-      <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-        <IconCrown size={48} color={accent} />
-        <Text style={{ fontSize: 24, fontWeight: '700', color: fg, fontFamily: t.fontDisplay, marginTop: 16, textAlign: 'center' }}>
-          You're on the {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)} Plan
-        </Text>
-        <Text style={{ fontSize: 14, color: muted, fontFamily: t.fontBody, marginTop: 8, textAlign: 'center' }}>
-          Your subscription is active.
-        </Text>
-        <Pressable
-          onPress={() => {
-            const url = Platform.OS === 'ios'
-              ? 'https://apps.apple.com/account/subscriptions'
-              : 'https://play.google.com/store/account/subscriptions';
-            Linking.openURL(url);
-          }}
-          style={{
-            marginTop: 24,
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderRadius: 14,
-            backgroundColor: isGlass(t) ? 'rgba(139,92,246,0.15)' : isEditorial(t) ? t.ink : t.surface,
-          }}
-        >
-          <Text style={{ color: isEditorial(t) ? t.bg : accent, fontSize: 14, fontWeight: '600', fontFamily: t.fontBody }}>
-            Manage Subscription
-          </Text>
-        </Pressable>
-        <Pressable onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: muted, fontSize: 14, fontFamily: t.fontBody }}>Close</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  const plans: Array<{ key: PlanKey; name: string; badge?: string }> = [
-    { key: 'creator', name: 'Creator', badge: 'Most Popular' },
+  const plans: Array<{ key: PlanKey; name: string }> = [
+    { key: 'creator', name: 'Creator' },
     { key: 'pro', name: 'Pro' },
     { key: 'agency', name: 'Agency' },
   ];
@@ -179,22 +114,14 @@ export default function PaywallScreen() {
         <View style={{ alignItems: 'center', marginBottom: 28 }}>
           <IconCrown size={40} color={accent} />
           <Text style={{
-            fontSize: 28,
-            fontWeight: '700',
-            color: fg,
-            fontFamily: t.fontDisplay,
-            marginTop: 12,
-            textAlign: 'center',
+            fontSize: 28, fontWeight: '700', color: fg, fontFamily: t.fontDisplay,
+            marginTop: 12, textAlign: 'center',
           }}>
             Unlock Your Full Potential
           </Text>
           <Text style={{
-            fontSize: 14,
-            color: muted,
-            fontFamily: t.fontBody,
-            marginTop: 8,
-            textAlign: 'center',
-            lineHeight: 20,
+            fontSize: 14, color: muted, fontFamily: t.fontBody,
+            marginTop: 8, textAlign: 'center', lineHeight: 20,
           }}>
             Connect more accounts, unlimited AI content, and advanced analytics.
           </Text>
@@ -202,11 +129,9 @@ export default function PaywallScreen() {
 
         {/* Interval toggle */}
         <View style={{
-          flexDirection: 'row',
-          alignSelf: 'center',
+          flexDirection: 'row', alignSelf: 'center',
           borderRadius: isNeumorphic(t) ? 16 : isEditorial(t) ? 2 : 14,
-          overflow: 'hidden',
-          marginBottom: 20,
+          overflow: 'hidden', marginBottom: 20,
           backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.04)' : isEditorial(t) ? t.surfaceAlt : t.surface,
           ...(isNeumorphic(t) ? t.shadowOutSm.inner : {}),
           ...(isEditorial(t) ? { borderWidth: 1.5, borderColor: t.ink } : {}),
@@ -216,20 +141,14 @@ export default function PaywallScreen() {
               key={int}
               onPress={() => setInterval(int)}
               style={{
-                paddingHorizontal: 24,
-                paddingVertical: 10,
-                backgroundColor: interval === int
-                  ? (isEditorial(t) ? t.ink : '#7c3aed')
-                  : 'transparent',
+                paddingHorizontal: 24, paddingVertical: 10,
+                backgroundColor: interval === int ? (isEditorial(t) ? t.ink : '#7c3aed') : 'transparent',
               }}
             >
               <Text style={{
-                fontSize: 13,
-                fontWeight: interval === int ? '700' : '500',
+                fontSize: 13, fontWeight: interval === int ? '700' : '500',
                 fontFamily: t.fontBody,
-                color: interval === int
-                  ? (isEditorial(t) ? t.bg : '#fff')
-                  : muted,
+                color: interval === int ? (isEditorial(t) ? t.bg : '#fff') : muted,
               }}>
                 {int === 'monthly' ? 'Monthly' : 'Yearly (Save 20%)'}
               </Text>
@@ -244,8 +163,7 @@ export default function PaywallScreen() {
               key={plan.key}
               onPress={() => setSelectedPlan(plan.key)}
               style={{
-                paddingHorizontal: 18,
-                paddingVertical: 10,
+                paddingHorizontal: 18, paddingVertical: 10,
                 borderRadius: isNeumorphic(t) ? 16 : isEditorial(t) ? 2 : 12,
                 ...(selectedPlan === plan.key
                   ? isEditorial(t)
@@ -259,12 +177,9 @@ export default function PaywallScreen() {
               }}
             >
               <Text style={{
-                fontSize: 14,
-                fontWeight: selectedPlan === plan.key ? '700' : '500',
+                fontSize: 14, fontWeight: selectedPlan === plan.key ? '700' : '500',
                 fontFamily: t.fontBody,
-                color: selectedPlan === plan.key
-                  ? (isEditorial(t) ? t.bg : '#fff')
-                  : muted,
+                color: selectedPlan === plan.key ? (isEditorial(t) ? t.bg : '#fff') : muted,
               }}>
                 {plan.name}
               </Text>
@@ -272,58 +187,41 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Price display with required subscription info */}
+        {/* Price display */}
         <View style={{ alignItems: 'center', marginBottom: 24 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: accent, fontFamily: t.fontBody, marginBottom: 6, letterSpacing: 0.5 }}>
             {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan
           </Text>
-          {rcLoading ? (
-            <ActivityIndicator size="small" color={accent} />
-          ) : selectedPackage ? (
+          {priceString ? (
             <>
-              <Text style={{
-                fontSize: 42,
-                fontWeight: '800',
-                color: fg,
-                fontFamily: t.fontDisplay,
-              }}>
-                {selectedPackage.product.priceString}
+              <Text style={{ fontSize: 42, fontWeight: '800', color: fg, fontFamily: t.fontDisplay }}>
+                {priceString}
               </Text>
               <Text style={{ fontSize: 14, color: muted, fontFamily: t.fontBody, marginTop: 4 }}>
                 per {interval === 'monthly' ? 'month' : 'year'} — auto-renewable
               </Text>
             </>
           ) : (
-            <Text style={{ fontSize: 14, color: muted, fontFamily: t.fontBody }}>
-              Price unavailable
-            </Text>
+            <ActivityIndicator size="small" color={accent} />
           )}
         </View>
 
         {/* Features list */}
         <ThemedCard padding={20} style={{ marginBottom: 20 }}>
           <Text style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: muted,
-            fontFamily: t.fontBody,
-            marginBottom: 14,
+            fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase',
+            color: muted, fontFamily: t.fontBody, marginBottom: 14,
           }}>
             What you get
           </Text>
           {(PLAN_FEATURES[selectedPlan] ?? []).map((feature, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <View style={{
-                width: 22,
-                height: 22,
-                borderRadius: 11,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: isGlass(t) ? 'rgba(34,197,94,0.15)' : isEditorial(t) ? t.lime : 'rgba(34,197,94,0.15)',
+                width: 22, height: 22, borderRadius: 11,
+                justifyContent: 'center', alignItems: 'center',
+                backgroundColor: 'rgba(34,197,94,0.15)',
               }}>
-                <IconCheck size={12} color={isGlass(t) ? '#22c55e' : isEditorial(t) ? t.ink : '#22c55e'} strokeWidth={3} />
+                <IconCheck size={12} color="#22c55e" strokeWidth={3} />
               </View>
               <Text style={{ fontSize: 14, color: fg, fontFamily: t.fontBody, flex: 1 }}>
                 {feature}
@@ -335,45 +233,33 @@ export default function PaywallScreen() {
         {/* Subscribe button */}
         <Pressable
           onPress={handlePurchase}
-          disabled={purchasing}
+          disabled={iap.purchasing}
           style={{
             height: 54,
             borderRadius: isNeumorphic(t) ? 18 : isEditorial(t) ? 2 : 16,
-            justifyContent: 'center',
-            alignItems: 'center',
+            justifyContent: 'center', alignItems: 'center',
             marginBottom: 12,
-            opacity: purchasing ? 0.5 : 1,
-            ...(isEditorial(t)
-              ? { backgroundColor: t.ink }
-              : isNeumorphic(t)
-              ? { backgroundColor: '#7c3aed' }
-              : { backgroundColor: t.violet }),
+            opacity: iap.purchasing ? 0.5 : 1,
+            backgroundColor: isEditorial(t) ? t.ink : '#7c3aed',
           }}
         >
-          {purchasing ? (
+          {iap.purchasing ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={{
-              fontSize: 16,
-              fontWeight: '700',
-              fontFamily: t.fontBody,
-              color: '#fff',
-            }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', fontFamily: t.fontBody, color: '#fff' }}>
               Subscribe to {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
             </Text>
           )}
         </Pressable>
 
         {/* Restore purchases */}
-        <Pressable onPress={handleRestore} disabled={restoring} style={{ alignItems: 'center', paddingVertical: 12 }}>
-          {restoring ? (
-            <ActivityIndicator size="small" color={muted} />
-          ) : (
+        {Platform.OS === 'ios' && (
+          <Pressable onPress={handleRestore} style={{ alignItems: 'center', paddingVertical: 12 }}>
             <Text style={{ fontSize: 13, color: accent, fontFamily: t.fontBody, fontWeight: '500' }}>
               Restore Purchases
             </Text>
-          )}
-        </Pressable>
+          </Pressable>
+        )}
 
         {/* Legal */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, marginBottom: 8 }}>
@@ -383,10 +269,10 @@ export default function PaywallScreen() {
           </Text>
         </View>
         <Text style={{ fontSize: 10, color: muted, fontFamily: t.fontBody, textAlign: 'center', lineHeight: 16, opacity: 0.7 }}>
-          Payment charged to your {Platform.OS === 'ios' ? 'Apple ID' : 'Google'} account. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. {selectedPackage ? `${selectedPackage.product.priceString}/${interval === 'monthly' ? 'month' : 'year'}.` : ''}
+          {priceString ? `${priceString}/${interval === 'monthly' ? 'month' : 'year'}. ` : ''}Payment charged to your {Platform.OS === 'ios' ? 'Apple ID' : 'Google'} account. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.
         </Text>
 
-        {/* Terms and Privacy — required by Apple Guideline 3.1.2(c) */}
+        {/* Terms and Privacy */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 12, marginBottom: 8 }}>
           <Pressable onPress={() => Linking.openURL('https://www.govirall.com/terms')}>
             <Text style={{ fontSize: 11, color: accent, fontFamily: t.fontBody, textDecorationLine: 'underline' }}>
