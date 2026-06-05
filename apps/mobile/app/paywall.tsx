@@ -55,8 +55,8 @@ export default function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState<PlanKey>('creator');
   const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
 
-  const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : '#1a1a2e';
-  const muted = isNeumorphic(t) ? '#6b7280' : t.muted;
+  const fg = isGlass(t) ? t.fg : isEditorial(t) ? t.ink : t.fg;
+  const muted = t.muted;
   const accent = isGlass(t) ? t.violet : isEditorial(t) ? t.ink : '#7c3aed';
 
   useEffect(() => {

@@ -17,7 +17,7 @@ module.exports = ({ config }) => {
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.govirall.app',
-      buildNumber: '27',
+      buildNumber: '28',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
