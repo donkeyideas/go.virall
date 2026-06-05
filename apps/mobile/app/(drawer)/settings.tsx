@@ -56,6 +56,7 @@ interface UserProfile {
   mission: string | null;
   avatar_url: string | null;
   subscription_tier: string | null;
+  subscription_renews_at: string | null;
   free_platform_override: number | null;
 }
 
@@ -143,9 +144,9 @@ function BillingTab({ user }: { user: UserProfile | null }) {
             <Text style={{ fontSize: 18, fontWeight: '700', color: fg, fontFamily: t.fontDisplay }}>
               {tierLabel} Plan
             </Text>
-            {subscription.isActive && subscription.expiresAt && (
+            {!isFree && user?.subscription_renews_at && (
               <Text style={{ fontSize: 12, color: muted, fontFamily: t.fontBody, marginTop: 2 }}>
-                {subscription.willRenew ? 'Renews' : 'Expires'} {new Date(subscription.expiresAt).toLocaleDateString()}
+                Renews {new Date(user.subscription_renews_at).toLocaleDateString()}
               </Text>
             )}
           </View>
@@ -201,7 +202,7 @@ function BillingTab({ user }: { user: UserProfile | null }) {
       <ThemedCard padding={16}>
         <Pressable
           onPress={handleRestore}
-          disabled={restoring || rcLoading}
+          disabled={restoring}
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 4 }}
         >
           {restoring ? (
