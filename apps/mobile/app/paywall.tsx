@@ -67,7 +67,8 @@ export default function PaywallScreen() {
 
   const productId = `com.govirall.${selectedPlan}.${interval}`;
   const product = iap.getSubscription(productId);
-  const priceString = product?.localizedPrice ?? product?.price ?? null;
+  const priceString = product?.localizedPrice
+    || (product?.price != null ? `$${Number(product.price).toFixed(2)}` : null);
 
   const handlePurchase = useCallback(async () => {
     if (!product) {
@@ -88,7 +89,7 @@ export default function PaywallScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: isGlass(t) ? 'transparent' : t.bg }}>
+    <View style={{ flex: 1, backgroundColor: isGlass(t) ? '#0a0618' : t.bg }}>
       {/* Close button */}
       <Pressable
         onPress={() => router.back()}
@@ -102,7 +103,7 @@ export default function PaywallScreen() {
           borderRadius: 18,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.08)' : isEditorial(t) ? t.surfaceAlt : t.surface,
+          backgroundColor: isGlass(t) ? 'rgba(255,255,255,0.08)' : isEditorial(t) ? t.surfaceAlt : 'rgba(0,0,0,0.06)',
         }}
       >
         <IconX size={18} color={muted} />
