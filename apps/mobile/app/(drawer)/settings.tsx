@@ -174,27 +174,44 @@ function BillingTab({ user }: { user: UserProfile | null }) {
             </Text>
           </Pressable>
         ) : (
-          <Pressable
-            onPress={() => {
-              Linking.openURL(Platform.OS === 'ios'
-                ? APPLE_SUBSCRIPTIONS_URL
-                : 'https://play.google.com/store/account/subscriptions');
-            }}
-            style={{
-              height: 44,
-              borderRadius: isNeumorphic(t) ? 14 : isEditorial(t) ? 2 : 12,
-              justifyContent: 'center', alignItems: 'center',
-              borderWidth: isEditorial(t) ? 1.5 : 1,
-              borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.border.color : t.surfaceDarker,
-              backgroundColor: 'transparent',
-            }}
-          >
-            <Text style={{
-              fontSize: 14, fontWeight: '600', fontFamily: t.fontBody, color: accent,
-            }}>
-              Manage Subscription
-            </Text>
-          </Pressable>
+          <View style={{ gap: 10 }}>
+            <Pressable
+              onPress={() => router.push('/paywall')}
+              style={{
+                height: 48,
+                borderRadius: isNeumorphic(t) ? 16 : isEditorial(t) ? 2 : 14,
+                justifyContent: 'center', alignItems: 'center',
+                backgroundColor: isEditorial(t) ? t.ink : '#7c3aed',
+              }}
+            >
+              <Text style={{
+                fontSize: 15, fontWeight: '700', fontFamily: t.fontBody, color: '#fff',
+              }}>
+                Change Plan
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                Linking.openURL(Platform.OS === 'ios'
+                  ? APPLE_SUBSCRIPTIONS_URL
+                  : 'https://play.google.com/store/account/subscriptions');
+              }}
+              style={{
+                height: 44,
+                borderRadius: isNeumorphic(t) ? 14 : isEditorial(t) ? 2 : 12,
+                justifyContent: 'center', alignItems: 'center',
+                borderWidth: isEditorial(t) ? 1.5 : 1,
+                borderColor: isGlass(t) ? t.line : isEditorial(t) ? t.border.color : t.surfaceDarker,
+                backgroundColor: 'transparent',
+              }}
+            >
+              <Text style={{
+                fontSize: 14, fontWeight: '600', fontFamily: t.fontBody, color: accent,
+              }}>
+                Manage Subscription
+              </Text>
+            </Pressable>
+          </View>
         )}
       </ThemedCard>
 
