@@ -42,7 +42,7 @@ export function softwareAppSchema() {
     '@type': 'SoftwareApplication',
     name: 'Go Virall',
     applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web',
+    operatingSystem: 'Web, iOS, Android',
     url: BASE,
     description:
       'Social intelligence platform for content creators. Viral score predictions, AI content studio, audience analytics, and SMO scoring across Instagram, TikTok, YouTube, X, LinkedIn, Facebook, and Twitch.',
@@ -52,14 +52,14 @@ export function softwareAppSchema() {
         price: '0',
         priceCurrency: 'USD',
         name: 'Free',
-        description: '3 platforms, 10 analyses/month, 5 content generations',
+        description: '1 connected account, 10 analyses/month, 5 content generations, 5 AI messages/day, Viral score',
       },
       {
         '@type': 'Offer',
         price: '29',
         priceCurrency: 'USD',
         name: 'Creator',
-        description: '7 platforms, unlimited analyses, full AI access',
+        description: 'Up to 10 accounts, unlimited analyses, unlimited content generations, full AI strategist access, audience intelligence, revenue tracking',
       },
     ],
     featureList: [

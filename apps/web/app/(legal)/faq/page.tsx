@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: 'Is Go Virall free?',
-    a: 'Yes. The free plan includes 3 connected platforms, 10 analyses per month, 5 content generations, and 5 AI strategist messages per day. You can upgrade to the Creator plan ($29/mo) for unlimited access.',
+    a: 'Yes. The free plan includes 1 connected account, 10 analyses per month, 5 content generations, and 5 AI strategist messages per day. You can upgrade to the Creator plan ($29/mo) for unlimited access. The app is available on the web, iOS, and Android.',
   },
   {
     q: 'What platforms do you support?',
