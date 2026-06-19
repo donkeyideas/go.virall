@@ -6,9 +6,9 @@ import { MarketingFooter } from '../components/marketing/Footer';
 import { CustomPlanCard } from '../components/marketing/CustomPlanCard';
 
 export const metadata: Metadata = {
-  title: 'Go Virall - The Fintech Creator Platform | Social Intelligence for Creators',
+  title: 'Go Virall — AI Social Intelligence for Creators',
   description:
-    'The best fintech social media platform for creators. Predict viral posts with AI-powered social intelligence, cross-platform creator metrics, and content strategy tools across 7 platforms. Free to start.',
+    'Predict viral posts, track cross-platform metrics, and grow your audience with AI-powered content tools. 7 platforms supported. Free to start.',
   keywords: [
     'fintech creator platform',
     'fintech social intelligence',
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Go Virall - The Fintech Creator Platform',
+    title: 'Go Virall — AI Social Intelligence for Creators',
     description:
-      'The fintech social intelligence platform for creators. Predict viral posts 0-100, AI content studio, cross-platform creator metrics across 7 platforms.',
+      'Predict viral posts, track cross-platform metrics, and grow your audience with AI-powered content tools. Free to start.',
     type: 'website',
   },
 };
@@ -487,6 +487,30 @@ export default async function LandingPage() {
             </span>
           ))}
         </div>
+      </section>
+
+      {/* Social Proof */}
+      <section style={{ padding: '40px 28px', borderBottom: '1px solid var(--rule)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 40, flexWrap: 'wrap' }}>
+          {[
+            { value: '7', label: 'Platforms supported' },
+            { value: '4', label: 'AI content tools' },
+            { value: '0-100', label: 'Viral Score range' },
+            { value: '24/7', label: 'AI strategist access' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 900, fontSize: 32, fontStyle: 'italic', letterSpacing: '-.02em' }}>
+                {stat.value}
+              </div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, letterSpacing: '.15em', color: '#666', marginTop: 4 }}>
+                {stat.label.toUpperCase()}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{ textAlign: 'center', marginTop: 20, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: '.1em', color: '#888' }}>
+          AVAILABLE ON WEB, IOS &amp; ANDROID &mdash; FREE TO START
+        </p>
       </section>
 
       {/* Features Section */}
