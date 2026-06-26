@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPublicPlans } from '../../../lib/actions/admin/plans';
 import { CustomPlanCard } from '../../../components/marketing/CustomPlanCard';
+import { JsonLd, productSchema } from '../../../lib/seo/json-ld';
+
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: 'Fintech Creator Analytics Free Trial | Go Virall Pricing',
@@ -23,6 +26,8 @@ export default async function PricingPage() {
 
   return (
     <main>
+      <JsonLd data={productSchema(plans)} />
+
       {/* Hero */}
       <section style={{ padding: '100px 28px 40px', textAlign: 'center' }}>
         <div

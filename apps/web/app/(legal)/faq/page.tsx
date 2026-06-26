@@ -3,6 +3,8 @@ import { JsonLd, faqPageSchema, breadcrumbSchema } from '../../../lib/seo/json-l
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.govirall.com';
 
+export const revalidate = 604800;
+
 export const metadata: Metadata = {
   title: 'FAQ - Frequently Asked Questions',
   description:

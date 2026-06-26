@@ -5,6 +5,9 @@ import { getPublicPlans } from '../lib/actions/admin/plans';
 import { MarketingFooter } from '../components/marketing/Footer';
 import { CustomPlanCard } from '../components/marketing/CustomPlanCard';
 
+// ISR: cache the data/RSC layer for anonymous traffic (revalidate daily)
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Go Virall — AI Social Intelligence for Creators',
   description:

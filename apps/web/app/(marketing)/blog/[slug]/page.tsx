@@ -4,6 +4,20 @@ import { notFound } from 'next/navigation';
 import { createAdminClient } from '@govirall/db/admin';
 import { JsonLd } from '../../../../lib/seo/json-ld';
 
+export const revalidate = 3600;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from('blog_posts')
+    .select('slug')
+    .eq('status', 'published')
+    .not('published_at', 'is', null);
+
+  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }));
+}
+
 interface BlogPost {
   id: string;
   title: string;
@@ -132,12 +146,13 @@ export default async function BlogPostPage({
           &larr; BACK TO BLOG
         </Link>
 
-        {/* Tags */}
+        {/* Tags -> topic clusters */}
         {post.tags && post.tags.length > 0 && (
           <div style={{ display: 'flex', gap: 8, marginTop: 28, flexWrap: 'wrap' }}>
             {post.tags.map((tag) => (
-              <span
+              <Link
                 key={tag}
+                href={`/blog/tag/${encodeURIComponent(tag.toLowerCase())}`}
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 10,
@@ -147,10 +162,12 @@ export default async function BlogPostPage({
                   borderRadius: 999,
                   opacity: 0.7,
                   fontWeight: 600,
+                  textDecoration: 'none',
+                  color: 'inherit',
                 }}
               >
                 {tag.toUpperCase()}
-              </span>
+              </Link>
             ))}
           </div>
         )}

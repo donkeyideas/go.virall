@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+export const revalidate = 604800;
+
 export const metadata: Metadata = {
   title: 'Privacy Policy - How Go Virall Protects Your Data',
   description:

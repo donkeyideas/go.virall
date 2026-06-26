@@ -7,8 +7,6 @@ import {
   Inter,
   JetBrains_Mono,
 } from 'next/font/google';
-import { createServerClient } from '@govirall/db/server';
-import { createAdminClient } from '@govirall/db/admin';
 import { JsonLd, organizationSchema, websiteSchema } from '../lib/seo/json-ld';
 import './globals.css';
 
@@ -85,33 +83,19 @@ export const viewport: Viewport = {
   themeColor: '#0a0618',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Read user's saved theme if authenticated; fallback to neon-editorial for landing pages
-  let theme = 'neon-editorial';
-  try {
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const admin = createAdminClient();
-      const { data } = await admin
-        .from('users')
-        .select('theme')
-        .eq('id', user.id)
-        .single();
-      if (data?.theme) theme = data.theme;
-    }
-  } catch {
-    // Not authenticated or DB error — use default
-  }
-
+  // Static default theme so the root layout stays cacheable (no cookie read =
+  // marketing/legal/blog can be statically prerendered / ISR for anonymous SEO
+  // traffic). Authenticated routes apply the user's saved theme in
+  // (dashboard)/layout.tsx, which is dynamic by design.
   return (
     <html
       lang="en"
-      data-theme={theme}
+      data-theme="neon-editorial"
       className={`${instrumentSerif.variable} ${fraunces.variable} ${manrope.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <head>

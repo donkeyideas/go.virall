@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAdminClient } from '@govirall/db/admin';
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: 'Blog | Fintech Creator Insights & Social Media Strategy',
   description:
@@ -132,10 +134,10 @@ export default async function BlogPage() {
             }}
           >
             {posts.map((post) => (
-              <Link
+              <div
                 key={post.id}
-                href={`/blog/${post.slug}`}
                 style={{
+                  position: 'relative',
                   border: '1.5px solid var(--ink)',
                   borderRadius: 16,
                   padding: 28,
@@ -143,87 +145,105 @@ export default async function BlogPage() {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   minHeight: 260,
-                  textDecoration: 'none',
-                  color: 'inherit',
                   transition: 'transform 120ms ease, box-shadow 120ms ease',
                 }}
               >
-                <div>
-                  <div
+                {/* Tag chip -> topic cluster (separate link to avoid nested anchors) */}
+                {post.tags && post.tags.length > 0 && (
+                  <Link
+                    href={`/blog/tag/${encodeURIComponent(post.tags[0].toLowerCase())}`}
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: 14,
+                      position: 'absolute',
+                      top: 28,
+                      right: 28,
+                      zIndex: 1,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 10,
+                      letterSpacing: '.12em',
+                      padding: '4px 10px',
+                      border: '1px solid var(--ink)',
+                      borderRadius: 999,
+                      opacity: 0.6,
+                      textDecoration: 'none',
+                      color: 'inherit',
                     }}
                   >
-                    <time
-                      dateTime={post.published_at}
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 11,
-                        letterSpacing: '.1em',
-                        opacity: 0.5,
-                      }}
-                    >
-                      {new Date(post.published_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </time>
-                    {post.tags && post.tags.length > 0 && (
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontSize: 10,
-                          letterSpacing: '.12em',
-                          padding: '4px 10px',
-                          border: '1px solid var(--ink)',
-                          borderRadius: 999,
-                          opacity: 0.6,
-                        }}
-                      >
-                        {post.tags[0].toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <h2
-                    style={{
-                      fontFamily: "'Fraunces', serif",
-                      fontWeight: 900,
-                      fontSize: 24,
-                      letterSpacing: '-.02em',
-                      lineHeight: 1.15,
-                      marginBottom: 10,
-                    }}
-                  >
-                    {post.title}
-                  </h2>
-                  {post.excerpt && (
-                    <p
-                      style={{
-                        fontSize: 14,
-                        lineHeight: 1.6,
-                        opacity: 0.7,
-                      }}
-                    >
-                      {post.excerpt}
-                    </p>
-                  )}
-                </div>
-                <div
+                    {post.tags[0].toUpperCase()}
+                  </Link>
+                )}
+                <Link
+                  href={`/blog/${post.slug}`}
                   style={{
-                    marginTop: 20,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 12,
-                    letterSpacing: '.1em',
-                    opacity: 0.6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    flex: 1,
+                    textDecoration: 'none',
+                    color: 'inherit',
                   }}
                 >
-                  READ &rarr;
-                </div>
-              </Link>
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: 14,
+                      }}
+                    >
+                      <time
+                        dateTime={post.published_at}
+                        style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 11,
+                          letterSpacing: '.1em',
+                          opacity: 0.5,
+                        }}
+                      >
+                        {new Date(post.published_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </time>
+                    </div>
+                    <h2
+                      style={{
+                        fontFamily: "'Fraunces', serif",
+                        fontWeight: 900,
+                        fontSize: 24,
+                        letterSpacing: '-.02em',
+                        lineHeight: 1.15,
+                        marginBottom: 10,
+                      }}
+                    >
+                      {post.title}
+                    </h2>
+                    {post.excerpt && (
+                      <p
+                        style={{
+                          fontSize: 14,
+                          lineHeight: 1.6,
+                          opacity: 0.7,
+                        }}
+                      >
+                        {post.excerpt}
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 20,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 12,
+                      letterSpacing: '.1em',
+                      opacity: 0.6,
+                    }}
+                  >
+                    READ &rarr;
+                  </div>
+                </Link>
+              </div>
             ))}
           </div>
         )}

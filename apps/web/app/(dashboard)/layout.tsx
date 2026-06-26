@@ -38,14 +38,25 @@ export default async function DashboardLayout({
   const theme = profile?.theme ?? 'glassmorphic';
 
   return (
-    <DashboardShell
-      theme={theme}
-      displayName={profile?.display_name ?? user.email ?? ''}
-      avatarUrl={profile?.avatar_url ?? undefined}
-      handle={profile?.handle ?? undefined}
-      isAdmin={profile?.role === 'admin'}
-    >
-      {children}
-    </DashboardShell>
+    <>
+      {/* Apply the user's theme to <html> before paint to avoid a flash of the
+          static root-layout default (the root layout no longer reads cookies). */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(
+            theme,
+          )});`,
+        }}
+      />
+      <DashboardShell
+        theme={theme}
+        displayName={profile?.display_name ?? user.email ?? ''}
+        avatarUrl={profile?.avatar_url ?? undefined}
+        handle={profile?.handle ?? undefined}
+        isAdmin={profile?.role === 'admin'}
+      >
+        {children}
+      </DashboardShell>
+    </>
   );
 }

@@ -73,6 +73,41 @@ export function softwareAppSchema() {
   };
 }
 
+/**
+ * Product schema for the pricing page. Uses AggregateOffer (lowPrice/highPrice
+ * derived from the plans) and per-plan Offers (same Offer shape as
+ * softwareAppSchema). No aggregateRating — there's no real review data and
+ * faking it risks a Google structured-data penalty.
+ */
+export function productSchema(plans: { name: string; priceMonthly: number }[]) {
+  const prices = plans.map((p) => p.priceMonthly / 100);
+  const lowPrice = prices.length ? Math.min(...prices) : 0;
+  const highPrice = prices.length ? Math.max(...prices) : 0;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Go Virall',
+    description:
+      'Social intelligence platform for content creators. Viral score predictions, AI content studio, audience analytics, and SMO scoring across Instagram, TikTok, YouTube, X, LinkedIn, Facebook, and Twitch.',
+    brand: { '@type': 'Brand', name: 'Go Virall' },
+    url: `${BASE}/pricing`,
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'USD',
+      lowPrice: String(lowPrice),
+      highPrice: String(highPrice),
+      offerCount: plans.length,
+      offers: plans.map((p) => ({
+        '@type': 'Offer',
+        name: p.name,
+        price: String(p.priceMonthly / 100),
+        priceCurrency: 'USD',
+      })),
+    },
+  };
+}
+
 export function webPageSchema(title: string, description: string, url: string) {
   return {
     '@context': 'https://schema.org',

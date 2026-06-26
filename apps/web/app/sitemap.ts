@@ -26,13 +26,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/delete-account`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   ];
 
-  /* Dynamic blog posts */
+  /* Dynamic blog posts + topic-cluster tag pages */
   let blogPages: MetadataRoute.Sitemap = [];
+  let tagPages: MetadataRoute.Sitemap = [];
   try {
     const admin = createAdminClient();
     const { data: posts } = await admin
       .from('blog_posts')
-      .select('slug, published_at, updated_at')
+      .select('slug, tags, published_at, updated_at')
       .eq('status', 'published')
       .not('published_at', 'is', null)
       .order('published_at', { ascending: false });
@@ -44,10 +45,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly' as const,
         priority: 0.7,
       }));
+
+      /* Distinct lowercased tags -> /blog/tag/[tag] cluster pages */
+      const tags = new Set<string>();
+      for (const post of posts as { tags: string[] | null }[]) {
+        for (const t of post.tags ?? []) {
+          if (t.trim()) tags.add(t.toLowerCase());
+        }
+      }
+      tagPages = Array.from(tags).map((tag) => ({
+        url: `${BASE}/blog/tag/${encodeURIComponent(tag)}`,
+        lastModified: now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      }));
     }
   } catch {
     // Sitemap should not break if DB is unreachable
   }
 
-  return [...staticPages, ...blogPages];
+  return [...staticPages, ...blogPages, ...tagPages];
 }

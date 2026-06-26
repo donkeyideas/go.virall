@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+export const revalidate = 604800;
+
 export const metadata: Metadata = {
   title: 'Delete Your Account - Remove Go Virall Data',
   description:
