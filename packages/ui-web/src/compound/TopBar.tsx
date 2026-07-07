@@ -14,9 +14,27 @@ type Props = {
 export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
   const isEditorial = theme === 'neon-editorial';
   const router = useRouter();
-  const [syncing, startSync] = useTransition();
+  const [isRefreshing, startRefresh] = useTransition();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const syncing = isSyncing || isRefreshing;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  async function handleSync() {
+    if (syncing) return;
+    setIsSyncing(true);
+    try {
+      // Actually re-scrape the user's connected accounts, then re-render with
+      // the fresh data. (Previously this button only called router.refresh(),
+      // which re-rendered stale DB data and never triggered a real sync.)
+      await fetch('/api/platforms/sync', { method: 'POST' });
+    } catch {
+      // Network error / timeout — still refresh to surface any partial updates.
+    } finally {
+      setIsSyncing(false);
+      startRefresh(() => router.refresh());
+    }
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -140,8 +158,9 @@ export function TopBar({ theme, displayName, avatarUrl, isAdmin }: Props) {
 
       {/* Refresh button */}
       <button
-        onClick={() => startSync(() => router.refresh())}
+        onClick={handleSync}
         disabled={syncing}
+        title="Sync connected accounts"
         style={{
           width: 44,
           height: 44,
