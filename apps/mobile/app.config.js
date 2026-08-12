@@ -3,7 +3,7 @@ module.exports = ({ config }) => {
     ...config,
     name: 'Go Virall',
     slug: 'go-virall',
-    version: '1.6.0',
+    version: '1.6.1',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'govirall',
@@ -17,7 +17,7 @@ module.exports = ({ config }) => {
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.govirall.app',
-      buildNumber: '30',
+      buildNumber: '31',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -29,7 +29,7 @@ module.exports = ({ config }) => {
       },
       package: 'com.govirall.app',
       softwareKeyboardLayoutMode: 'pan',
-      versionCode: 21,
+      versionCode: 22,
     },
     plugins: [
       'expo-router',
